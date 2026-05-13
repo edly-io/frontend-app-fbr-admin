@@ -10,15 +10,17 @@ import ReactDOM from 'react-dom';
 import Header from '@edx/frontend-component-header';
 import Footer from '@edx/frontend-component-footer';
 import messages from './i18n';
-import ExamplePage from './example/ExamplePage';
+import AdminConsolePage from './AdminConsolePage';
 
+import '@edx/brand/dist/core.css';
+import '@edx/brand/dist/light.css';
 import './index.scss';
 
 subscribe(APP_READY, () => {
   ReactDOM.render(
     <AppProvider>
       <Header />
-      <ExamplePage />
+      <AdminConsolePage />
       <Footer />
     </AppProvider>,
     document.getElementById('root'),

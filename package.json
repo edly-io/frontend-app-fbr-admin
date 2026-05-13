@@ -1,10 +1,10 @@
 {
-  "name": "@edx/frontend-template-application",
+  "name": "@edx/frontend-app-admin-console",
   "version": "0.1.0",
-  "description": "Frontend application template",
+  "description": "FBR Admin Console MFE",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/openedx/frontend-template-application.git"
+    "url": "git+https://github.com/fbr/frontend-app-admin-console.git"
   },
   "browserslist": [
     "extends @edx/browserslist-config"
@@ -16,6 +16,7 @@
     "lint:fix": "fedx-scripts eslint --fix --ext .js --ext .jsx .",
     "snapshot": "fedx-scripts jest --updateSnapshot",
     "start": "fedx-scripts webpack-dev-server --progress",
+    "dev": "PUBLIC_PATH=/admin-console/ MFE_CONFIG_API_URL='http://apps.local.openedx.io:8000/api/mfe_config/v1' fedx-scripts webpack-dev-server --progress --host apps.local.openedx.io",
     "start:with-theme": "paragon install-theme && npm start && npm install",
     "test": "fedx-scripts jest --coverage --passWithNoTests"
   },
@@ -34,7 +35,7 @@
     "url": "https://github.com/openedx/frontend-template-application/issues"
   },
   "dependencies": {
-    "@edx/brand": "npm:@openedx/brand-openedx@^1.2.2",
+    "@edx/brand": "git+https://github.com/edly-io/brand-openedx.git#ulmo/fbr",
     "@edx/frontend-component-footer": "13.0.3",
     "@edx/frontend-component-header": "5.0.2",
     "@edx/frontend-platform": "7.1.1",
@@ -43,11 +44,12 @@
     "@fortawesome/free-regular-svg-icons": "5.15.4",
     "@fortawesome/free-solid-svg-icons": "5.15.4",
     "@fortawesome/react-fontawesome": "0.2.0",
-    "@openedx/paragon": "^22.0.0",
+    "@openedx/paragon": "^23.4.5",
     "core-js": "3.36.0",
     "prop-types": "15.8.1",
     "react": "17.0.2",
     "react-dom": "17.0.2",
+    "react-intl": "6.8.9",
     "react-redux": "7.2.9",
     "react-router": "6.22.3",
     "react-router-dom": "6.22.3",
