@@ -9,10 +9,11 @@ import {
 } from '@openedx/paragon';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
-  faUsers, faUserCheck, faEye, faPen, faEllipsisV, faDownload, faPlus,
-  faSync, faCheck, faTimes, faChevronLeft, faChevronRight,
+  faUsers, faUserCheck, faEye, faPen, faEllipsisV, faPlus,
+  faSync, faCheck, faTimes, faChevronLeft, faChevronRight, faUpload,
 } from '@fortawesome/free-solid-svg-icons';
 import AddUserModal from './components/AddUserModal';
+import BulkImportUsersModal from './components/BulkImportUsersModal';
 import ViewUserModal from './components/ViewUserModal';
 import DebouncedSearchInput from './components/DebouncedSearchInput';
 
@@ -270,6 +271,8 @@ const BIODATA_USER_ADMIN_CREATE_PATH = '/fbr/api/biodata/v1/users/admins/';
 const BIODATA_USER_INSTRUCTOR_CREATE_PATH = '/fbr/api/biodata/v1/users/instructors/';
 const BIODATA_USER_TRAINEE_CREATE_PATH = '/fbr/api/biodata/v1/users/trainees/';
 const BIODATA_USER_UNREGISTERED_PATH = '/fbr/api/biodata/v1/users/unregistered/';
+const BIODATA_USER_BULK_IMPORT_SAMPLE_PATH = '/fbr/api/biodata/v1/users/bulk-import/sample/';
+const BIODATA_USER_BULK_IMPORT_PATH = '/fbr/api/biodata/v1/users/bulk-import/';
 const BIODATA_EDIT_REQUESTS_PATH = '/fbr/api/biodata/v1/edit-requests/';
 
 const ROLE_LABELS = {
@@ -369,6 +372,8 @@ const getLmsUrl = path => `${getConfig().LMS_BASE_URL}${path}`;
 const getBiodataUserDetailUrl = id => `${getConfig().LMS_BASE_URL}/fbr/api/biodata/v1/users/${id}/`;
 const getBiodataUnregisteredUsersUrl = () => `${getConfig().LMS_BASE_URL}${BIODATA_USER_UNREGISTERED_PATH}`;
 const getBiodataAssignRoleUrl = id => `${getConfig().LMS_BASE_URL}/fbr/api/biodata/v1/users/${id}/assign-role/`;
+const getBiodataBulkImportSampleUrl = role => `${getConfig().LMS_BASE_URL}${BIODATA_USER_BULK_IMPORT_SAMPLE_PATH}?role=${encodeURIComponent(role)}`;
+const getBiodataBulkImportUrl = () => `${getConfig().LMS_BASE_URL}${BIODATA_USER_BULK_IMPORT_PATH}`;
 const getBiodataEditRequestsUrl = () => `${getConfig().LMS_BASE_URL}${BIODATA_EDIT_REQUESTS_PATH}`;
 const getBiodataEditRequestResolveUrl = id => `${getConfig().LMS_BASE_URL}${BIODATA_EDIT_REQUESTS_PATH}${id}/resolve/`;
 
@@ -488,7 +493,7 @@ ActionMenu.defaultProps = {
 // ─── Users view ───────────────────────────────────────────────────────────────
 
 const UsersView = ({
-  onAdd, onEdit, onView, reloadKey,
+  onAdd, onImport, onEdit, onView, reloadKey,
 }) => {
   const [users, setUsers] = useState([]);
   const [totalUsers, setTotalUsers] = useState(0);
@@ -610,8 +615,8 @@ const UsersView = ({
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '6px' }}>
         <h1 style={{ fontSize: '22px', fontWeight: 700, color: 'var(--pgn-color-text-base)', margin: 0 }}>Users</h1>
         <div style={{ display: 'flex', gap: '10px', marginTop: '2px' }}>
-          <Button variant="outline-primary" size="sm">
-            <FontAwesomeIcon icon={faDownload} style={{ marginRight: '6px' }} />
+          <Button variant="outline-primary" size="sm" onClick={onImport}>
+            <FontAwesomeIcon icon={faUpload} style={{ marginRight: '6px' }} />
             Import
           </Button>
           <Button variant="primary" size="sm" onClick={onAdd}>
@@ -765,6 +770,7 @@ const UsersView = ({
 
 UsersView.propTypes = {
   onAdd: PropTypes.func.isRequired,
+  onImport: PropTypes.func.isRequired,
   onEdit: PropTypes.func.isRequired,
   onView: PropTypes.func.isRequired,
   reloadKey: PropTypes.number.isRequired,
@@ -1185,6 +1191,7 @@ PlaceholderView.propTypes = { title: PropTypes.string.isRequired };
 const AdminConsolePage = () => {
   const [activeNav, setActiveNav] = useState('users');
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showBulkImportModal, setShowBulkImportModal] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
   const [assignmentUser, setAssignmentUser] = useState(null);
   const [viewingUser, setViewingUser] = useState(null);
@@ -1244,6 +1251,7 @@ const AdminConsolePage = () => {
   };
 
   const handleAdd = () => { setEditingUser(null); setAssignmentUser(null); setShowAddModal(true); };
+  const handleImport = () => { setShowBulkImportModal(true); };
   const handleEdit = async (user) => {
     const detail = user?.instructor_profile !== undefined || user?.trainee_profile !== undefined
       ? user
@@ -1262,6 +1270,24 @@ const AdminConsolePage = () => {
     setShowAddModal(true);
   };
   const handleModalClose = () => { setShowAddModal(false); setEditingUser(null); setAssignmentUser(null); };
+  const handleBulkImport = async ({ role, file, dryRun }) => {
+    const formData = new FormData();
+    formData.append('role', role);
+    formData.append('dry_run', dryRun ? 'true' : 'false');
+    formData.append('file', file);
+
+    const { data } = await getAuthenticatedHttpClient().post(getBiodataBulkImportUrl(), formData);
+    if (!dryRun) {
+      setUserListReloadKey(prev => prev + 1);
+    }
+    return data;
+  };
+  const handleDownloadBulkImportSample = async (role) => {
+    const { data } = await getAuthenticatedHttpClient().get(getBiodataBulkImportSampleUrl(role), {
+      responseType: 'blob',
+    });
+    return data;
+  };
   const handleCreateUser = async ({
     id, assignmentUserId, role, payload,
   }) => {
@@ -1297,6 +1323,7 @@ const AdminConsolePage = () => {
       default: return (
         <UsersView
           onAdd={handleAdd}
+          onImport={handleImport}
           onEdit={handleEdit}
           onView={handleView}
           reloadKey={userListReloadKey}
@@ -1350,6 +1377,14 @@ const AdminConsolePage = () => {
           callerProfile={callerProfile}
           cities={cities}
           batches={batches}
+        />
+      )}
+      {showBulkImportModal && (
+        <BulkImportUsersModal
+          onClose={() => setShowBulkImportModal(false)}
+          onImport={handleBulkImport}
+          onDownloadSample={handleDownloadBulkImportSample}
+          allowedRoles={callerProfile.creatable_roles}
         />
       )}
       {viewingUser && (
