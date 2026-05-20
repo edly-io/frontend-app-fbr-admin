@@ -673,7 +673,7 @@ const UsersView = ({
       )}
 
       {/* Table */}
-      <div style={{ background: '#fff', borderRadius: '10px', border: '1px solid var(--pgn-color-border)', overflow: 'hidden' }}>
+      <div style={{ background: '#fff', borderRadius: '10px', border: '1px solid var(--pgn-color-border)', overflow: 'visible' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13.5px' }}>
           <thead>
             <tr style={{ background: 'var(--pgn-color-gray-100)', borderBottom: '1px solid var(--pgn-color-border)' }}>
@@ -710,10 +710,10 @@ const UsersView = ({
                 <td style={{ padding: '12px 16px' }}><StatusBadge status={user.status} /></td>
                 <td style={{ padding: '12px 16px' }}>
                   <div style={{ display: 'flex', gap: '2px', justifyContent: 'center', alignItems: 'center' }}>
-                    <Button variant="tertiary" size="sm" title="View" onClick={() => onView(user)}>
+                    <Button variant="tertiary" size="sm" title="View" onClick={() => onView(user, activeTab)}>
                       <FontAwesomeIcon icon={faEye} />
                     </Button>
-                    <Button variant="tertiary" size="sm" title="Edit" onClick={() => onEdit(user)}>
+                    <Button variant="tertiary" size="sm" title="Edit" onClick={() => onEdit(user, activeTab)}>
                       <FontAwesomeIcon icon={faPen} />
                     </Button>
                     <ActionMenu
@@ -721,8 +721,8 @@ const UsersView = ({
                       userStatus={user.status}
                       openId={openMenuId}
                       setOpenId={setOpenMenuId}
-                      onView={() => onView(user)}
-                      onEdit={() => onEdit(user)}
+                      onView={() => onView(user, activeTab)}
+                      onEdit={() => onEdit(user, activeTab)}
                       onDeactivate={() => setUsers(prev => prev.map(u => u.id === user.id ? { ...u, status: u.status === 'Active' ? 'Inactive' : 'Active' } : u))}
                     />
                   </div>
@@ -1195,6 +1195,10 @@ const AdminConsolePage = () => {
   const [editingUser, setEditingUser] = useState(null);
   const [assignmentUser, setAssignmentUser] = useState(null);
   const [viewingUser, setViewingUser] = useState(null);
+  const [viewSourceTab, setViewSourceTab] = useState('all');
+  const [editSourceTab, setEditSourceTab] = useState('all');
+  const [editSourceRole, setEditSourceRole] = useState(null);
+  const [editProfileMode, setEditProfileMode] = useState('single');
   const [pendingApprovalsCount, setPendingApprovalsCount] = useState(0);
   const [pendingEditRequestsCount, setPendingEditRequestsCount] = useState(0);
   const [approvalReloadKey, setApprovalReloadKey] = useState(0);
@@ -1250,26 +1254,53 @@ const AdminConsolePage = () => {
     };
   };
 
-  const handleAdd = () => { setEditingUser(null); setAssignmentUser(null); setShowAddModal(true); };
+  const handleAdd = () => {
+    setEditingUser(null);
+    setAssignmentUser(null);
+    setEditSourceTab('all');
+    setEditSourceRole(null);
+    setEditProfileMode('single');
+    setShowAddModal(true);
+  };
   const handleImport = () => { setShowBulkImportModal(true); };
-  const handleEdit = async (user) => {
-    const detail = user?.instructor_profile !== undefined || user?.trainee_profile !== undefined
-      ? user
-      : await fetchUserDetail(user);
+  const handleEdit = async (user, sourceTab = 'all') => {
+    const sourceRole = TABS.find(t => t.id === sourceTab)?.role || null;
+    const detail = await fetchUserDetail(user);
+    const resolvedRole = (() => {
+      if (!sourceRole) return null;
+      if (sourceRole === 'instructor' && detail.instructor_profile) return 'instructor';
+      if (sourceRole === 'trainee' && detail.trainee_profile) return 'trainee';
+      const roles = Array.isArray(detail.roles) ? detail.roles : [];
+      return roles.includes(sourceRole) ? sourceRole : null;
+    })();
+    setEditSourceTab(sourceTab);
+    setEditSourceRole(resolvedRole);
+    setEditProfileMode(sourceTab === 'all' ? 'all' : 'single');
     setEditingUser(detail);
     setAssignmentUser(null);
     setShowAddModal(true);
   };
-  const handleView = async (user) => {
+  const handleView = async (user, sourceTab = 'all') => {
+    setViewSourceTab(sourceTab);
     const detail = await fetchUserDetail(user);
     setViewingUser(detail);
   };
   const handleAssignApproval = (user) => {
     setEditingUser(null);
     setAssignmentUser(user);
+    setEditSourceTab('all');
+    setEditSourceRole(null);
+    setEditProfileMode('single');
     setShowAddModal(true);
   };
-  const handleModalClose = () => { setShowAddModal(false); setEditingUser(null); setAssignmentUser(null); };
+  const handleModalClose = () => {
+    setShowAddModal(false);
+    setEditingUser(null);
+    setAssignmentUser(null);
+    setEditSourceTab('all');
+    setEditSourceRole(null);
+    setEditProfileMode('single');
+  };
   const handleBulkImport = async ({ role, file, dryRun }) => {
     const formData = new FormData();
     formData.append('role', role);
@@ -1377,6 +1408,9 @@ const AdminConsolePage = () => {
           callerProfile={callerProfile}
           cities={cities}
           batches={batches}
+          editSourceTab={editSourceTab}
+          editSourceRole={editSourceRole}
+          editProfileMode={editProfileMode}
         />
       )}
       {showBulkImportModal && (
@@ -1390,8 +1424,9 @@ const AdminConsolePage = () => {
       {viewingUser && (
         <ViewUserModal
           user={viewingUser}
+          sourceTab={viewSourceTab}
           onClose={() => setViewingUser(null)}
-          onEdit={(user) => { setViewingUser(null); handleEdit(user); }}
+          onEdit={(user) => { setViewingUser(null); handleEdit(user, viewSourceTab); }}
         />
       )}
     </main>

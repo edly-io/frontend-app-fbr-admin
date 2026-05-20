@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import { Button } from '@openedx/paragon';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -25,6 +25,16 @@ const TRAINEE_TYPE_LABELS = {
   dst_ist: 'DST / IST',
 };
 
+const SOURCE_TAB_TO_PROFILE = {
+  instructors: 'instructor',
+  trainees: 'trainee',
+};
+
+const PROFILE_TABS = [
+  { id: 'instructor', label: 'Instructor Profile' },
+  { id: 'trainee', label: 'Trainee Profile' },
+];
+
 const getRoleLabels = user => (
   Array.isArray(user.roles) && user.roles.length
     ? user.roles.map(role => ROLE_LABELS[role] || role)
@@ -34,6 +44,45 @@ const getRoleLabels = user => (
 const formatDate = (value) => {
   if (!value) return '';
   return value;
+};
+
+const getAvailableProfileTabs = (user) => {
+  if (!user) return [];
+  return PROFILE_TABS.filter(t => (
+    (t.id === 'instructor' && !!user.instructor_profile)
+    || (t.id === 'trainee' && !!user.trainee_profile)
+  ));
+};
+
+const getInitialProfileTab = (user, sourceTab) => {
+  if (!user) return null;
+  const preferred = SOURCE_TAB_TO_PROFILE[sourceTab];
+  if (preferred === 'instructor' && user.instructor_profile) return 'instructor';
+  if (preferred === 'trainee' && user.trainee_profile) return 'trainee';
+  if (user.instructor_profile) return 'instructor';
+  if (user.trainee_profile) return 'trainee';
+  return null;
+};
+
+const getBiodataProfileUrl = (user) => {
+  if (
+    !user?.trainee_profile
+    || user.trainee_profile?.trainee_type !== 'stp'
+    || !user?.id
+  ) {
+    return null;
+  }
+
+  if (typeof window === 'undefined') {
+    return null;
+  }
+
+  const url = new URL(
+    '/profile/u/',
+    `${window.location.protocol}//${window.location.hostname}:1995`,
+  );
+  url.searchParams.set('for_user', String(user.id));
+  return url.toString();
 };
 
 const DetailCell = ({ label, value }) => {
@@ -69,13 +118,22 @@ DetailSection.propTypes = {
   children: PropTypes.node.isRequired,
 };
 
-const ViewUserModal = ({ user, onClose, onEdit }) => {
+const ViewUserModal = ({ user, onClose, onEdit, sourceTab }) => {
+  const availableProfileTabs = getAvailableProfileTabs(user);
+  const [activeProfileTab, setActiveProfileTab] = useState(
+    () => getInitialProfileTab(user, sourceTab),
+  );
+
   if (!user) return null;
 
   const roles = getRoleLabels(user);
   const instructor = user.instructor_profile;
   const trainee = user.trainee_profile;
   const avatarValue = user.photo || user.initials || '?';
+  const showProfileTabs = availableProfileTabs.length > 1;
+  const biodataProfileUrl = getBiodataProfileUrl(user);
+  const showInstructor = instructor && (!showProfileTabs || activeProfileTab === 'instructor');
+  const showTrainee = trainee && (!showProfileTabs || activeProfileTab === 'trainee');
 
   return (
     <div
@@ -114,6 +172,34 @@ const ViewUserModal = ({ user, onClose, onEdit }) => {
             </div>
           </div>
 
+          {showProfileTabs && (
+            <div style={{ borderBottom: '2px solid var(--pgn-color-gray-100)', display: 'flex', padding: '0 28px' }}>
+              {availableProfileTabs.map(tab => {
+                const isActive = activeProfileTab === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    onClick={() => setActiveProfileTab(tab.id)}
+                    style={{
+                      padding: '10px 16px',
+                      border: 'none',
+                      cursor: 'pointer',
+                      fontSize: '13.5px',
+                      fontWeight: isActive ? 600 : 400,
+                      color: isActive ? 'var(--pgn-color-primary-base)' : 'var(--pgn-color-text-light)',
+                      background: 'transparent',
+                      borderBottom: isActive ? '2px solid var(--pgn-color-primary-base)' : '2px solid transparent',
+                      marginBottom: '-2px',
+                    }}
+                  >
+                    {tab.label}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
           <DetailSection title="PROFILE INFORMATION">
             <DetailCell label="Email" value={user.email} />
             <DetailCell label="Mobile" value={user.mobile} />
@@ -128,14 +214,14 @@ const ViewUserModal = ({ user, onClose, onEdit }) => {
             <DetailCell label="Education Year" value={user.education_year} />
           </DetailSection>
 
-          {instructor && (
+          {showInstructor && (
             <DetailSection title="INSTRUCTOR PROFILE">
               <DetailCell label="Field of Expertise" value={instructor.field_of_expertise} />
               <DetailCell label="Languages, Awards, Publications" value={instructor.languages_awards_publications} />
             </DetailSection>
           )}
 
-          {trainee && (
+          {showTrainee && (
             <DetailSection title="TRAINEE PROFILE">
               <DetailCell label="Trainee Type" value={TRAINEE_TYPE_LABELS[trainee.trainee_type] || trainee.trainee_type} />
               <DetailCell label="Batch" value={trainee.batch?.name} />
@@ -150,6 +236,14 @@ const ViewUserModal = ({ user, onClose, onEdit }) => {
         </div>
 
         <div style={{ padding: '14px 28px', borderTop: '1px solid var(--pgn-color-border)', display: 'flex', justifyContent: 'flex-end', gap: '10px', flexShrink: 0 }}>
+          {biodataProfileUrl && (
+            <Button
+              variant="outline-primary"
+              onClick={() => { window.open(biodataProfileUrl, '_blank', 'noopener,noreferrer'); }}
+            >
+              Open Biodata Form
+            </Button>
+          )}
           <Button variant="tertiary" onClick={onClose}>
             <FontAwesomeIcon icon={faTimes} style={{ fontSize: '11px', marginRight: '6px' }} />
             Close
@@ -168,10 +262,12 @@ ViewUserModal.propTypes = {
   user: PropTypes.shape({}),
   onClose: PropTypes.func.isRequired,
   onEdit: PropTypes.func.isRequired,
+  sourceTab: PropTypes.string,
 };
 
 ViewUserModal.defaultProps = {
   user: null,
+  sourceTab: 'all',
 };
 
 export default ViewUserModal;

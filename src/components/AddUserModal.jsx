@@ -17,6 +17,11 @@ const TRAINEE_TYPES = [
   { id: 'dst_ist', label: 'DST / IST', desc: 'Domain / in-service training' },
 ];
 
+const TRAINEE_TYPE_LABELS = {
+  stp: 'STP',
+  dst_ist: 'DST / IST',
+};
+
 const ROLE_LABELS = {
   super_admin: 'Super Admin',
   middle_admin: 'Middle Admin',
@@ -49,6 +54,7 @@ const F = {
 
 const ADMIN_ROLES = ['super_admin', 'middle_admin', 'data_admin'];
 const NUMBER_KEYS = ['bps_grade', 'city', 'batch', 'education_year'];
+const PROFILE_ROLE_OPTIONS = ['instructor', 'trainee'];
 
 const normalizeValue = value => (typeof value === 'string' ? value.trim() : value);
 
@@ -58,6 +64,34 @@ const getPrimaryRole = (user) => {
   if (user.trainee_profile) return 'trainee';
   if (user.instructor_profile) return 'instructor';
   return roles.find(role => ADMIN_ROLES.includes(role)) || roles[0] || null;
+};
+
+const getAvailableEditProfileRoles = (user) => {
+  if (!user) return [];
+  return PROFILE_ROLE_OPTIONS.filter(role => (
+    (role === 'instructor' && !!user.instructor_profile)
+    || (role === 'trainee' && !!user.trainee_profile)
+  ));
+};
+
+const getInitialEditRole = (user, editSourceTab, editSourceRole) => {
+  if (!user) return editSourceRole || null;
+  const availableEditProfileRoles = getAvailableEditProfileRoles(user);
+
+  if (
+    editSourceRole
+    && availableEditProfileRoles.includes(editSourceRole)
+    && ['instructors', 'trainees'].includes(editSourceTab)
+  ) {
+    return editSourceRole;
+  }
+
+  if (editSourceTab === 'instructors' && user.instructor_profile) return 'instructor';
+  if (editSourceTab === 'trainees' && user.trainee_profile) return 'trainee';
+  if (availableEditProfileRoles.includes('instructor')) return 'instructor';
+  if (availableEditProfileRoles.includes('trainee')) return 'trainee';
+
+  return getPrimaryRole(user);
 };
 
 const getCreateFieldsForRole = (role, traineeType, shouldShowCity) => {
@@ -342,10 +376,15 @@ const AddUserModal = ({
   batches,
   editUser,
   assignmentUser,
+  editSourceTab,
+  editSourceRole,
+  editProfileMode,
 }) => {
   const isEdit = !!editUser;
   const isAssignment = !!assignmentUser;
-  const editRole = getPrimaryRole(editUser);
+  const availableEditProfileRoles = useMemo(() => getAvailableEditProfileRoles(editUser), [editUser]);
+  const editRole = isEdit ? getInitialEditRole(editUser, editSourceTab, editSourceRole) : null;
+  const showEditProfileTabs = isEdit && editProfileMode === 'all' && availableEditProfileRoles.length > 1;
   const visibleRoles = useMemo(() => ROLE_OPTIONS.filter(role => allowedRoles.includes(role.id)), [allowedRoles]);
   const defaultRole = editRole || visibleRoles[0]?.id || 'instructor';
   const initialTraineeType = editUser?.trainee_profile?.trainee_type || 'stp';
@@ -477,9 +516,38 @@ const AddUserModal = ({
               ROLE <span style={{ color: '#E53E3E' }}>*</span>
             </label>
             {isEdit ? (
-              <span style={{ background: 'var(--pgn-color-primary-light)', color: 'var(--pgn-color-primary-base)', border: '1.5px solid var(--pgn-color-primary-base)', padding: '6px 14px', borderRadius: '8px', fontSize: '13px', fontWeight: 600, display: 'inline-flex' }}>
-                {ROLE_LABELS[selectedRole] || selectedRole}
-              </span>
+              showEditProfileTabs ? (
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                  {availableEditProfileRoles.map((role) => {
+                    const active = selectedRole === role;
+                    return (
+                      <button
+                        key={role}
+                        type="button"
+                        onClick={() => setSelectedRole(role)}
+                        style={{
+                          minWidth: '140px',
+                          padding: '10px 14px',
+                          borderRadius: '8px',
+                          cursor: 'pointer',
+                          border: `1.5px solid ${active ? 'var(--pgn-color-primary-base)' : 'var(--pgn-color-border)'}`,
+                          background: active ? 'var(--pgn-color-primary-light)' : '#fff',
+                          color: active ? 'var(--pgn-color-primary-base)' : 'var(--pgn-color-gray-900)',
+                          fontSize: '13px',
+                          fontWeight: 600,
+                          textAlign: 'center',
+                        }}
+                      >
+                        {ROLE_LABELS[role] || role}
+                      </button>
+                    );
+                  })}
+                </div>
+              ) : (
+                <span style={{ background: 'var(--pgn-color-primary-light)', color: 'var(--pgn-color-primary-base)', border: '1.5px solid var(--pgn-color-primary-base)', padding: '6px 14px', borderRadius: '8px', fontSize: '13px', fontWeight: 600, display: 'inline-flex' }}>
+                  {ROLE_LABELS[selectedRole] || selectedRole}
+                </span>
+              )
             ) : (
               <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                 {visibleRoles.map((role) => {
@@ -508,7 +576,7 @@ const AddUserModal = ({
             )}
           </div>
 
-          {selectedRole === 'trainee' && (
+          {selectedRole === 'trainee' && !isEdit && (
             <div style={{ marginBottom: '20px' }}>
               <label style={{ fontSize: '10.5px', fontWeight: 700, color: 'var(--pgn-color-text-light)', letterSpacing: '0.07em', display: 'block', marginBottom: '8px' }}>
                 TRAINEE TYPE <span style={{ color: '#E53E3E' }}>*</span>
@@ -537,6 +605,17 @@ const AddUserModal = ({
                   );
                 })}
               </div>
+            </div>
+          )}
+
+          {selectedRole === 'trainee' && isEdit && (
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ fontSize: '10.5px', fontWeight: 700, color: 'var(--pgn-color-text-light)', letterSpacing: '0.07em', display: 'block', marginBottom: '8px' }}>
+                TRAINEE TYPE <span style={{ color: '#E53E3E' }}>*</span>
+              </label>
+              <span style={{ background: 'var(--pgn-color-primary-light)', color: 'var(--pgn-color-primary-base)', border: '1.5px solid var(--pgn-color-primary-base)', padding: '6px 14px', borderRadius: '8px', fontSize: '13px', fontWeight: 600, display: 'inline-flex' }}>
+                {TRAINEE_TYPE_LABELS[traineeType] || traineeType}
+              </span>
             </div>
           )}
 
@@ -614,6 +693,9 @@ AddUserModal.propTypes = {
     first_name: PropTypes.string,
     last_name: PropTypes.string,
   }),
+  editSourceTab: PropTypes.string,
+  editSourceRole: PropTypes.string,
+  editProfileMode: PropTypes.oneOf(['all', 'single']),
 };
 
 AddUserModal.defaultProps = {
@@ -623,6 +705,9 @@ AddUserModal.defaultProps = {
   batches: [],
   editUser: null,
   assignmentUser: null,
+  editSourceTab: 'all',
+  editSourceRole: null,
+  editProfileMode: 'single',
 };
 
 export default AddUserModal;
