@@ -58,6 +58,35 @@ const PROFILE_ROLE_OPTIONS = ['instructor', 'trainee'];
 
 const normalizeValue = value => (typeof value === 'string' ? value.trim() : value);
 
+const sanitizeCnicValue = value => String(value || '').replace(/\D/g, '').slice(0, 13);
+
+const getPakistanMobileSubscriber = (value) => {
+  let digits = String(value || '').replace(/\D/g, '');
+  if (digits.startsWith('92')) digits = digits.slice(2);
+  if (digits.startsWith('0')) digits = digits.slice(1);
+  if (digits && digits[0] !== '3') digits = '';
+  return digits.slice(0, 10);
+};
+
+const formatPakistanMobileValue = value => `+92${getPakistanMobileSubscriber(value)}`;
+
+const normalizeFieldInputValue = (field, value) => {
+  if (field.id === 'cnic') return sanitizeCnicValue(value);
+  if (field.id === 'mobile' || field.id === 'emergencyContactPhone') return formatPakistanMobileValue(value);
+  return value;
+};
+
+const normalizePayloadFieldValue = (field, value) => {
+  if (field.id === 'cnic') return sanitizeCnicValue(value);
+  if (field.id === 'mobile' || field.id === 'emergencyContactPhone') {
+    const subscriber = getPakistanMobileSubscriber(value);
+    return subscriber ? `+92${subscriber}` : '';
+  }
+  return normalizeValue(value);
+};
+
+const isValidPakistanMobile = value => /^3\d{9}$/.test(getPakistanMobileSubscriber(value));
+
 const getPrimaryRole = (user) => {
   if (!user) return null;
   const roles = Array.isArray(user.roles) ? user.roles : [];
@@ -183,7 +212,7 @@ const getInitialValues = (user) => {
   return {
     fullName: user.full_name || '',
     email: user.email || '',
-    cnic: user.cnic || '',
+    cnic: sanitizeCnicValue(user.cnic),
     mobile: user.mobile || '',
     fieldOrganisation: user.field_organisation || '',
     city: user.city?.id || '',
@@ -208,7 +237,7 @@ const toCreatePayload = (role, traineeType, values, shouldSendCity) => {
   const payload = {};
 
   fields.forEach((field) => {
-    const value = normalizeValue(values[field.id]);
+    const value = normalizePayloadFieldValue(field, values[field.id]);
     if (value !== undefined && value !== null && value !== '') {
       payload[field.key] = NUMBER_KEYS.includes(field.key) ? Number(value) : value;
     }
@@ -219,30 +248,7 @@ const toCreatePayload = (role, traineeType, values, shouldSendCity) => {
   return payload;
 };
 
-const toAssignPayload = (role, traineeType, values, shouldSendCity) => {
-  const fields = getCreateFieldsForRole(role, traineeType, shouldSendCity).flat();
-  const payload = { role };
-
-  fields.forEach((field) => {
-    const value = normalizeValue(values[field.id]);
-    if (value === undefined || value === null || value === '') return;
-    const finalValue = NUMBER_KEYS.includes(field.key) ? Number(value) : value;
-
-    if (field.group === 'instructor_profile' || field.group === 'trainee_profile') {
-      payload[field.group] = payload[field.group] || {};
-      payload[field.group][field.key] = finalValue;
-    } else {
-      payload[field.key] = finalValue;
-    }
-  });
-
-  if (role === 'trainee') {
-    payload.trainee_profile = payload.trainee_profile || {};
-    payload.trainee_profile.trainee_type = traineeType;
-  }
-
-  return payload;
-};
+const toAssignPayload = role => ({ role });
 
 const toEditPayload = (role, traineeType, values) => {
   const payload = {};
@@ -250,7 +256,7 @@ const toEditPayload = (role, traineeType, values) => {
   const fields = getEditSections(role, traineeType).flatMap(section => section.rows.flat());
 
   fields.forEach((field) => {
-    const value = normalizeValue(values[field.id]);
+    const value = normalizePayloadFieldValue(field, values[field.id]);
     const normalized = value === '' ? null : value;
     const finalValue = NUMBER_KEYS.includes(field.key) && normalized !== null ? Number(normalized) : normalized;
 
@@ -305,12 +311,16 @@ const FieldRow = ({
           />
         );
       } else {
+        const isCnicField = field.id === 'cnic';
+        const isMobileField = field.id === 'mobile' || field.id === 'emergencyContactPhone';
         input = (
           <Form.Control
-            type={field.type}
-            value={values[field.id] || ''}
-            onChange={e => onChange(field.id, e.target.value)}
+            type={isCnicField || isMobileField ? 'text' : field.type}
+            value={isMobileField ? formatPakistanMobileValue(values[field.id]) : isCnicField ? sanitizeCnicValue(values[field.id]) : values[field.id] || ''}
+            onChange={e => onChange(field.id, normalizeFieldInputValue(field, e.target.value))}
             placeholder={field.placeholder}
+            inputMode={isCnicField || isMobileField ? 'numeric' : undefined}
+            maxLength={isCnicField ? 13 : isMobileField ? 13 : undefined}
             isInvalid={!!err}
           />
         );
@@ -390,11 +400,7 @@ const AddUserModal = ({
   const initialTraineeType = editUser?.trainee_profile?.trainee_type || 'stp';
   const [selectedRole, setSelectedRole] = useState(defaultRole);
   const [traineeType, setTraineeType] = useState(initialTraineeType);
-  const getAssignmentValues = user => ({
-    fullName: [user?.first_name, user?.last_name].filter(Boolean).join(' ') || user?.username || '',
-    email: user?.email || '',
-  });
-  const [values, setValues] = useState(() => (isAssignment ? getAssignmentValues(assignmentUser) : getInitialValues(editUser)));
+  const [values, setValues] = useState(() => getInitialValues(editUser));
   const [errors, setErrors] = useState({});
   const [apiError, setApiError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -405,7 +411,7 @@ const AddUserModal = ({
 
   useEffect(() => {
     setTraineeType(initialTraineeType);
-    setValues(isAssignment ? getAssignmentValues(assignmentUser) : getInitialValues(editUser));
+    setValues(getInitialValues(editUser));
     setErrors({});
     setApiError('');
   }, [assignmentUser, editUser, initialTraineeType, isAssignment]);
@@ -431,16 +437,28 @@ const AddUserModal = ({
   };
 
   const validate = () => {
+    if (isAssignment) {
+      return {};
+    }
+
     const nextErrors = {};
     const fields = isEdit ? editSections.flatMap(section => section.rows.flat()) : createFields.flat();
 
     fields.forEach((field) => {
-      if (field.required && !normalizeValue(values[field.id])) {
+      if (field.required && (field.id === 'mobile' || field.id === 'emergencyContactPhone') && !getPakistanMobileSubscriber(values[field.id])) {
+        nextErrors[field.id] = 'This field is required';
+      } else if (field.required && !normalizeValue(values[field.id])) {
         nextErrors[field.id] = 'This field is required';
       }
     });
     if (values.cnic && !/^\d{13}$/.test(values.cnic)) {
       nextErrors.cnic = 'CNIC must be 13 digits without dashes';
+    }
+    if (getPakistanMobileSubscriber(values.mobile) && !isValidPakistanMobile(values.mobile)) {
+      nextErrors.mobile = 'Mobile must start with 3 and contain 10 digits after +92';
+    }
+    if (values.emergencyContactPhone && getPakistanMobileSubscriber(values.emergencyContactPhone) && !isValidPakistanMobile(values.emergencyContactPhone)) {
+      nextErrors.emergencyContactPhone = 'Emergency phone must start with 3 and contain 10 digits after +92';
     }
     if (selectedRole === 'trainee' && values.bpsGrade && Number.isNaN(Number(values.bpsGrade))) {
       nextErrors.bpsGrade = 'Enter a numeric grade';
@@ -468,7 +486,7 @@ const AddUserModal = ({
         payload: isEdit
           ? toEditPayload(selectedRole, traineeType, values)
           : isAssignment
-            ? toAssignPayload(selectedRole, traineeType, values, shouldShowCity)
+            ? toAssignPayload(selectedRole)
           : toCreatePayload(selectedRole, traineeType, values, shouldShowCity),
       });
       onClose();
@@ -481,7 +499,7 @@ const AddUserModal = ({
   };
 
   const title = isEdit ? 'Edit User' : isAssignment ? 'Approve Sign-in' : 'Add User';
-  const subtitle = isEdit ? 'Update account and profile details' : isAssignment ? 'Create an FBR profile and assign access' : 'Create a new account and send credentials by WhatsApp';
+  const subtitle = isEdit ? 'Update account and profile details' : isAssignment ? 'Assign a role and create the FBR profile' : 'Create a new account and send credentials by WhatsApp';
 
   return (
     <div
@@ -625,19 +643,28 @@ const AddUserModal = ({
             </div>
           )}
 
-          {shouldShowCity && cities.length === 0 && (
+          {!isAssignment && shouldShowCity && cities.length === 0 && (
             <div style={{ background: '#FFF8E5', color: '#7A4D00', border: '1px solid #F0D28A', borderRadius: '6px', padding: '10px 12px', marginBottom: '14px', fontSize: '13.5px' }}>
               No cities are available yet. Add cities before creating Middle Admin or Data Admin accounts.
             </div>
           )}
 
-          {selectedRole === 'trainee' && traineeType === 'stp' && batches.length === 0 && (
+          {!isAssignment && selectedRole === 'trainee' && traineeType === 'stp' && batches.length === 0 && (
             <div style={{ background: '#FFF8E5', color: '#7A4D00', border: '1px solid #F0D28A', borderRadius: '6px', padding: '10px 12px', marginBottom: '14px', fontSize: '13.5px' }}>
               No batches are available yet. Add batches before creating STP trainee accounts.
             </div>
           )}
 
-          {isEdit ? (
+          {isAssignment ? (
+            <>
+              <SectionHeader title="SIGN-IN APPROVAL" note="Role only; profile details can be completed later." />
+              <div style={{ background: 'var(--pgn-color-gray-100)', border: '1px solid var(--pgn-color-border)', borderRadius: '8px', padding: '14px 16px' }}>
+                <p style={{ margin: 0, fontSize: '13px', color: 'var(--pgn-color-gray-900)' }}>
+                  This approval will create an FBR profile for <strong>{assignmentUser?.email || assignmentUser?.username}</strong> and assign the selected role.
+                </p>
+              </div>
+            </>
+          ) : isEdit ? (
             editSections.map(section => (
               <React.Fragment key={section.title}>
                 <SectionHeader title={section.title} note={section.note} />
@@ -655,7 +682,7 @@ const AddUserModal = ({
             </>
           )}
 
-          {selectedRole === 'trainee' && (
+          {!isAssignment && selectedRole === 'trainee' && (
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--pgn-color-text-light)', fontSize: '12px', marginTop: '6px' }}>
               <FontAwesomeIcon icon={faHome} />
               <span>Batch is required only for STP trainees.</span>
@@ -665,7 +692,7 @@ const AddUserModal = ({
 
         <div style={{ padding: '14px 28px', borderTop: '1px solid var(--pgn-color-border)', display: 'flex', justifyContent: 'flex-end', gap: '10px', background: '#fff', flexShrink: 0 }}>
           <Button variant="tertiary" onClick={onClose} disabled={isSubmitting}>Cancel</Button>
-          <Button variant="primary" onClick={handleSubmit} disabled={isSubmitting || (!isEdit && visibleRoles.length === 0) || (shouldShowCity && cities.length === 0) || (selectedRole === 'trainee' && traineeType === 'stp' && batches.length === 0)}>
+          <Button variant="primary" onClick={handleSubmit} disabled={isSubmitting || (!isEdit && visibleRoles.length === 0) || (!isAssignment && shouldShowCity && cities.length === 0) || (!isAssignment && selectedRole === 'trainee' && traineeType === 'stp' && batches.length === 0)}>
             <FontAwesomeIcon icon={faCheck} style={{ fontSize: '12px', marginRight: '7px' }} />
             {isSubmitting ? 'Saving...' : isEdit ? 'Update User' : isAssignment ? 'Approve User' : 'Create User'}
           </Button>
