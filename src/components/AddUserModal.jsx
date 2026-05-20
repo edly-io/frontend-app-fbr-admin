@@ -1,135 +1,261 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import PropTypes from 'prop-types';
 import { Button, Form } from '@openedx/paragon';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCheck, faUserCircle, faHome } from '@fortawesome/free-solid-svg-icons';
+import { faCheck, faHome, faUserCircle } from '@fortawesome/free-solid-svg-icons';
 
-// ─── Constants ───────────────────────────────────────────────────────────────
-
-const ROLES_DEF = [
-  { id: 'super-admin', label: 'Super Admin', desc: 'Platform-wide' },
-  { id: 'middle-admin', label: 'Middle Admin', desc: 'City + programme' },
-  { id: 'data-admin', label: 'Data Admin', desc: 'Campus ops' },
+const ROLE_OPTIONS = [
+  { id: 'super_admin', label: 'Super Admin', desc: 'Platform-wide' },
+  { id: 'middle_admin', label: 'Middle Admin', desc: 'City scope' },
+  { id: 'data_admin', label: 'Data Admin', desc: 'Operations' },
   { id: 'instructor', label: 'Instructor', desc: 'Trainer' },
   { id: 'trainee', label: 'Trainee', desc: 'Learner' },
 ];
 
-const ROLE_CONTEXT = {
-  'super-admin': 'Super Admin · platform-wide access',
-  'middle-admin': 'Middle Admin · city + programme scope',
-  'data-admin': 'Data Admin · campus operations',
-  instructor: 'Instructor bio-data (summary)',
-  trainee: { stp: 'STP Trainee · BPS-17 probationer (full)', 'dst-ist': 'DST / IST Trainee · serving officer (summary)' },
+const TRAINEE_TYPES = [
+  { id: 'stp', label: 'STP', desc: 'Specialised training programme' },
+  { id: 'dst_ist', label: 'DST / IST', desc: 'Domain / in-service training' },
+];
+
+const ROLE_LABELS = {
+  super_admin: 'Super Admin',
+  middle_admin: 'Middle Admin',
+  data_admin: 'Data Admin',
+  instructor: 'Instructor',
+  trainee: 'Trainee',
 };
-
-const BPS_GRADES = ['BPS-17', 'BPS-18', 'BPS-19', 'BPS-20', 'BPS-21', 'BPS-22'];
-const CITIES = ['Islamabad', 'Lahore', 'Karachi', 'Peshawar', 'Quetta', 'Multan', 'Faisalabad', 'Rawalpindi', 'All Cities'];
-const PROGRAMMES = ['STP', 'DST', 'IST', 'All Programmes'];
-const EXPERTISE = ['Inland Revenue', 'Customs & Trade', 'Tax Audit', 'IT & Systems', 'HR & Training'];
-const HOSTEL_OPTS = ['Hostel Required', 'Own Accommodation', 'No Preference'];
-
-// ─── Field schema helpers ─────────────────────────────────────────────────────
 
 const F = {
-  name: { id: 'name', label: 'NAME', type: 'text', placeholder: 'e.g. Asma Khan', required: true, full: true },
-  cnic: { id: 'cnic', label: 'CNIC', type: 'text', placeholder: '00000-0000000-0', helper: '13-digit national identity number', required: true },
-  designation: { id: 'designation', label: 'DESIGNATION', type: 'text', placeholder: 'e.g. Assistant Commissioner IR', required: true },
-  bpsGrade: { id: 'bpsGrade', label: 'BPS GRADE', type: 'select', placeholder: 'Select grade...', options: BPS_GRADES, required: true },
-  cityScope: { id: 'cityScope', label: 'CITY SCOPE', type: 'select', placeholder: 'Select city...', options: CITIES, required: true },
-  programmeScope: { id: 'programmeScope', label: 'PROGRAMME SCOPE', type: 'select', placeholder: 'Select...', options: PROGRAMMES, required: true },
-  mobile: { id: 'mobile', label: 'MOBILE', type: 'tel', placeholder: '+92  3XX  XXXXXXX', required: true },
-  email: { id: 'email', label: 'EMAIL', type: 'email', placeholder: 'name@fbr.gov.pk', required: true },
-  education: { id: 'education', label: 'EDUCATION', type: 'text', placeholder: 'Degree, institute, year', required: true },
-  fieldOfExpertise: { id: 'fieldOfExpertise', label: 'FIELD OF EXPERTISE', type: 'select', placeholder: 'Select expertise...', options: EXPERTISE, required: true },
-  fieldOrganisation: { id: 'fieldOrganisation', label: 'FIELD ORGANISATION', type: 'text', placeholder: 'e.g. RTO Lahore / FBR Training Academy', helper: 'Parent posting / institution', required: true },
-  dateOfBirth: { id: 'dateOfBirth', label: 'DATE OF BIRTH', type: 'date', required: true },
-  serviceHistory: { id: 'serviceHistory', label: 'SERVICE HISTORY (POSTINGS)', type: 'textarea', placeholder: 'e.g. ITP Lahore (2023–24), RTO Karachi (2024–present)' },
-  hostelAccommodation: { id: 'hostelAccommodation', label: 'HOSTEL / ACCOMMODATION', type: 'select', placeholder: 'Select preference...', options: HOSTEL_OPTS, required: true },
-  emergencyContact: { id: 'emergencyContact', label: 'EMERGENCY CONTACT', type: 'text', placeholder: 'Name, relation, phone', required: true },
-  photo: { id: 'photo', label: 'PHOTO', type: 'file', helper: 'Passport-size, JPG/PNG. Auto-resized; EXIF stripped.', required: true, full: true },
+  fullName: { id: 'fullName', key: 'full_name', label: 'FULL NAME', type: 'text', placeholder: 'e.g. Asma Khan', required: true, full: true, group: 'base' },
+  email: { id: 'email', key: 'email', label: 'EMAIL', type: 'email', placeholder: 'name@fbr.gov.pk', required: true, group: 'base' },
+  cnic: { id: 'cnic', key: 'cnic', label: 'CNIC', type: 'text', placeholder: '13 digits without dashes', helper: 'Use 13 digits, no dashes.', group: 'base' },
+  mobile: { id: 'mobile', key: 'mobile', label: 'MOBILE', type: 'tel', placeholder: '+92 3XX XXXXXXX', required: true, group: 'base' },
+  fieldOrganisation: { id: 'fieldOrganisation', key: 'field_organisation', label: 'FIELD ORGANISATION', type: 'text', placeholder: 'e.g. RTO Lahore / FBR Training Academy', required: true, full: true, group: 'base' },
+  city: { id: 'city', key: 'city', label: 'CITY', type: 'select', placeholder: 'Select city...', required: true, group: 'base' },
+  emergencyContactName: { id: 'emergencyContactName', key: 'emergency_contact_name', label: 'EMERGENCY CONTACT NAME', type: 'text', group: 'base' },
+  emergencyContactPhone: { id: 'emergencyContactPhone', key: 'emergency_contact_phone', label: 'EMERGENCY CONTACT PHONE', type: 'tel', group: 'base' },
+  educationDegree: { id: 'educationDegree', key: 'education_degree', label: 'EDUCATION DEGREE', type: 'text', group: 'base' },
+  educationInstitute: { id: 'educationInstitute', key: 'education_institute', label: 'EDUCATION INSTITUTE', type: 'text', group: 'base' },
+  educationYear: { id: 'educationYear', key: 'education_year', label: 'EDUCATION YEAR', type: 'number', group: 'base' },
+  fieldOfExpertise: { id: 'fieldOfExpertise', key: 'field_of_expertise', label: 'FIELD OF EXPERTISE', type: 'text', placeholder: 'e.g. Inland Revenue', required: true, full: true, group: 'instructor_profile' },
+  dateOfBirth: { id: 'dateOfBirth', key: 'date_of_birth', label: 'DATE OF BIRTH', type: 'date', required: true, group: 'trainee_profile' },
+  designation: { id: 'designation', key: 'designation', label: 'DESIGNATION', type: 'text', placeholder: 'e.g. Assistant Commissioner IR', required: true, group: 'trainee_profile' },
+  bpsGrade: { id: 'bpsGrade', key: 'bps_grade', label: 'BPS GRADE', type: 'number', placeholder: '17', required: true, group: 'trainee_profile' },
+  batch: { id: 'batch', key: 'batch', label: 'BATCH', type: 'select', placeholder: 'Select batch...', group: 'trainee_profile' },
+  serviceHistory: { id: 'serviceHistory', key: 'service_history', label: 'SERVICE HISTORY', type: 'textarea', placeholder: 'Previous postings, if available', group: 'trainee_profile' },
+  hostelPreference: { id: 'hostelPreference', key: 'hostel_preference', label: 'HOSTEL PREFERENCE', type: 'text', placeholder: 'Hostel Required / Own Accommodation', group: 'trainee_profile' },
+  languagesAwardsPublications: { id: 'languagesAwardsPublications', key: 'languages_awards_publications', label: 'LANGUAGES, AWARDS, PUBLICATIONS', type: 'textarea', full: true },
 };
 
-const getLayout = (roleId, programmeType) => {
-  switch (roleId) {
-    case 'super-admin':
-    case 'middle-admin':
-      return {
-        main: [
-          [F.name],
-          [F.cnic, F.designation],
-          [F.bpsGrade, F.cityScope],
-          [F.programmeScope, F.mobile],
-          [F.email],
-        ],
-      };
-    case 'data-admin':
-      return {
-        main: [
-          [F.name],
-          [F.cnic, F.designation],
-          [F.bpsGrade, F.cityScope],
-          [F.mobile, F.email],
-        ],
-      };
-    case 'instructor':
-      return {
-        main: [
-          [F.name],
-          [F.cnic, { ...F.education, helper: undefined }],
-          [F.fieldOfExpertise, F.fieldOrganisation],
-          [F.mobile, F.email],
-        ],
-      };
-    case 'trainee':
-      if (programmeType === 'stp') {
-        return {
-          main: [
-            [F.name],
-            [F.cnic, F.dateOfBirth],
-            [{ ...F.education, helper: 'Full — degree, institute, year, distinctions' }, F.designation],
-            [F.bpsGrade, { ...F.fieldOrganisation, label: 'FIELD ORGANISATION (PARENT POSTING)', helper: 'Posting before STP' }],
-            [F.mobile, F.email],
-          ],
-          residential: [
-            [F.serviceHistory],
-            [F.hostelAccommodation, F.emergencyContact],
-            [F.photo],
-          ],
-        };
-      }
-      return {
-        main: [
-          [F.name],
-          [F.cnic, F.dateOfBirth],
-          [{ ...F.education, helper: 'Summary (degree, institute, year)' }, F.designation],
-          [F.bpsGrade, { ...F.fieldOrganisation, label: 'FIELD ORGANISATION', helper: 'Current posting' }],
-          [F.mobile, F.email],
-        ],
-        residential: [
-          [F.emergencyContact],
-        ],
-      };
-    default:
-      return { main: [] };
+const ADMIN_ROLES = ['super_admin', 'middle_admin', 'data_admin'];
+const NUMBER_KEYS = ['bps_grade', 'city', 'batch', 'education_year'];
+
+const normalizeValue = value => (typeof value === 'string' ? value.trim() : value);
+
+const getPrimaryRole = (user) => {
+  if (!user) return null;
+  const roles = Array.isArray(user.roles) ? user.roles : [];
+  if (user.trainee_profile) return 'trainee';
+  if (user.instructor_profile) return 'instructor';
+  return roles.find(role => ADMIN_ROLES.includes(role)) || roles[0] || null;
+};
+
+const getCreateFieldsForRole = (role, traineeType, shouldShowCity) => {
+  if (ADMIN_ROLES.includes(role)) {
+    return [
+      [F.fullName],
+      [F.email, { ...F.cnic, required: true }],
+      [{ ...F.mobile, required: false }],
+      [F.fieldOrganisation],
+      ...(shouldShowCity ? [[F.city]] : []),
+    ];
   }
+
+  if (role === 'instructor') {
+    return [
+      [F.fullName],
+      [F.email, F.mobile],
+      [F.cnic],
+      [F.fieldOfExpertise],
+      [F.fieldOrganisation],
+      [{ ...F.languagesAwardsPublications, group: 'instructor_profile' }],
+    ];
+  }
+
+  return [
+    [F.fullName],
+    [F.email, F.mobile],
+    [F.cnic, F.dateOfBirth],
+    [F.designation, F.bpsGrade],
+    [F.fieldOrganisation],
+    ...(traineeType === 'stp' ? [[{ ...F.batch, required: true }, F.hostelPreference]] : [[F.hostelPreference]]),
+    [F.serviceHistory],
+    [{ ...F.languagesAwardsPublications, group: 'trainee_profile' }],
+  ];
 };
 
-// ─── Sub-components ───────────────────────────────────────────────────────────
+const getEditSections = (role, traineeType) => {
+  const baseRows = [
+    [F.fullName],
+    [F.email, F.mobile],
+    [F.cnic, F.city],
+    [F.fieldOrganisation],
+    [F.emergencyContactName, F.emergencyContactPhone],
+    [F.educationDegree, F.educationInstitute],
+    [F.educationYear],
+  ];
 
-const FieldRow = ({ fields, values, onChange, errors }) => (
-  <div style={{ display: 'flex', gap: '16px', marginBottom: '16px' }}>
-    {fields.map(field => {
+  const sections = [{ title: 'PROFILE INFORMATION', note: 'Base user details', rows: baseRows }];
+
+  if (role === 'instructor') {
+    sections.push({
+      title: 'INSTRUCTOR PROFILE',
+      note: 'Trainer-specific details',
+      rows: [
+        [F.fieldOfExpertise],
+        [{ ...F.languagesAwardsPublications, group: 'instructor_profile' }],
+      ],
+    });
+  }
+
+  if (role === 'trainee') {
+    sections.push({
+      title: 'TRAINEE PROFILE',
+      note: traineeType === 'stp' ? 'STP trainee details' : 'DST / IST trainee details',
+      rows: [
+        [F.dateOfBirth, F.designation],
+        [F.bpsGrade],
+        ...(traineeType === 'stp' ? [[{ ...F.batch, required: true }, F.hostelPreference]] : [[F.hostelPreference]]),
+        [F.serviceHistory],
+        [{ ...F.languagesAwardsPublications, group: 'trainee_profile' }],
+      ],
+    });
+  }
+
+  return sections;
+};
+
+const getRoleContext = (role, traineeType, isCityLocked) => {
+  if (role === 'trainee') return traineeType === 'stp' ? 'STP trainee account' : 'DST / IST trainee account';
+  if (role === 'instructor') return 'Instructor account';
+  if (role === 'data_admin' && isCityLocked) return "Data Admin city will be locked to your city";
+  return `${ROLE_LABELS[role] || 'User'} account`;
+};
+
+const getInitialValues = (user) => {
+  if (!user) return {};
+  const instructor = user.instructor_profile || {};
+  const trainee = user.trainee_profile || {};
+  return {
+    fullName: user.full_name || '',
+    email: user.email || '',
+    cnic: user.cnic || '',
+    mobile: user.mobile || '',
+    fieldOrganisation: user.field_organisation || '',
+    city: user.city?.id || '',
+    emergencyContactName: user.emergency_contact_name || '',
+    emergencyContactPhone: user.emergency_contact_phone || '',
+    educationDegree: user.education_degree || '',
+    educationInstitute: user.education_institute || '',
+    educationYear: user.education_year || '',
+    fieldOfExpertise: instructor.field_of_expertise || '',
+    dateOfBirth: trainee.date_of_birth || '',
+    designation: trainee.designation || '',
+    bpsGrade: trainee.bps_grade || '',
+    batch: trainee.batch?.id || '',
+    serviceHistory: trainee.service_history || '',
+    hostelPreference: trainee.hostel_preference || '',
+    languagesAwardsPublications: instructor.languages_awards_publications || trainee.languages_awards_publications || '',
+  };
+};
+
+const toCreatePayload = (role, traineeType, values, shouldSendCity) => {
+  const fields = getCreateFieldsForRole(role, traineeType, shouldSendCity).flat();
+  const payload = {};
+
+  fields.forEach((field) => {
+    const value = normalizeValue(values[field.id]);
+    if (value !== undefined && value !== null && value !== '') {
+      payload[field.key] = NUMBER_KEYS.includes(field.key) ? Number(value) : value;
+    }
+  });
+
+  if (ADMIN_ROLES.includes(role)) payload.role = role;
+  if (role === 'trainee') payload.trainee_type = traineeType;
+  return payload;
+};
+
+const toAssignPayload = (role, traineeType, values, shouldSendCity) => {
+  const fields = getCreateFieldsForRole(role, traineeType, shouldSendCity).flat();
+  const payload = { role };
+
+  fields.forEach((field) => {
+    const value = normalizeValue(values[field.id]);
+    if (value === undefined || value === null || value === '') return;
+    const finalValue = NUMBER_KEYS.includes(field.key) ? Number(value) : value;
+
+    if (field.group === 'instructor_profile' || field.group === 'trainee_profile') {
+      payload[field.group] = payload[field.group] || {};
+      payload[field.group][field.key] = finalValue;
+    } else {
+      payload[field.key] = finalValue;
+    }
+  });
+
+  if (role === 'trainee') {
+    payload.trainee_profile = payload.trainee_profile || {};
+    payload.trainee_profile.trainee_type = traineeType;
+  }
+
+  return payload;
+};
+
+const toEditPayload = (role, traineeType, values) => {
+  const payload = {};
+  const nested = {};
+  const fields = getEditSections(role, traineeType).flatMap(section => section.rows.flat());
+
+  fields.forEach((field) => {
+    const value = normalizeValue(values[field.id]);
+    const normalized = value === '' ? null : value;
+    const finalValue = NUMBER_KEYS.includes(field.key) && normalized !== null ? Number(normalized) : normalized;
+
+    if (field.group === 'instructor_profile' || field.group === 'trainee_profile') {
+      nested[field.group] = nested[field.group] || {};
+      nested[field.group][field.key] = finalValue;
+    } else {
+      payload[field.key] = finalValue;
+    }
+  });
+
+  if (role === 'trainee') {
+    nested.trainee_profile = nested.trainee_profile || {};
+    nested.trainee_profile.trainee_type = traineeType;
+  }
+
+  return { ...payload, ...nested };
+};
+
+const FieldRow = ({
+  fields, values, onChange, errors, cities, batches,
+}) => (
+  <div style={{ display: 'flex', gap: '16px', marginBottom: '16px', flexWrap: 'wrap' }}>
+    {fields.map((field) => {
       const err = errors[field.id];
       let input;
-      if (field.type === 'select') {
+
+      if (field.type === 'select' && field.id === 'city') {
         input = (
-          <Form.Control
-            as="select"
-            value={values[field.id] || ''}
-            onChange={e => onChange(field.id, e.target.value)}
-            isInvalid={!!err}
-          >
+          <Form.Control as="select" value={values[field.id] || ''} onChange={e => onChange(field.id, e.target.value)} isInvalid={!!err}>
             <option value="">{field.placeholder}</option>
-            {field.options.map(o => <option key={o} value={o}>{o}</option>)}
+            {cities.map(city => <option key={city.id} value={city.id}>{city.name}</option>)}
+          </Form.Control>
+        );
+      } else if (field.type === 'select' && field.id === 'batch') {
+        input = (
+          <Form.Control as="select" value={values[field.id] || ''} onChange={e => onChange(field.id, e.target.value)} isInvalid={!!err}>
+            <option value="">{field.placeholder}</option>
+            {batches.map(batch => <option key={batch.id} value={batch.id}>{batch.name}</option>)}
           </Form.Control>
         );
       } else if (field.type === 'textarea') {
@@ -144,15 +270,6 @@ const FieldRow = ({ fields, values, onChange, errors }) => (
             style={{ resize: 'vertical', minHeight: '80px' }}
           />
         );
-      } else if (field.type === 'file') {
-        input = (
-          <Form.Control
-            type="file"
-            accept="image/jpeg,image/png"
-            onChange={e => onChange(field.id, e.target.files[0])}
-            isInvalid={!!err}
-          />
-        );
       } else {
         input = (
           <Form.Control
@@ -164,8 +281,9 @@ const FieldRow = ({ fields, values, onChange, errors }) => (
           />
         );
       }
+
       return (
-        <Form.Group key={field.id} style={{ flex: field.full ? '0 0 100%' : 1, minWidth: 0, marginBottom: 0 }}>
+        <Form.Group key={field.id} style={{ flex: field.full ? '0 0 100%' : '1 1 260px', minWidth: 0, marginBottom: 0 }}>
           <Form.Label className="x-small font-weight-bold text-uppercase" style={{ letterSpacing: '0.07em' }}>
             {field.label}
             {field.required && <span style={{ color: '#E53E3E', marginLeft: '3px' }}>*</span>}
@@ -179,163 +297,242 @@ const FieldRow = ({ fields, values, onChange, errors }) => (
   </div>
 );
 
-const SectionHeader = ({ icon, title, note }) => (
+FieldRow.propTypes = {
+  fields: PropTypes.arrayOf(PropTypes.shape({
+    id: PropTypes.string.isRequired,
+    key: PropTypes.string.isRequired,
+    label: PropTypes.string.isRequired,
+    type: PropTypes.string.isRequired,
+    placeholder: PropTypes.string,
+    helper: PropTypes.string,
+    required: PropTypes.bool,
+    full: PropTypes.bool,
+    group: PropTypes.string,
+  })).isRequired,
+  values: PropTypes.objectOf(PropTypes.oneOfType([PropTypes.string, PropTypes.number])).isRequired,
+  onChange: PropTypes.func.isRequired,
+  errors: PropTypes.objectOf(PropTypes.string).isRequired,
+  cities: PropTypes.arrayOf(PropTypes.shape({ id: PropTypes.number.isRequired, name: PropTypes.string.isRequired })).isRequired,
+  batches: PropTypes.arrayOf(PropTypes.shape({ id: PropTypes.number.isRequired, name: PropTypes.string.isRequired })).isRequired,
+};
+
+const SectionHeader = ({ title, note }) => (
   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '20px 0 16px', borderTop: '1px solid var(--pgn-color-border)', paddingTop: '18px' }}>
     <span style={{ fontSize: '11.5px', fontWeight: 700, color: '#2A6496', letterSpacing: '0.08em', display: 'flex', alignItems: 'center', gap: '6px' }}>
-      <FontAwesomeIcon icon={icon} style={{ fontSize: '12px' }} />
+      <FontAwesomeIcon icon={faUserCircle} style={{ fontSize: '12px' }} />
       {title}
     </span>
     {note && <span style={{ fontSize: '12px', color: 'var(--pgn-color-text-light)' }}>{note}</span>}
   </div>
 );
 
-// ─── Main modal component ─────────────────────────────────────────────────────
+SectionHeader.propTypes = {
+  title: PropTypes.string.isRequired,
+  note: PropTypes.string,
+};
 
-const AddUserModal = ({ onClose, editUser = null, onSubmit }) => {
+SectionHeader.defaultProps = { note: '' };
+
+const AddUserModal = ({
+  onClose,
+  onSubmit,
+  allowedRoles,
+  callerProfile,
+  cities,
+  batches,
+  editUser,
+  assignmentUser,
+}) => {
   const isEdit = !!editUser;
-
-  const roleFromUser = (user) => {
-    if (!user) return 'super-admin';
-    const map = { 'Super Admin': 'super-admin', 'Middle Admin': 'middle-admin', 'Data Admin': 'data-admin', Instructor: 'instructor', Trainee: 'trainee' };
-    return map[user.role] || 'super-admin';
-  };
-
-  const [selectedRole, setSelectedRole] = useState(isEdit ? roleFromUser(editUser) : 'super-admin');
-  const [programmeType, setProgrammeType] = useState('stp');
-  const [values, setValues] = useState(isEdit ? { ...editUser } : {});
+  const isAssignment = !!assignmentUser;
+  const editRole = getPrimaryRole(editUser);
+  const visibleRoles = useMemo(() => ROLE_OPTIONS.filter(role => allowedRoles.includes(role.id)), [allowedRoles]);
+  const defaultRole = editRole || visibleRoles[0]?.id || 'instructor';
+  const initialTraineeType = editUser?.trainee_profile?.trainee_type || 'stp';
+  const [selectedRole, setSelectedRole] = useState(defaultRole);
+  const [traineeType, setTraineeType] = useState(initialTraineeType);
+  const getAssignmentValues = user => ({
+    fullName: [user?.first_name, user?.last_name].filter(Boolean).join(' ') || user?.username || '',
+    email: user?.email || '',
+  });
+  const [values, setValues] = useState(() => (isAssignment ? getAssignmentValues(assignmentUser) : getInitialValues(editUser)));
   const [errors, setErrors] = useState({});
+  const [apiError, setApiError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    if (!isEdit) setValues({});
-  }, [selectedRole, programmeType]);
+    setSelectedRole(defaultRole);
+  }, [defaultRole]);
+
+  useEffect(() => {
+    setTraineeType(initialTraineeType);
+    setValues(isAssignment ? getAssignmentValues(assignmentUser) : getInitialValues(editUser));
+    setErrors({});
+    setApiError('');
+  }, [assignmentUser, editUser, initialTraineeType, isAssignment]);
+
+  useEffect(() => {
+    if (!isEdit && !isAssignment) {
+      setValues({});
+      setErrors({});
+      setApiError('');
+    }
+  }, [isAssignment, isEdit, selectedRole, traineeType]);
+
+  const isMiddleAdminCaller = callerProfile.roles.includes('middle_admin') && !callerProfile.roles.includes('super_admin');
+  const shouldShowCity = ADMIN_ROLES.includes(selectedRole) && selectedRole !== 'super_admin' && !isMiddleAdminCaller;
+  const createFields = getCreateFieldsForRole(selectedRole, traineeType, shouldShowCity);
+  const editSections = getEditSections(selectedRole, traineeType);
+  const contextText = getRoleContext(selectedRole, traineeType, isMiddleAdminCaller);
 
   const handleChange = (id, val) => {
     setValues(prev => ({ ...prev, [id]: val }));
     if (errors[id]) setErrors(prev => ({ ...prev, [id]: null }));
+    if (apiError) setApiError('');
   };
 
-  const handleSubmit = () => {
-    const layout = getLayout(selectedRole, programmeType);
-    const allRows = [...(layout.main || []), ...(layout.residential || [])];
-    const newErrors = {};
-    allRows.flat().forEach(field => {
-      if (field.required && !values[field.id]) {
-        newErrors[field.id] = 'This field is required';
+  const validate = () => {
+    const nextErrors = {};
+    const fields = isEdit ? editSections.flatMap(section => section.rows.flat()) : createFields.flat();
+
+    fields.forEach((field) => {
+      if (field.required && !normalizeValue(values[field.id])) {
+        nextErrors[field.id] = 'This field is required';
       }
     });
-    if (Object.keys(newErrors).length > 0) { setErrors(newErrors); return; }
-    if (onSubmit) onSubmit({ ...values, role: ROLES_DEF.find(r => r.id === selectedRole)?.label });
-    onClose();
+    if (values.cnic && !/^\d{13}$/.test(values.cnic)) {
+      nextErrors.cnic = 'CNIC must be 13 digits without dashes';
+    }
+    if (selectedRole === 'trainee' && values.bpsGrade && Number.isNaN(Number(values.bpsGrade))) {
+      nextErrors.bpsGrade = 'Enter a numeric grade';
+    }
+    if (selectedRole === 'trainee' && traineeType === 'stp' && batches.length === 0) {
+      nextErrors.batch = 'No batches are available yet';
+    }
+    return nextErrors;
   };
 
-  const layout = getLayout(selectedRole, programmeType);
-  const contextText = selectedRole === 'trainee'
-    ? ROLE_CONTEXT.trainee[programmeType]
-    : ROLE_CONTEXT[selectedRole];
+  const handleSubmit = async () => {
+    const nextErrors = validate();
+    if (Object.keys(nextErrors).length > 0) {
+      setErrors(nextErrors);
+      return;
+    }
+
+    setIsSubmitting(true);
+    setApiError('');
+    try {
+      await onSubmit({
+        id: editUser?.id,
+        assignmentUserId: assignmentUser?.id,
+        role: selectedRole,
+        payload: isEdit
+          ? toEditPayload(selectedRole, traineeType, values)
+          : isAssignment
+            ? toAssignPayload(selectedRole, traineeType, values, shouldShowCity)
+          : toCreatePayload(selectedRole, traineeType, values, shouldShowCity),
+      });
+      onClose();
+    } catch (error) {
+      const data = error?.response?.data;
+      setApiError(data?.detail || data?.non_field_errors?.join(' ') || `Unable to ${isEdit ? 'update' : isAssignment ? 'approve' : 'create'} user.`);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const title = isEdit ? 'Edit User' : isAssignment ? 'Approve Sign-in' : 'Add User';
+  const subtitle = isEdit ? 'Update account and profile details' : isAssignment ? 'Create an FBR profile and assign access' : 'Create a new account and send credentials by WhatsApp';
 
   return (
     <div
       style={{ position: 'fixed', inset: 0, zIndex: 1050, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-      onClick={e => { if (e.target === e.currentTarget) onClose(); }}
+      onClick={e => { if (e.target === e.currentTarget && !isSubmitting) onClose(); }}
     >
-      <div style={{ background: '#fff', borderRadius: '12px', width: '840px', maxWidth: '96vw', maxHeight: '92vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '0 24px 64px rgba(0,0,0,0.28)' }}>
-
-        {/* Header */}
+      <div style={{ background: '#fff', borderRadius: '12px', width: '880px', maxWidth: '96vw', maxHeight: '92vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '0 24px 64px rgba(0,0,0,0.28)' }}>
         <div style={{ background: 'linear-gradient(135deg, #1B3A5C 0%, #1E4976 100%)', padding: '22px 28px', borderBottom: '3px solid #C9922A', flexShrink: 0, display: 'flex', alignItems: 'center', gap: '16px', position: 'relative' }}>
           <div style={{ width: '44px', height: '44px', borderRadius: '50%', border: '2px solid rgba(255,255,255,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(255,255,255,0.6)', fontSize: '20px', flexShrink: 0 }}>
-            +
+            {isEdit ? 'i' : '+'}
           </div>
           <div>
             <p style={{ margin: 0, fontSize: '10px', fontWeight: 700, color: 'rgba(255,255,255,0.6)', letterSpacing: '0.12em', textTransform: 'uppercase' }}>
-              {isEdit ? 'EDIT RECORD' : 'NEW RECORD'}
+              {isEdit ? 'EDIT RECORD' : isAssignment ? 'SIGN-IN APPROVAL' : 'NEW RECORD'}
             </p>
-            <h2 style={{ margin: '2px 0 0', fontSize: '20px', fontWeight: 700, color: '#fff' }}>
-              {isEdit ? 'Edit User' : 'Add User'}
-            </h2>
-            <p style={{ margin: '2px 0 0', fontSize: '13px', color: 'rgba(255,255,255,0.65)' }}>
-              {isEdit ? 'Update account details and role assignment' : 'Create a new account and assign a role'}
-            </p>
+            <h2 style={{ margin: '2px 0 0', fontSize: '20px', fontWeight: 700, color: '#fff' }}>{title}</h2>
+            <p style={{ margin: '2px 0 0', fontSize: '13px', color: 'rgba(255,255,255,0.65)' }}>{subtitle}</p>
           </div>
           <button
             type="button"
             onClick={onClose}
+            disabled={isSubmitting}
             style={{ position: 'absolute', top: '18px', right: '20px', background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: '6px', color: '#fff', width: '28px', height: '28px', cursor: 'pointer', fontSize: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
           >
-            ×
+            x
           </button>
         </div>
 
-        {/* Scrollable body */}
         <div style={{ overflowY: 'auto', flex: 1, padding: '24px 28px' }}>
-
-          {/* Role selector — hidden in edit mode (role is fixed) */}
-          {!isEdit ? (
-            <div style={{ marginBottom: '20px' }}>
-              <label style={{ fontSize: '10.5px', fontWeight: 700, color: 'var(--pgn-color-text-light)', letterSpacing: '0.07em', display: 'block', marginBottom: '8px' }}>
-                ROLE <span style={{ color: '#E53E3E' }}>*</span>
-              </label>
-              <div style={{ display: 'flex', gap: '8px' }}>
-                {ROLES_DEF.map(r => {
-                  const active = selectedRole === r.id;
+          <div style={{ marginBottom: '20px' }}>
+            <label style={{ fontSize: '10.5px', fontWeight: 700, color: 'var(--pgn-color-text-light)', letterSpacing: '0.07em', display: 'block', marginBottom: '8px' }}>
+              ROLE <span style={{ color: '#E53E3E' }}>*</span>
+            </label>
+            {isEdit ? (
+              <span style={{ background: 'var(--pgn-color-primary-light)', color: 'var(--pgn-color-primary-base)', border: '1.5px solid var(--pgn-color-primary-base)', padding: '6px 14px', borderRadius: '8px', fontSize: '13px', fontWeight: 600, display: 'inline-flex' }}>
+                {ROLE_LABELS[selectedRole] || selectedRole}
+              </span>
+            ) : (
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                {visibleRoles.map((role) => {
+                  const active = selectedRole === role.id;
                   return (
                     <button
-                      key={r.id}
+                      key={role.id}
                       type="button"
-                      onClick={() => setSelectedRole(r.id)}
+                      onClick={() => setSelectedRole(role.id)}
                       style={{
-                        flex: 1, padding: '10px 8px', borderRadius: '8px', cursor: 'pointer',
+                        flex: '1 1 130px',
+                        padding: '10px 8px',
+                        borderRadius: '8px',
+                        cursor: 'pointer',
                         border: `1.5px solid ${active ? 'var(--pgn-color-primary-base)' : 'var(--pgn-color-border)'}`,
                         background: active ? 'var(--pgn-color-primary-light)' : '#fff',
                         textAlign: 'center',
                       }}
                     >
-                      <p style={{ margin: 0, fontSize: '13px', fontWeight: 600, color: active ? 'var(--pgn-color-primary-base)' : 'var(--pgn-color-gray-900)' }}>{r.label}</p>
-                      <p style={{ margin: '2px 0 0', fontSize: '11px', color: active ? 'var(--pgn-color-primary-base)' : 'var(--pgn-color-text-light)' }}>{r.desc}</p>
+                      <p style={{ margin: 0, fontSize: '13px', fontWeight: 600, color: active ? 'var(--pgn-color-primary-base)' : 'var(--pgn-color-gray-900)' }}>{role.label}</p>
+                      <p style={{ margin: '2px 0 0', fontSize: '11px', color: active ? 'var(--pgn-color-primary-base)' : 'var(--pgn-color-text-light)' }}>{role.desc}</p>
                     </button>
                   );
                 })}
               </div>
-            </div>
-          ) : (
-            <div style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <span style={{ fontSize: '10.5px', fontWeight: 700, color: 'var(--pgn-color-text-light)', letterSpacing: '0.07em' }}>ROLE</span>
-              {(() => {
-                const r = ROLES_DEF.find(x => x.id === selectedRole);
-                return (
-                  <span style={{ background: 'var(--pgn-color-primary-light)', color: 'var(--pgn-color-primary-base)', border: '1.5px solid var(--pgn-color-primary-base)', padding: '4px 14px', borderRadius: '8px', fontSize: '13px', fontWeight: 600 }}>
-                    {r?.label}
-                    <span style={{ fontWeight: 400, fontSize: '11px', marginLeft: '6px', opacity: 0.75 }}>{r?.desc}</span>
-                  </span>
-                );
-              })()}
-            </div>
-          )}
+            )}
+          </div>
 
-          {/* Programme type selector (Trainee only) */}
           {selectedRole === 'trainee' && (
             <div style={{ marginBottom: '20px' }}>
               <label style={{ fontSize: '10.5px', fontWeight: 700, color: 'var(--pgn-color-text-light)', letterSpacing: '0.07em', display: 'block', marginBottom: '8px' }}>
-                PROGRAMME TYPE <span style={{ color: '#E53E3E' }}>*</span>
+                TRAINEE TYPE <span style={{ color: '#E53E3E' }}>*</span>
               </label>
               <div style={{ display: 'flex', gap: '10px' }}>
-                {[
-                  { id: 'stp', label: 'STP', desc: 'Specialised, residential (full bio-data)' },
-                  { id: 'dst-ist', label: 'DST / IST', desc: 'Domain / In-Service (summary bio-data)' },
-                ].map(p => {
-                  const active = programmeType === p.id;
+                {TRAINEE_TYPES.map((type) => {
+                  const active = traineeType === type.id;
                   return (
                     <button
-                      key={p.id}
+                      key={type.id}
                       type="button"
-                      onClick={() => setProgrammeType(p.id)}
+                      onClick={() => setTraineeType(type.id)}
                       style={{
-                        flex: 1, padding: '12px 16px', borderRadius: '8px', cursor: 'pointer',
+                        flex: 1,
+                        padding: '12px 16px',
+                        borderRadius: '8px',
+                        cursor: 'pointer',
                         border: `1.5px solid ${active ? 'var(--pgn-color-primary-base)' : 'var(--pgn-color-border)'}`,
-                        background: active ? 'var(--pgn-color-primary-light)' : '#fff', textAlign: 'center',
+                        background: active ? 'var(--pgn-color-primary-light)' : '#fff',
+                        textAlign: 'center',
                       }}
                     >
-                      <p style={{ margin: 0, fontSize: '14px', fontWeight: 600, color: active ? 'var(--pgn-color-primary-base)' : 'var(--pgn-color-gray-900)' }}>{p.label}</p>
-                      <p style={{ margin: '3px 0 0', fontSize: '12px', color: active ? 'var(--pgn-color-primary-base)' : 'var(--pgn-color-text-light)' }}>{p.desc}</p>
+                      <p style={{ margin: 0, fontSize: '14px', fontWeight: 600, color: active ? 'var(--pgn-color-primary-base)' : 'var(--pgn-color-gray-900)' }}>{type.label}</p>
+                      <p style={{ margin: '3px 0 0', fontSize: '12px', color: active ? 'var(--pgn-color-primary-base)' : 'var(--pgn-color-text-light)' }}>{type.desc}</p>
                     </button>
                   );
                 })}
@@ -343,36 +540,89 @@ const AddUserModal = ({ onClose, editUser = null, onSubmit }) => {
             </div>
           )}
 
-          {/* Information section */}
-          <SectionHeader icon={faUserCircle} title="INFORMATION" note={contextText} />
-          {(layout.main || []).map((row, i) => (
-            <FieldRow key={i} fields={row} values={values} onChange={handleChange} errors={errors} />
-          ))}
+          {apiError && (
+            <div style={{ background: '#FDE8E8', color: '#9B1C1C', border: '1px solid #F8B4B4', borderRadius: '6px', padding: '10px 12px', marginBottom: '14px', fontSize: '13.5px' }}>
+              {apiError}
+            </div>
+          )}
 
-          {/* Residential section */}
-          {layout.residential && (
+          {shouldShowCity && cities.length === 0 && (
+            <div style={{ background: '#FFF8E5', color: '#7A4D00', border: '1px solid #F0D28A', borderRadius: '6px', padding: '10px 12px', marginBottom: '14px', fontSize: '13.5px' }}>
+              No cities are available yet. Add cities before creating Middle Admin or Data Admin accounts.
+            </div>
+          )}
+
+          {selectedRole === 'trainee' && traineeType === 'stp' && batches.length === 0 && (
+            <div style={{ background: '#FFF8E5', color: '#7A4D00', border: '1px solid #F0D28A', borderRadius: '6px', padding: '10px 12px', marginBottom: '14px', fontSize: '13.5px' }}>
+              No batches are available yet. Add batches before creating STP trainee accounts.
+            </div>
+          )}
+
+          {isEdit ? (
+            editSections.map(section => (
+              <React.Fragment key={section.title}>
+                <SectionHeader title={section.title} note={section.note} />
+                {section.rows.map((row, index) => (
+                  <FieldRow key={`${section.title}-${index}`} fields={row} values={values} onChange={handleChange} errors={errors} cities={cities} batches={batches} />
+                ))}
+              </React.Fragment>
+            ))
+          ) : (
             <>
-              <SectionHeader icon={faHome} title="STP RESIDENTIAL DETAILS" note="Required for STP probationers" />
-              {layout.residential.map((row, i) => (
-                <FieldRow key={i} fields={row} values={values} onChange={handleChange} errors={errors} />
+              <SectionHeader title="INFORMATION" note={contextText} />
+              {createFields.map((row, index) => (
+                <FieldRow key={index} fields={row} values={values} onChange={handleChange} errors={errors} cities={cities} batches={batches} />
               ))}
             </>
           )}
+
+          {selectedRole === 'trainee' && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--pgn-color-text-light)', fontSize: '12px', marginTop: '6px' }}>
+              <FontAwesomeIcon icon={faHome} />
+              <span>Batch is required only for STP trainees.</span>
+            </div>
+          )}
         </div>
 
-        {/* Footer */}
         <div style={{ padding: '14px 28px', borderTop: '1px solid var(--pgn-color-border)', display: 'flex', justifyContent: 'flex-end', gap: '10px', background: '#fff', flexShrink: 0 }}>
-          <Button variant="tertiary" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button variant="primary" onClick={handleSubmit}>
+          <Button variant="tertiary" onClick={onClose} disabled={isSubmitting}>Cancel</Button>
+          <Button variant="primary" onClick={handleSubmit} disabled={isSubmitting || (!isEdit && visibleRoles.length === 0) || (shouldShowCity && cities.length === 0) || (selectedRole === 'trainee' && traineeType === 'stp' && batches.length === 0)}>
             <FontAwesomeIcon icon={faCheck} style={{ fontSize: '12px', marginRight: '7px' }} />
-            {isEdit ? 'Update User' : 'Create User'}
+            {isSubmitting ? 'Saving...' : isEdit ? 'Update User' : isAssignment ? 'Approve User' : 'Create User'}
           </Button>
         </div>
       </div>
     </div>
   );
+};
+
+AddUserModal.propTypes = {
+  onClose: PropTypes.func.isRequired,
+  onSubmit: PropTypes.func.isRequired,
+  allowedRoles: PropTypes.arrayOf(PropTypes.string),
+  callerProfile: PropTypes.shape({
+    roles: PropTypes.arrayOf(PropTypes.string),
+    city: PropTypes.shape({ id: PropTypes.number, name: PropTypes.string }),
+  }),
+  cities: PropTypes.arrayOf(PropTypes.shape({ id: PropTypes.number.isRequired, name: PropTypes.string.isRequired })),
+  batches: PropTypes.arrayOf(PropTypes.shape({ id: PropTypes.number.isRequired, name: PropTypes.string.isRequired })),
+  editUser: PropTypes.shape({}),
+  assignmentUser: PropTypes.shape({
+    id: PropTypes.number,
+    username: PropTypes.string,
+    email: PropTypes.string,
+    first_name: PropTypes.string,
+    last_name: PropTypes.string,
+  }),
+};
+
+AddUserModal.defaultProps = {
+  allowedRoles: ['instructor', 'trainee'],
+  callerProfile: { roles: [], city: null },
+  cities: [],
+  batches: [],
+  editUser: null,
+  assignmentUser: null,
 };
 
 export default AddUserModal;

@@ -1,15 +1,22 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, {
+  useEffect, useMemo, useRef, useState,
+} from 'react';
 import PropTypes from 'prop-types';
+import { ensureConfig, getConfig } from '@edx/frontend-platform';
+import { getAuthenticatedHttpClient } from '@edx/frontend-platform/auth';
 import {
   Button, Badge, Dropdown, Form, Toast,
 } from '@openedx/paragon';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faUsers, faUserCheck, faEye, faPen, faEllipsisV, faDownload, faPlus,
-  faSearch, faSync, faCheck, faTimes, faChevronLeft, faChevronRight,
+  faSync, faCheck, faTimes, faChevronLeft, faChevronRight,
 } from '@fortawesome/free-solid-svg-icons';
 import AddUserModal from './components/AddUserModal';
 import ViewUserModal from './components/ViewUserModal';
+import DebouncedSearchInput from './components/DebouncedSearchInput';
+
+ensureConfig(['LMS_BASE_URL'], 'FBR admin console');
 
 // ─── Mock data ────────────────────────────────────────────────────────────────
 
@@ -239,20 +246,39 @@ const NAV_SECTIONS = [
     items: [
       { id: 'users', label: 'Users', icon: faUsers },
       { id: 'signup-approvals', label: 'Signup Approvals', icon: faUserCheck },
+      { id: 'biodata-edit-requests', label: 'Biodata Edit Request', icon: faPen },
     ],
   },
 ];
 
 const TABS = [
   { id: 'all', label: 'All', role: null },
-  { id: 'super-admins', label: 'Super Admins', role: 'Super Admin' },
-  { id: 'middle-admins', label: 'Middle Admins', role: 'Middle Admin' },
-  { id: 'data-admins', label: 'Data Admins', role: 'Data Admin' },
-  { id: 'instructors', label: 'Instructors', role: 'Instructor' },
-  { id: 'trainees', label: 'Trainees', role: 'Trainee' },
+  { id: 'super-admins', label: 'Super Admins', role: 'super_admin', superAdminOnly: true },
+  { id: 'middle-admins', label: 'Middle Admins', role: 'middle_admin', superAdminOnly: true },
+  { id: 'data-admins', label: 'Data Admins', role: 'data_admin' },
+  { id: 'instructors', label: 'Instructors', role: 'instructor' },
+  { id: 'trainees', label: 'Trainees', role: 'trainee' },
 ];
 
 // ─── Shared components ────────────────────────────────────────────────────────
+
+const BIODATA_USER_LIST_PATH = '/fbr/api/biodata/v1/users/';
+const BIODATA_USER_ME_PATH = '/fbr/api/biodata/v1/users/me/';
+const BIODATA_USER_CITIES_PATH = '/fbr/api/biodata/v1/users/cities/';
+const BIODATA_USER_BATCHES_PATH = '/fbr/api/biodata/v1/users/batches/';
+const BIODATA_USER_ADMIN_CREATE_PATH = '/fbr/api/biodata/v1/users/admins/';
+const BIODATA_USER_INSTRUCTOR_CREATE_PATH = '/fbr/api/biodata/v1/users/instructors/';
+const BIODATA_USER_TRAINEE_CREATE_PATH = '/fbr/api/biodata/v1/users/trainees/';
+const BIODATA_USER_UNREGISTERED_PATH = '/fbr/api/biodata/v1/users/unregistered/';
+const BIODATA_EDIT_REQUESTS_PATH = '/fbr/api/biodata/v1/edit-requests/';
+
+const ROLE_LABELS = {
+  super_admin: 'Super Admin',
+  middle_admin: 'Middle Admin',
+  data_admin: 'Data Admin',
+  instructor: 'Instructor',
+  trainee: 'Trainee',
+};
 
 const ROLE_STYLE = {
   'Super Admin': { bg: '#FDE8E8', text: '#C53030' },
@@ -260,6 +286,15 @@ const ROLE_STYLE = {
   'Data Admin': { bg: '#FFF3E0', text: '#B45309' },
   Instructor: { bg: '#E8F0FF', text: '#2B5CB0' },
   Trainee: { bg: '#E8F7EE', text: '#276749' },
+};
+
+const STATUS_LABELS = {
+  invited: 'Invited',
+  active: 'Active',
+  on_leave: 'On Leave',
+  programme_closed: 'Programme Closed',
+  deactivated: 'Deactivated',
+  lapsed: 'Lapsed',
 };
 
 const RoleBadge = ({ role }) => {
@@ -274,6 +309,19 @@ const RoleBadge = ({ role }) => {
 
 RoleBadge.propTypes = { role: PropTypes.string.isRequired };
 
+const RoleBadges = ({ roles }) => {
+  if (!roles.length) return <RoleBadge role="Unassigned" />;
+  return (
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+      {roles.map(role => <RoleBadge key={role} role={role} />)}
+    </div>
+  );
+};
+
+RoleBadges.propTypes = {
+  roles: PropTypes.arrayOf(PropTypes.string).isRequired,
+};
+
 const StatusBadge = ({ status }) => {
   const active = status === 'Active';
   return (
@@ -286,9 +334,23 @@ const StatusBadge = ({ status }) => {
 
 StatusBadge.propTypes = { status: PropTypes.string.isRequired };
 
+const RequestStatusBadge = ({ status }) => {
+  const isPending = status === 'pending';
+  return (
+    <span style={{ background: isPending ? '#FFF3E0' : '#EDFAF1', color: isPending ? '#B45309' : 'var(--pgn-color-green)', padding: '3px 10px', borderRadius: '12px', fontSize: '12px', fontWeight: 500, display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+      <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: isPending ? '#B45309' : 'var(--pgn-color-green)', flexShrink: 0 }} />
+      {isPending ? 'Pending' : 'Resolved'}
+    </span>
+  );
+};
+
+RequestStatusBadge.propTypes = { status: PropTypes.string.isRequired };
+
 const UserAvatar = ({ initials, color, size }) => (
-  <div style={{ width: `${size}px`, height: `${size}px`, borderRadius: '50%', background: color, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: size < 40 ? '12px' : '14px', fontWeight: 700, flexShrink: 0, letterSpacing: '0.03em' }}>
-    {initials}
+  <div style={{ width: `${size}px`, height: `${size}px`, borderRadius: '50%', background: color, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: size < 40 ? '12px' : '14px', fontWeight: 700, flexShrink: 0, letterSpacing: '0.03em', overflow: 'hidden' }}>
+    {initials?.startsWith('http') || initials?.startsWith('/') ? (
+      <img src={initials} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+    ) : initials}
   </div>
 );
 
@@ -299,6 +361,62 @@ UserAvatar.propTypes = {
 };
 
 UserAvatar.defaultProps = { size: 34 };
+
+const getBiodataUsersUrl = () => `${getConfig().LMS_BASE_URL}${BIODATA_USER_LIST_PATH}`;
+
+const getLmsUrl = path => `${getConfig().LMS_BASE_URL}${path}`;
+
+const getBiodataUserDetailUrl = id => `${getConfig().LMS_BASE_URL}/fbr/api/biodata/v1/users/${id}/`;
+const getBiodataUnregisteredUsersUrl = () => `${getConfig().LMS_BASE_URL}${BIODATA_USER_UNREGISTERED_PATH}`;
+const getBiodataAssignRoleUrl = id => `${getConfig().LMS_BASE_URL}/fbr/api/biodata/v1/users/${id}/assign-role/`;
+const getBiodataEditRequestsUrl = () => `${getConfig().LMS_BASE_URL}${BIODATA_EDIT_REQUESTS_PATH}`;
+const getBiodataEditRequestResolveUrl = id => `${getConfig().LMS_BASE_URL}${BIODATA_EDIT_REQUESTS_PATH}${id}/resolve/`;
+
+const getProfileCreatePath = (role) => {
+  if (['super_admin', 'middle_admin', 'data_admin'].includes(role)) {
+    return BIODATA_USER_ADMIN_CREATE_PATH;
+  }
+  if (role === 'instructor') return BIODATA_USER_INSTRUCTOR_CREATE_PATH;
+  return BIODATA_USER_TRAINEE_CREATE_PATH;
+};
+
+const getRoleLabel = role => ROLE_LABELS[role] || role || 'Unassigned';
+
+const getStatusLabel = status => STATUS_LABELS[status] || status || 'Unknown';
+
+const getInitials = (name) => (
+  (name || '?')
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map(part => part[0])
+    .join('')
+    .toUpperCase()
+);
+
+const getPhotoUrl = (photo) => {
+  if (!photo) return null;
+  if (/^https?:\/\//.test(photo)) return photo;
+  return `${getConfig().LMS_BASE_URL}${photo.startsWith('/') ? '' : '/'}${photo}`;
+};
+
+const mapProfileToUser = profile => ({
+  id: profile.id,
+  name: profile.full_name || 'Unnamed user',
+  email: profile.email || '',
+  mobile: profile.mobile || '',
+  photo: getPhotoUrl(profile.photo),
+  initials: getInitials(profile.full_name),
+  color: '#1B5E7A',
+  status: getStatusLabel(profile.status),
+  statusValue: profile.status,
+  roles: Array.isArray(profile.roles) ? profile.roles : [],
+  roleLabels: (Array.isArray(profile.roles) ? profile.roles : []).map(getRoleLabel),
+  role: getRoleLabel((Array.isArray(profile.roles) ? profile.roles : [])[0]),
+  batchNo: profile.batch?.name || profile.batch_no || '',
+  batch: profile.batch || null,
+  org: profile.batch?.name || profile.batch_no || '',
+});
 
 // ─── Three-dot action menu ────────────────────────────────────────────────────
 
@@ -369,43 +487,115 @@ ActionMenu.defaultProps = {
 
 // ─── Users view ───────────────────────────────────────────────────────────────
 
-const UsersView = ({ onAdd, onEdit, onView }) => {
-  const [users, setUsers] = useState(INITIAL_USERS);
+const UsersView = ({
+  onAdd, onEdit, onView, reloadKey,
+}) => {
+  const [users, setUsers] = useState([]);
+  const [totalUsers, setTotalUsers] = useState(0);
   const [activeTab, setActiveTab] = useState('all');
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [openMenuId, setOpenMenuId] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [canViewSuperAdminTabs, setCanViewSuperAdminTabs] = useState(false);
+
+  const visibleTabs = useMemo(
+    () => TABS.filter(tab => !tab.superAdminOnly || canViewSuperAdminTabs),
+    [canViewSuperAdminTabs],
+  );
+  const activeRole = visibleTabs.find(tab => tab.id === activeTab)?.role || null;
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const checkSuperAdminAccess = async () => {
+      const params = new URLSearchParams({
+        role: 'super_admin',
+        page: '1',
+        page_size: '1',
+      });
+
+      try {
+        await getAuthenticatedHttpClient().get(`${getBiodataUsersUrl()}?${params.toString()}`);
+        if (isMounted) {
+          setCanViewSuperAdminTabs(true);
+        }
+      } catch (error) {
+        if (isMounted) {
+          setCanViewSuperAdminTabs(false);
+        }
+      }
+    };
+
+    checkSuperAdminAccess();
+    return () => { isMounted = false; };
+  }, []);
+
+  useEffect(() => {
+    if (!visibleTabs.some(tab => tab.id === activeTab)) {
+      setActiveTab('all');
+      setCurrentPage(1);
+    }
+  }, [activeTab, visibleTabs]);
+
+  useEffect(() => {
+    let isMounted = true;
+    const fetchUsers = async () => {
+      setIsLoading(true);
+      setErrorMessage('');
+
+      const params = new URLSearchParams({
+        page: String(currentPage),
+        page_size: String(rowsPerPage),
+      });
+
+      if (activeRole) params.set('role', activeRole);
+      if (search.trim()) params.set('search', search.trim());
+
+      try {
+        const { data } = await getAuthenticatedHttpClient().get(`${getBiodataUsersUrl()}?${params.toString()}`);
+        const results = Array.isArray(data?.results) ? data.results : Array.isArray(data) ? data : [];
+
+        if (!isMounted) return;
+        setUsers(results.map(mapProfileToUser));
+        setTotalUsers(typeof data?.count === 'number' ? data.count : results.length);
+      } catch (error) {
+        if (!isMounted) return;
+        setUsers([]);
+        setTotalUsers(0);
+        setErrorMessage(error?.response?.data?.detail || 'Unable to load users.');
+      } finally {
+        if (isMounted) setIsLoading(false);
+      }
+    };
+
+    fetchUsers();
+    return () => { isMounted = false; };
+  }, [activeRole, currentPage, rowsPerPage, reloadKey, search]);
 
   const filtered = users.filter(u => {
-    const s = search.toLowerCase();
-    const matchSearch = !s || u.name.toLowerCase().includes(s) || u.email.toLowerCase().includes(s) || u.org.toLowerCase().includes(s);
     const matchStatus = statusFilter === 'All' || u.status === statusFilter;
-    const matchTab = activeTab === 'all'
-      || (activeTab === 'super-admins' && u.role === 'Super Admin')
-      || (activeTab === 'middle-admins' && u.role === 'Middle Admin')
-      || (activeTab === 'data-admins' && u.role === 'Data Admin')
-      || (activeTab === 'instructors' && u.role === 'Instructor')
-      || (activeTab === 'trainees' && u.role === 'Trainee');
-    return matchSearch && matchStatus && matchTab;
+    return matchStatus;
   });
 
-  const totalPages = Math.max(1, Math.ceil(filtered.length / rowsPerPage));
+  const totalPages = Math.max(1, Math.ceil(totalUsers / rowsPerPage));
   const page = Math.min(currentPage, totalPages);
-  const pageUsers = filtered.slice((page - 1) * rowsPerPage, page * rowsPerPage);
-  const start = filtered.length === 0 ? 0 : (page - 1) * rowsPerPage + 1;
-  const end = Math.min(page * rowsPerPage, filtered.length);
+  const pageUsers = filtered;
+  const start = totalUsers === 0 ? 0 : (page - 1) * rowsPerPage + 1;
+  const end = Math.min((page - 1) * rowsPerPage + pageUsers.length, totalUsers);
 
   const handleTabChange = (tabId) => { setActiveTab(tabId); setCurrentPage(1); };
-  const handleSearchChange = (e) => { setSearch(e.target.value); setCurrentPage(1); };
+  const handleSearchChange = (value) => { setSearch(value); setCurrentPage(1); };
 
-  const tabCounts = TABS.reduce((acc, tab) => {
-    acc[tab.id] = tab.role ? users.filter(u => u.role === tab.role).length : users.length;
+  const tabCounts = visibleTabs.reduce((acc, tab) => {
+    acc[tab.id] = tab.id === activeTab ? totalUsers : null;
     return acc;
   }, {});
 
-  const tabLabel = TABS.find(t => t.id === activeTab)?.label.toLowerCase() || 'users';
+  const tabLabel = visibleTabs.find(t => t.id === activeTab)?.label.toLowerCase() || 'users';
 
   return (
     <>
@@ -422,7 +612,7 @@ const UsersView = ({ onAdd, onEdit, onView }) => {
         <div style={{ display: 'flex', gap: '10px', marginTop: '2px' }}>
           <Button variant="outline-primary" size="sm">
             <FontAwesomeIcon icon={faDownload} style={{ marginRight: '6px' }} />
-            Export
+            Import
           </Button>
           <Button variant="primary" size="sm" onClick={onAdd}>
             <FontAwesomeIcon icon={faPlus} style={{ marginRight: '6px' }} />
@@ -436,13 +626,13 @@ const UsersView = ({ onAdd, onEdit, onView }) => {
 
       {/* Tabs */}
       <div style={{ borderBottom: '2px solid var(--pgn-color-border)', marginBottom: '20px', display: 'flex' }}>
-        {TABS.map(tab => {
+        {visibleTabs.map(tab => {
           const active = activeTab === tab.id;
           return (
             <button key={tab.id} type="button" onClick={() => handleTabChange(tab.id)} style={{ padding: '8px 14px', border: 'none', cursor: 'pointer', fontSize: '13.5px', fontWeight: active ? 600 : 400, color: active ? 'var(--pgn-color-primary-base)' : 'var(--pgn-color-text-light)', background: 'transparent', borderBottom: active ? '2px solid var(--pgn-color-primary-base)' : '2px solid transparent', marginBottom: '-2px', display: 'flex', alignItems: 'center', gap: '6px', whiteSpace: 'nowrap' }}>
               {tab.label}
               <span style={{ background: active ? 'var(--pgn-color-primary-base)' : 'var(--pgn-color-border)', color: active ? '#fff' : 'var(--pgn-color-text-light)', borderRadius: '9px', padding: '1px 6px', fontSize: '11px', fontWeight: 600 }}>
-                {tabCounts[tab.id]}
+                {tabCounts[tab.id] ?? '—'}
               </span>
             </button>
           );
@@ -452,48 +642,37 @@ const UsersView = ({ onAdd, onEdit, onView }) => {
       {/* Search / filter */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
         <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-          <div style={{ position: 'relative' }}>
-            <FontAwesomeIcon
-              icon={faSearch}
-              style={{
-                position: 'absolute',
-                left: '11px',
-                top: '50%',
-                transform: 'translateY(-50%)',
-                color: '#ADB5BD',
-                fontSize: '13px',
-                pointerEvents: 'none',
-                zIndex: 1,
-              }}
-            />
-            <Form.Control
-              type="text"
-              placeholder="Search by name, email, organization or batch..."
-              value={search}
-              onChange={handleSearchChange}
-              style={{ paddingLeft: '34px', width: '340px' }}
-            />
-          </div>
+          <DebouncedSearchInput
+            value={search}
+            onChange={handleSearchChange}
+            placeholder="Search by name, email, CNIC or mobile..."
+          />
           <Dropdown>
             <Dropdown.Toggle variant="outline-secondary" id="status-filter" style={{ fontSize: '13.5px' }}>
               Status: {statusFilter}
             </Dropdown.Toggle>
             <Dropdown.Menu>
-              {['All', 'Active', 'Inactive'].map(s => (
+              {['All', 'Invited', 'Active', 'On Leave', 'Programme Closed', 'Deactivated', 'Lapsed'].map(s => (
                 <Dropdown.Item key={s} onClick={() => { setStatusFilter(s); setCurrentPage(1); }}>{s}</Dropdown.Item>
               ))}
             </Dropdown.Menu>
           </Dropdown>
         </div>
-        <span style={{ fontSize: '13px', color: 'var(--pgn-color-text-light)', fontWeight: 500 }}>{filtered.length} {tabLabel}</span>
+        <span style={{ fontSize: '13px', color: 'var(--pgn-color-text-light)', fontWeight: 500 }}>{totalUsers} {tabLabel}</span>
       </div>
+
+      {errorMessage && (
+        <div style={{ background: '#FDE8E8', color: '#9B1C1C', border: '1px solid #F8B4B4', borderRadius: '6px', padding: '10px 12px', marginBottom: '14px', fontSize: '13.5px' }}>
+          {errorMessage}
+        </div>
+      )}
 
       {/* Table */}
       <div style={{ background: '#fff', borderRadius: '10px', border: '1px solid var(--pgn-color-border)', overflow: 'hidden' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13.5px' }}>
           <thead>
             <tr style={{ background: 'var(--pgn-color-gray-100)', borderBottom: '1px solid var(--pgn-color-border)' }}>
-              {[['#', '52px'], ['NAME'], ['EMAIL'], ['ROLE'], ['ORGANIZATION / BATCH'], ['STATUS'], ['ACTIONS', '110px']].map(([label, width]) => (
+              {[['#', '52px'], ['FULL NAME'], ['EMAIL'], ['ROLES'], ['BATCH'], ['MOBILE'], ['STATUS'], ['ACTIONS', '110px']].map(([label, width]) => (
                 <th key={label} style={{ padding: '11px 16px', textAlign: label === 'ACTIONS' ? 'center' : 'left', fontSize: '11px', fontWeight: 700, color: 'var(--pgn-color-gray-400)', letterSpacing: '0.06em', width }}>
                   {label}
                 </th>
@@ -501,8 +680,10 @@ const UsersView = ({ onAdd, onEdit, onView }) => {
             </tr>
           </thead>
           <tbody>
-            {pageUsers.length === 0 ? (
-              <tr><td colSpan={7} style={{ padding: '48px 16px', textAlign: 'center', color: 'var(--pgn-color-text-light)' }}>No users found.</td></tr>
+            {isLoading ? (
+              <tr><td colSpan={8} style={{ padding: '48px 16px', textAlign: 'center', color: 'var(--pgn-color-text-light)' }}>Loading users...</td></tr>
+            ) : pageUsers.length === 0 ? (
+              <tr><td colSpan={8} style={{ padding: '48px 16px', textAlign: 'center', color: 'var(--pgn-color-text-light)' }}>No users found.</td></tr>
             ) : pageUsers.map((user, idx) => (
               <tr
                 key={user.id}
@@ -513,13 +694,14 @@ const UsersView = ({ onAdd, onEdit, onView }) => {
                 <td style={{ padding: '12px 16px', color: 'var(--pgn-color-gray-400)', fontWeight: 500 }}>{(page - 1) * rowsPerPage + idx + 1}</td>
                 <td style={{ padding: '12px 16px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <UserAvatar initials={user.initials} color={user.color} />
+                    <UserAvatar initials={user.photo || user.initials} color={user.color} />
                     <span style={{ fontWeight: 500, color: 'var(--pgn-color-text-base)' }}>{user.name}</span>
                   </div>
                 </td>
                 <td style={{ padding: '12px 16px', color: 'var(--pgn-color-primary-base)' }}>{user.email}</td>
-                <td style={{ padding: '12px 16px' }}><RoleBadge role={user.role} /></td>
-                <td style={{ padding: '12px 16px', color: 'var(--pgn-color-gray-700)' }}>{user.org}</td>
+                <td style={{ padding: '12px 16px' }}><RoleBadges roles={user.roleLabels} /></td>
+                <td style={{ padding: '12px 16px', color: 'var(--pgn-color-gray-700)' }}>{user.batchNo || '—'}</td>
+                <td style={{ padding: '12px 16px', color: 'var(--pgn-color-gray-700)' }}>{user.mobile || '—'}</td>
                 <td style={{ padding: '12px 16px' }}><StatusBadge status={user.status} /></td>
                 <td style={{ padding: '12px 16px' }}>
                   <div style={{ display: 'flex', gap: '2px', justifyContent: 'center', alignItems: 'center' }}>
@@ -548,7 +730,7 @@ const UsersView = ({ onAdd, onEdit, onView }) => {
         {/* Pagination footer */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', borderTop: '1px solid var(--pgn-color-gray-100)', background: 'var(--pgn-color-gray-100)' }}>
           <span style={{ fontSize: '13px', color: 'var(--pgn-color-text-light)' }}>
-            Showing <strong>{start}–{end}</strong> of <strong>{filtered.length}</strong>
+            Showing <strong>{start}–{end}</strong> of <strong>{totalUsers}</strong>
           </span>
           <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
             <Button variant="outline-secondary" size="sm" onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={page <= 1}>
@@ -585,21 +767,75 @@ UsersView.propTypes = {
   onAdd: PropTypes.func.isRequired,
   onEdit: PropTypes.func.isRequired,
   onView: PropTypes.func.isRequired,
+  reloadKey: PropTypes.number.isRequired,
 };
 
 // ─── Signup Approvals view ─────────────────────────────────────────────────────
 
 const SignupApprovalsView = ({
-  approvals, setApprovals, roles, setRoles,
+  onAssign, reloadKey, onCountChange,
 }) => {
+  const [approvals, setApprovals] = useState([]);
+  const [totalApprovals, setTotalApprovals] = useState(0);
+  const [search, setSearch] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
   const [toastMessage, setToastMessage] = useState('');
   const [showToast, setShowToast] = useState(false);
 
   const showNotification = (message) => { setToastMessage(message); setShowToast(true); };
 
-  const handleApprove = (id) => { setApprovals(prev => prev.filter(a => a.id !== id)); showNotification('Request Approved'); };
-  const handleReject = (id) => { setApprovals(prev => prev.filter(a => a.id !== id)); showNotification('Request Rejected'); };
-  const handleRefresh = () => { setApprovals(INITIAL_APPROVALS); setRoles({ ...APPROVAL_DEFAULT_ROLES }); };
+  const handleRefresh = () => {
+    setCurrentPage(1);
+    setRefreshKey(prev => prev + 1);
+    showNotification('Approvals refreshed');
+  };
+
+  useEffect(() => {
+    let isMounted = true;
+    const fetchApprovals = async () => {
+      setIsLoading(true);
+      setErrorMessage('');
+      const params = new URLSearchParams({
+        page: String(currentPage),
+        page_size: String(rowsPerPage),
+      });
+      if (search.trim()) params.set('search', search.trim());
+
+      try {
+        const { data } = await getAuthenticatedHttpClient().get(`${getBiodataUnregisteredUsersUrl()}?${params.toString()}`);
+        const results = Array.isArray(data?.results) ? data.results : Array.isArray(data) ? data : [];
+        if (!isMounted) return;
+        setApprovals(results);
+        setTotalApprovals(typeof data?.count === 'number' ? data.count : results.length);
+        onCountChange(typeof data?.count === 'number' ? data.count : results.length);
+      } catch (error) {
+        if (!isMounted) return;
+        setApprovals([]);
+        setTotalApprovals(0);
+        onCountChange(0);
+        setErrorMessage(error?.response?.data?.detail || 'Unable to load sign-in approvals.');
+      } finally {
+        if (isMounted) setIsLoading(false);
+      }
+    };
+
+    fetchApprovals();
+    return () => { isMounted = false; };
+  }, [currentPage, onCountChange, refreshKey, reloadKey, rowsPerPage, search]);
+
+  const handleSearchChange = (value) => {
+    setSearch(value);
+    setCurrentPage(1);
+  };
+
+  const totalPages = Math.max(1, Math.ceil(totalApprovals / rowsPerPage));
+  const page = Math.min(currentPage, totalPages);
+  const start = totalApprovals === 0 ? 0 : (page - 1) * rowsPerPage + 1;
+  const end = Math.min((page - 1) * rowsPerPage + approvals.length, totalApprovals);
 
   return (
     <>
@@ -618,7 +854,27 @@ const SignupApprovalsView = ({
       <p style={{ color: 'var(--pgn-color-text-light)', fontSize: '13.5px', marginBottom: '24px' }}>
         Review pending sign-up requests and assign each user a role before granting access.
       </p>
-      {approvals.length === 0 ? (
+
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+        <DebouncedSearchInput
+          value={search}
+          onChange={handleSearchChange}
+          placeholder="Search by username, email or name..."
+        />
+        <span style={{ fontSize: '13px', color: 'var(--pgn-color-text-light)', fontWeight: 500 }}>{totalApprovals} pending</span>
+      </div>
+
+      {errorMessage && (
+        <div style={{ background: '#FDE8E8', color: '#9B1C1C', border: '1px solid #F8B4B4', borderRadius: '6px', padding: '10px 12px', marginBottom: '14px', fontSize: '13.5px' }}>
+          {errorMessage}
+        </div>
+      )}
+
+      {isLoading ? (
+        <div style={{ background: '#fff', borderRadius: '10px', border: '1px solid var(--pgn-color-border)', padding: '56px 32px', textAlign: 'center' }}>
+          <p style={{ color: 'var(--pgn-color-text-light)', fontSize: '15px', margin: 0 }}>Loading approvals...</p>
+        </div>
+      ) : approvals.length === 0 ? (
         <div style={{ background: '#fff', borderRadius: '10px', border: '1px solid var(--pgn-color-border)', padding: '56px 32px', textAlign: 'center' }}>
           <p style={{ color: 'var(--pgn-color-text-light)', fontSize: '15px', margin: 0 }}>No pending approval requests.</p>
         </div>
@@ -631,41 +887,56 @@ const SignupApprovalsView = ({
               onMouseEnter={e => { e.currentTarget.style.background = 'var(--pgn-color-primary-light)'; }}
               onMouseLeave={e => { e.currentTarget.style.background = ''; }}
             >
-              <UserAvatar initials={req.initials} color={req.color} size={44} />
+              <UserAvatar
+                initials={getInitials([req.first_name, req.last_name].filter(Boolean).join(' ') || req.username)}
+                color="#1B5E7A"
+                size={44}
+              />
               <div style={{ flex: 1, minWidth: 0 }}>
-                <p style={{ margin: 0, fontWeight: 600, fontSize: '14px', color: 'var(--pgn-color-text-base)' }}>{req.name}</p>
+                <p style={{ margin: 0, fontWeight: 600, fontSize: '14px', color: 'var(--pgn-color-text-base)' }}>
+                  {[req.first_name, req.last_name].filter(Boolean).join(' ') || req.username}
+                </p>
                 <p style={{ margin: '3px 0 0', fontSize: '13px', color: 'var(--pgn-color-text-light)', display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
                   <span style={{ color: 'var(--pgn-color-primary-base)' }}>{req.email}</span>
                   <span style={{ opacity: 0.4 }}>·</span>
-                  <span>{req.org}</span>
+                  <span>{req.username}</span>
                   <span style={{ opacity: 0.4 }}>·</span>
-                  <span>Requested {req.requestedAt}</span>
+                  <span>Joined {req.date_joined ? new Date(req.date_joined).toLocaleDateString() : '—'}</span>
                 </p>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
-                <Form.Label className="x-small font-weight-bold mb-0" style={{ color: 'var(--pgn-color-gray-400)', letterSpacing: '0.06em' }}>ROLE</Form.Label>
-                <Form.Control
-                  as="select"
-                  size="sm"
-                  value={roles[req.id]}
-                  onChange={e => setRoles(prev => ({ ...prev, [req.id]: e.target.value }))}
-                  style={{ minWidth: '140px' }}
-                >
-                  {APPROVAL_ROLES.map(r => <option key={r} value={r}>{r}</option>)}
-                </Form.Control>
-              </div>
               <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
-                <Button variant="success" size="sm" onClick={() => handleApprove(req.id)}>
+                <Button variant="success" size="sm" onClick={() => onAssign(req)}>
                   <FontAwesomeIcon icon={faCheck} style={{ fontSize: '12px', marginRight: '6px' }} />
-                  Approve
-                </Button>
-                <Button variant="outline-danger" size="sm" onClick={() => handleReject(req.id)}>
-                  <FontAwesomeIcon icon={faTimes} style={{ fontSize: '12px', marginRight: '6px' }} />
-                  Reject
+                  Assign Role
                 </Button>
               </div>
             </div>
           ))}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', borderTop: '1px solid var(--pgn-color-gray-100)', background: 'var(--pgn-color-gray-100)' }}>
+            <span style={{ fontSize: '13px', color: 'var(--pgn-color-text-light)' }}>
+              Showing <strong>{start}–{end}</strong> of <strong>{totalApprovals}</strong>
+            </span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <Button variant="outline-secondary" size="sm" onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={page <= 1}>
+                <FontAwesomeIcon icon={faChevronLeft} style={{ fontSize: '10px' }} />
+              </Button>
+              <Button variant="outline-secondary" size="sm" onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={page >= totalPages}>
+                <FontAwesomeIcon icon={faChevronRight} style={{ fontSize: '10px' }} />
+              </Button>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: 'var(--pgn-color-text-light)' }}>
+              Rows per page
+              <Form.Control
+                as="select"
+                size="sm"
+                value={rowsPerPage}
+                onChange={e => { setRowsPerPage(Number(e.target.value)); setCurrentPage(1); }}
+                style={{ width: 'auto' }}
+              >
+                {[5, 10, 20, 50].map(n => <option key={n} value={n}>{n}</option>)}
+              </Form.Control>
+            </div>
+          </div>
         </div>
       )}
       <Toast show={showToast} onClose={() => setShowToast(false)}>
@@ -676,18 +947,219 @@ const SignupApprovalsView = ({
 };
 
 SignupApprovalsView.propTypes = {
-  approvals: PropTypes.arrayOf(PropTypes.shape({
-    id: PropTypes.number.isRequired,
-    initials: PropTypes.string.isRequired,
-    color: PropTypes.string.isRequired,
-    name: PropTypes.string.isRequired,
-    email: PropTypes.string.isRequired,
-    org: PropTypes.string.isRequired,
-    requestedAt: PropTypes.string.isRequired,
-  })).isRequired,
-  setApprovals: PropTypes.func.isRequired,
-  roles: PropTypes.objectOf(PropTypes.string).isRequired,
-  setRoles: PropTypes.func.isRequired,
+  onAssign: PropTypes.func.isRequired,
+  reloadKey: PropTypes.number.isRequired,
+  onCountChange: PropTypes.func.isRequired,
+};
+
+// ─── Biodata Edit Requests view ───────────────────────────────────────────────
+
+const formatDateTime = value => (value ? new Date(value).toLocaleString() : '—');
+
+const BiodataEditRequestsView = ({ onCountChange }) => {
+  const [requests, setRequests] = useState([]);
+  const [totalRequests, setTotalRequests] = useState(0);
+  const [statusFilter, setStatusFilter] = useState('pending');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [resolvingId, setResolvingId] = useState(null);
+  const [adminNotes, setAdminNotes] = useState({});
+  const [toastMessage, setToastMessage] = useState('');
+  const [showToast, setShowToast] = useState(false);
+
+  const showNotification = (message) => { setToastMessage(message); setShowToast(true); };
+
+  useEffect(() => {
+    let isMounted = true;
+    const fetchRequests = async () => {
+      setIsLoading(true);
+      setErrorMessage('');
+      const params = new URLSearchParams({
+        page: String(currentPage),
+        page_size: String(rowsPerPage),
+      });
+      if (statusFilter !== 'all') params.set('status', statusFilter);
+
+      try {
+        const { data } = await getAuthenticatedHttpClient().get(`${getBiodataEditRequestsUrl()}?${params.toString()}`);
+        const results = Array.isArray(data?.results) ? data.results : Array.isArray(data) ? data : [];
+        if (!isMounted) return;
+        setRequests(results);
+        setTotalRequests(typeof data?.count === 'number' ? data.count : results.length);
+        if (statusFilter === 'pending') {
+          onCountChange(typeof data?.count === 'number' ? data.count : results.length);
+        }
+      } catch (error) {
+        if (!isMounted) return;
+        setRequests([]);
+        setTotalRequests(0);
+        if (statusFilter === 'pending') onCountChange(0);
+        setErrorMessage(error?.response?.data?.detail || 'Unable to load biodata edit requests.');
+      } finally {
+        if (isMounted) setIsLoading(false);
+      }
+    };
+
+    fetchRequests();
+    return () => { isMounted = false; };
+  }, [currentPage, onCountChange, refreshKey, rowsPerPage, statusFilter]);
+
+  const handleResolve = async (requestId) => {
+    setResolvingId(requestId);
+    setErrorMessage('');
+    try {
+      await getAuthenticatedHttpClient().post(
+        getBiodataEditRequestResolveUrl(requestId),
+        { admin_note: adminNotes[requestId] || '' },
+      );
+      setAdminNotes(prev => ({ ...prev, [requestId]: '' }));
+      setRefreshKey(prev => prev + 1);
+      showNotification('Edit request marked as resolved.');
+    } catch (error) {
+      const data = error?.response?.data;
+      setErrorMessage(data?.detail || data?.non_field_errors || 'Unable to resolve this request.');
+    } finally {
+      setResolvingId(null);
+    }
+  };
+
+  const totalPages = Math.max(1, Math.ceil(totalRequests / rowsPerPage));
+  const page = Math.min(currentPage, totalPages);
+  const start = totalRequests === 0 ? 0 : (page - 1) * rowsPerPage + 1;
+  const end = Math.min((page - 1) * rowsPerPage + requests.length, totalRequests);
+
+  return (
+    <>
+      <p style={{ fontSize: '13px', color: 'var(--pgn-color-text-light)', marginBottom: '14px' }}>
+        <span>Administration</span>
+        <span style={{ margin: '0 8px', opacity: 0.4 }}>/</span>
+        <span style={{ color: 'var(--pgn-color-gray-800)', fontWeight: 500 }}>Biodata Edit Request</span>
+      </p>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '6px' }}>
+        <h1 style={{ fontSize: '22px', fontWeight: 700, color: 'var(--pgn-color-text-base)', margin: 0 }}>Biodata Edit Request</h1>
+        <Button variant="outline-secondary" size="sm" onClick={() => setRefreshKey(prev => prev + 1)} style={{ marginTop: '2px' }}>
+          <FontAwesomeIcon icon={faSync} style={{ marginRight: '6px' }} />
+          Refresh
+        </Button>
+      </div>
+      <p style={{ color: 'var(--pgn-color-text-light)', fontSize: '13.5px', marginBottom: '22px' }}>
+        Review trainee biodata edit requests and mark them resolved after making required updates.
+      </p>
+
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+        <Dropdown>
+          <Dropdown.Toggle variant="outline-secondary" id="edit-request-status-filter" style={{ fontSize: '13.5px' }}>
+            Status: {statusFilter === 'all' ? 'All' : statusFilter === 'pending' ? 'Pending' : 'Resolved'}
+          </Dropdown.Toggle>
+          <Dropdown.Menu>
+            {[
+              ['pending', 'Pending'],
+              ['resolved', 'Resolved'],
+              ['all', 'All'],
+            ].map(([value, label]) => (
+              <Dropdown.Item key={value} onClick={() => { setStatusFilter(value); setCurrentPage(1); }}>
+                {label}
+              </Dropdown.Item>
+            ))}
+          </Dropdown.Menu>
+        </Dropdown>
+        <span style={{ fontSize: '13px', color: 'var(--pgn-color-text-light)', fontWeight: 500 }}>{totalRequests} requests</span>
+      </div>
+
+      {errorMessage && (
+        <div style={{ background: '#FDE8E8', color: '#9B1C1C', border: '1px solid #F8B4B4', borderRadius: '6px', padding: '10px 12px', marginBottom: '14px', fontSize: '13.5px' }}>
+          {Array.isArray(errorMessage) ? errorMessage.join(' ') : errorMessage}
+        </div>
+      )}
+
+      <div style={{ background: '#fff', borderRadius: '10px', border: '1px solid var(--pgn-color-border)', overflow: 'hidden' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13.5px' }}>
+          <thead>
+            <tr style={{ background: 'var(--pgn-color-gray-100)', borderBottom: '1px solid var(--pgn-color-border)' }}>
+              {['PROFILE', 'MESSAGE', 'STATUS', 'REQUESTED', 'RESOLVED BY', 'ADMIN NOTE', 'ACTION'].map(label => (
+                <th key={label} style={{ padding: '11px 16px', textAlign: label === 'ACTION' ? 'center' : 'left', fontSize: '11px', fontWeight: 700, color: 'var(--pgn-color-gray-400)', letterSpacing: '0.06em' }}>
+                  {label}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {isLoading ? (
+              <tr><td colSpan={7} style={{ padding: '48px 16px', textAlign: 'center', color: 'var(--pgn-color-text-light)' }}>Loading requests...</td></tr>
+            ) : requests.length === 0 ? (
+              <tr><td colSpan={7} style={{ padding: '48px 16px', textAlign: 'center', color: 'var(--pgn-color-text-light)' }}>No biodata edit requests found.</td></tr>
+            ) : requests.map((request, idx) => (
+              <tr key={request.id} style={{ borderBottom: idx < requests.length - 1 ? '1px solid var(--pgn-color-gray-100)' : 'none', verticalAlign: 'top' }}>
+                <td style={{ padding: '14px 16px', fontWeight: 600, color: 'var(--pgn-color-text-base)', minWidth: '150px' }}>{request.profile_name || `Profile #${request.profile_id}`}</td>
+                <td style={{ padding: '14px 16px', color: 'var(--pgn-color-gray-700)', maxWidth: '320px', whiteSpace: 'pre-wrap' }}>{request.message}</td>
+                <td style={{ padding: '14px 16px' }}><RequestStatusBadge status={request.status} /></td>
+                <td style={{ padding: '14px 16px', color: 'var(--pgn-color-gray-700)', minWidth: '130px' }}>{formatDateTime(request.created_at)}</td>
+                <td style={{ padding: '14px 16px', color: 'var(--pgn-color-gray-700)' }}>{request.resolved_by_name || '—'}</td>
+                <td style={{ padding: '14px 16px', minWidth: '220px' }}>
+                  {request.status === 'pending' ? (
+                    <Form.Control
+                      as="textarea"
+                      rows={2}
+                      value={adminNotes[request.id] || ''}
+                      placeholder="Optional note"
+                      onChange={event => setAdminNotes(prev => ({ ...prev, [request.id]: event.target.value }))}
+                    />
+                  ) : (
+                    <span style={{ color: 'var(--pgn-color-gray-700)', whiteSpace: 'pre-wrap' }}>{request.admin_note || '—'}</span>
+                  )}
+                </td>
+                <td style={{ padding: '14px 16px', textAlign: 'center', minWidth: '120px' }}>
+                  {request.status === 'pending' ? (
+                    <Button variant="success" size="sm" onClick={() => handleResolve(request.id)} disabled={resolvingId === request.id}>
+                      <FontAwesomeIcon icon={faCheck} style={{ fontSize: '12px', marginRight: '6px' }} />
+                      {resolvingId === request.id ? 'Resolving...' : 'Resolve'}
+                    </Button>
+                  ) : (
+                    <span style={{ fontSize: '12px', color: 'var(--pgn-color-text-light)' }}>Resolved {formatDateTime(request.resolved_at)}</span>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', borderTop: '1px solid var(--pgn-color-gray-100)', background: 'var(--pgn-color-gray-100)' }}>
+          <span style={{ fontSize: '13px', color: 'var(--pgn-color-text-light)' }}>
+            Showing <strong>{start}–{end}</strong> of <strong>{totalRequests}</strong>
+          </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <Button variant="outline-secondary" size="sm" onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={page <= 1}>
+              <FontAwesomeIcon icon={faChevronLeft} style={{ fontSize: '10px' }} />
+            </Button>
+            <Button variant="outline-secondary" size="sm" onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={page >= totalPages}>
+              <FontAwesomeIcon icon={faChevronRight} style={{ fontSize: '10px' }} />
+            </Button>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: 'var(--pgn-color-text-light)' }}>
+            Rows per page
+            <Form.Control
+              as="select"
+              size="sm"
+              value={rowsPerPage}
+              onChange={e => { setRowsPerPage(Number(e.target.value)); setCurrentPage(1); }}
+              style={{ width: 'auto' }}
+            >
+              {[5, 10, 20, 50].map(n => <option key={n} value={n}>{n}</option>)}
+            </Form.Control>
+          </div>
+        </div>
+      </div>
+      <Toast show={showToast} onClose={() => setShowToast(false)}>
+        {toastMessage}
+      </Toast>
+    </>
+  );
+};
+
+BiodataEditRequestsView.propTypes = {
+  onCountChange: PropTypes.func.isRequired,
 };
 
 // ─── Placeholder for unbuilt views ────────────────────────────────────────────
@@ -714,30 +1186,122 @@ const AdminConsolePage = () => {
   const [activeNav, setActiveNav] = useState('users');
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
+  const [assignmentUser, setAssignmentUser] = useState(null);
   const [viewingUser, setViewingUser] = useState(null);
-  const [approvals, setApprovals] = useState(INITIAL_APPROVALS);
-  const [roles, setRoles] = useState({ ...APPROVAL_DEFAULT_ROLES });
+  const [pendingApprovalsCount, setPendingApprovalsCount] = useState(0);
+  const [pendingEditRequestsCount, setPendingEditRequestsCount] = useState(0);
+  const [approvalReloadKey, setApprovalReloadKey] = useState(0);
+  const [userListReloadKey, setUserListReloadKey] = useState(0);
+  const [callerProfile, setCallerProfile] = useState({ roles: [], city: null, creatable_roles: ['instructor', 'trainee'] });
+  const [cities, setCities] = useState([]);
+  const [batches, setBatches] = useState([]);
 
-  const handleAdd = () => { setEditingUser(null); setShowAddModal(true); };
-  const handleEdit = (user) => { setEditingUser(user); setShowAddModal(true); };
-  const handleView = (user) => setViewingUser(user);
-  const handleModalClose = () => { setShowAddModal(false); setEditingUser(null); };
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadCreationContext = async () => {
+      try {
+        const [{ data: profileData }, { data: cityData }, { data: batchData }] = await Promise.all([
+          getAuthenticatedHttpClient().get(getLmsUrl(BIODATA_USER_ME_PATH)),
+          getAuthenticatedHttpClient().get(getLmsUrl(BIODATA_USER_CITIES_PATH)),
+          getAuthenticatedHttpClient().get(getLmsUrl(BIODATA_USER_BATCHES_PATH)),
+        ]);
+
+        if (!isMounted) return;
+        setCallerProfile({
+          ...profileData,
+          roles: Array.isArray(profileData?.roles) ? profileData.roles : [],
+          creatable_roles: Array.isArray(profileData?.creatable_roles)
+            ? profileData.creatable_roles
+            : ['instructor', 'trainee'],
+        });
+        setCities(Array.isArray(cityData) ? cityData : []);
+        setBatches(Array.isArray(batchData) ? batchData : []);
+      } catch (error) {
+        if (!isMounted) return;
+        setCallerProfile({ roles: [], city: null, creatable_roles: ['instructor', 'trainee'] });
+        setCities([]);
+        setBatches([]);
+      }
+    };
+
+    loadCreationContext();
+    return () => { isMounted = false; };
+  }, []);
+
+  const fetchUserDetail = async user => {
+    const { data } = await getAuthenticatedHttpClient().get(getBiodataUserDetailUrl(user.id));
+    return {
+      ...user,
+      ...data,
+      photo: getPhotoUrl(data.photo) || user.photo,
+      initials: getInitials(data.full_name || user.name),
+      color: user.color || '#1B5E7A',
+      status: getStatusLabel(data.status) || user.status,
+      roleLabels: Array.isArray(data.roles) ? data.roles.map(getRoleLabel) : user.roleLabels,
+      batchNo: data.trainee_profile?.batch?.name || user.batchNo,
+    };
+  };
+
+  const handleAdd = () => { setEditingUser(null); setAssignmentUser(null); setShowAddModal(true); };
+  const handleEdit = async (user) => {
+    const detail = user?.instructor_profile !== undefined || user?.trainee_profile !== undefined
+      ? user
+      : await fetchUserDetail(user);
+    setEditingUser(detail);
+    setAssignmentUser(null);
+    setShowAddModal(true);
+  };
+  const handleView = async (user) => {
+    const detail = await fetchUserDetail(user);
+    setViewingUser(detail);
+  };
+  const handleAssignApproval = (user) => {
+    setEditingUser(null);
+    setAssignmentUser(user);
+    setShowAddModal(true);
+  };
+  const handleModalClose = () => { setShowAddModal(false); setEditingUser(null); setAssignmentUser(null); };
+  const handleCreateUser = async ({
+    id, assignmentUserId, role, payload,
+  }) => {
+    if (assignmentUserId) {
+      await getAuthenticatedHttpClient().post(getBiodataAssignRoleUrl(assignmentUserId), payload);
+      setApprovalReloadKey(prev => prev + 1);
+    } else if (id) {
+      await getAuthenticatedHttpClient().patch(getBiodataUserDetailUrl(id), payload);
+    } else {
+      await getAuthenticatedHttpClient().post(getLmsUrl(getProfileCreatePath(role)), payload);
+    }
+    setUserListReloadKey(prev => prev + 1);
+  };
 
   const renderView = () => {
     switch (activeNav) {
       case 'signup-approvals': return (
         <SignupApprovalsView
-          approvals={approvals}
-          setApprovals={setApprovals}
-          roles={roles}
-          setRoles={setRoles}
+          onAssign={handleAssignApproval}
+          reloadKey={approvalReloadKey}
+          onCountChange={setPendingApprovalsCount}
+        />
+      );
+      case 'biodata-edit-requests': return (
+        <BiodataEditRequestsView
+          onCountChange={setPendingEditRequestsCount}
         />
       );
       case 'courses': return <PlaceholderView title="Courses" />;
       case 'regional-offices': return <PlaceholderView title="Regional Offices" />;
       case 'access-policies': return <PlaceholderView title="Access Policies" />;
       case 'audit-log': return <PlaceholderView title="Audit Log" />;
-      default: return <UsersView onAdd={handleAdd} onEdit={handleEdit} onView={handleView} />;
+      default: return (
+        <UsersView
+          onAdd={handleAdd}
+          onEdit={handleEdit}
+          onView={handleView}
+          reloadKey={userListReloadKey}
+        />
+      );
     }
   };
 
@@ -757,8 +1321,11 @@ const AdminConsolePage = () => {
                 <button key={item.id} type="button" onClick={() => setActiveNav(item.id)} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 10px', width: '100%', border: 'none', borderRadius: '7px', cursor: 'pointer', fontSize: '13.5px', fontWeight: active ? 600 : 400, background: active ? 'var(--pgn-color-primary-light)' : 'transparent', color: active ? 'var(--pgn-color-primary-base)' : 'var(--pgn-color-gray-700)', textAlign: 'left', marginBottom: '2px' }}>
                   <FontAwesomeIcon icon={item.icon} style={{ width: '15px', opacity: 0.8, flexShrink: 0 }} />
                   <span style={{ flex: 1 }}>{item.label}</span>
-                  {item.id === 'signup-approvals' && approvals.length > 0 && (
-                    <Badge variant="danger">{approvals.length}</Badge>
+                  {item.id === 'signup-approvals' && pendingApprovalsCount > 0 && (
+                    <Badge variant="danger">{pendingApprovalsCount}</Badge>
+                  )}
+                  {item.id === 'biodata-edit-requests' && pendingEditRequestsCount > 0 && (
+                    <Badge variant="danger">{pendingEditRequestsCount}</Badge>
                   )}
                 </button>
               );
@@ -777,7 +1344,12 @@ const AdminConsolePage = () => {
         <AddUserModal
           onClose={handleModalClose}
           editUser={editingUser}
-          onSubmit={() => {}}
+          assignmentUser={assignmentUser}
+          onSubmit={handleCreateUser}
+          allowedRoles={callerProfile.creatable_roles}
+          callerProfile={callerProfile}
+          cities={cities}
+          batches={batches}
         />
       )}
       {viewingUser && (
