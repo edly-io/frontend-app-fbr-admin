@@ -25,6 +25,7 @@ const TRAINEE_TYPE_LABELS = {
   dst_ist: 'DST / IST',
 };
 
+// Maps top-level users-list tab id → profile tab id
 const SOURCE_TAB_TO_PROFILE = {
   instructors: 'instructor',
   trainees: 'trainee',
@@ -62,27 +63,6 @@ const getInitialProfileTab = (user, sourceTab) => {
   if (user.instructor_profile) return 'instructor';
   if (user.trainee_profile) return 'trainee';
   return null;
-};
-
-const getBiodataProfileUrl = (user) => {
-  if (
-    !user?.trainee_profile
-    || user.trainee_profile?.trainee_type !== 'stp'
-    || !user?.id
-  ) {
-    return null;
-  }
-
-  if (typeof window === 'undefined') {
-    return null;
-  }
-
-  const url = new URL(
-    '/profile/u/',
-    `${window.location.protocol}//${window.location.hostname}:1995`,
-  );
-  url.searchParams.set('for_user', String(user.id));
-  return url.toString();
 };
 
 const DetailCell = ({ label, value }) => {
@@ -131,7 +111,6 @@ const ViewUserModal = ({ user, onClose, onEdit, sourceTab }) => {
   const trainee = user.trainee_profile;
   const avatarValue = user.photo || user.initials || '?';
   const showProfileTabs = availableProfileTabs.length > 1;
-  const biodataProfileUrl = getBiodataProfileUrl(user);
   const showInstructor = instructor && (!showProfileTabs || activeProfileTab === 'instructor');
   const showTrainee = trainee && (!showProfileTabs || activeProfileTab === 'trainee');
 
@@ -236,14 +215,6 @@ const ViewUserModal = ({ user, onClose, onEdit, sourceTab }) => {
         </div>
 
         <div style={{ padding: '14px 28px', borderTop: '1px solid var(--pgn-color-border)', display: 'flex', justifyContent: 'flex-end', gap: '10px', flexShrink: 0 }}>
-          {biodataProfileUrl && (
-            <Button
-              variant="outline-primary"
-              onClick={() => { window.open(biodataProfileUrl, '_blank', 'noopener,noreferrer'); }}
-            >
-              Open Biodata Form
-            </Button>
-          )}
           <Button variant="tertiary" onClick={onClose}>
             <FontAwesomeIcon icon={faTimes} style={{ fontSize: '11px', marginRight: '6px' }} />
             Close

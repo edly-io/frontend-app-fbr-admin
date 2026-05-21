@@ -17,11 +17,6 @@ const TRAINEE_TYPES = [
   { id: 'dst_ist', label: 'DST / IST', desc: 'Domain / in-service training' },
 ];
 
-const TRAINEE_TYPE_LABELS = {
-  stp: 'STP',
-  dst_ist: 'DST / IST',
-};
-
 const ROLE_LABELS = {
   super_admin: 'Super Admin',
   middle_admin: 'Middle Admin',
@@ -54,7 +49,6 @@ const F = {
 
 const ADMIN_ROLES = ['super_admin', 'middle_admin', 'data_admin'];
 const NUMBER_KEYS = ['bps_grade', 'city', 'batch', 'education_year'];
-const PROFILE_ROLE_OPTIONS = ['instructor', 'trainee'];
 
 const normalizeValue = value => (typeof value === 'string' ? value.trim() : value);
 
@@ -86,43 +80,6 @@ const normalizePayloadFieldValue = (field, value) => {
 };
 
 const isValidPakistanMobile = value => /^3\d{9}$/.test(getPakistanMobileSubscriber(value));
-
-const getPrimaryRole = (user) => {
-  if (!user) return null;
-  const roles = Array.isArray(user.roles) ? user.roles : [];
-  if (user.trainee_profile) return 'trainee';
-  if (user.instructor_profile) return 'instructor';
-  return roles.find(role => ADMIN_ROLES.includes(role)) || roles[0] || null;
-};
-
-const getAvailableEditProfileRoles = (user) => {
-  if (!user) return [];
-  return PROFILE_ROLE_OPTIONS.filter(role => (
-    (role === 'instructor' && !!user.instructor_profile)
-    || (role === 'trainee' && !!user.trainee_profile)
-  ));
-};
-
-const getInitialEditRole = (user, editSourceTab, editSourceRole) => {
-  if (!user) return editSourceRole || null;
-  const availableEditProfileRoles = getAvailableEditProfileRoles(user);
-
-  if (
-    editSourceRole
-    && availableEditProfileRoles.includes(editSourceRole)
-    && ['instructors', 'trainees'].includes(editSourceTab)
-  ) {
-    return editSourceRole;
-  }
-
-  if (editSourceTab === 'instructors' && user.instructor_profile) return 'instructor';
-  if (editSourceTab === 'trainees' && user.trainee_profile) return 'trainee';
-  if (availableEditProfileRoles.includes('instructor')) return 'instructor';
-  if (availableEditProfileRoles.includes('trainee')) return 'trainee';
-
-  return getPrimaryRole(user);
-};
-
 const getCreateFieldsForRole = (role, traineeType, shouldShowCity) => {
   if (ADMIN_ROLES.includes(role)) {
     return [
@@ -157,81 +114,12 @@ const getCreateFieldsForRole = (role, traineeType, shouldShowCity) => {
   ];
 };
 
-const getEditSections = (role, traineeType) => {
-  const baseRows = [
-    [F.fullName],
-    [F.email, F.mobile],
-    [F.cnic, F.city],
-    [F.fieldOrganisation],
-    [F.emergencyContactName, F.emergencyContactPhone],
-    [F.educationDegree, F.educationInstitute],
-    [F.educationYear],
-  ];
-
-  const sections = [{ title: 'PROFILE INFORMATION', note: 'Base user details', rows: baseRows }];
-
-  if (role === 'instructor') {
-    sections.push({
-      title: 'INSTRUCTOR PROFILE',
-      note: 'Trainer-specific details',
-      rows: [
-        [F.fieldOfExpertise],
-        [{ ...F.languagesAwardsPublications, group: 'instructor_profile' }],
-      ],
-    });
-  }
-
-  if (role === 'trainee') {
-    sections.push({
-      title: 'TRAINEE PROFILE',
-      note: traineeType === 'stp' ? 'STP trainee details' : 'DST / IST trainee details',
-      rows: [
-        [F.dateOfBirth, F.designation],
-        [F.bpsGrade],
-        ...(traineeType === 'stp' ? [[{ ...F.batch, required: true }, F.hostelPreference]] : [[F.hostelPreference]]),
-        [F.serviceHistory],
-        [{ ...F.languagesAwardsPublications, group: 'trainee_profile' }],
-      ],
-    });
-  }
-
-  return sections;
-};
-
 const getRoleContext = (role, traineeType, isCityLocked) => {
   if (role === 'trainee') return traineeType === 'stp' ? 'STP trainee account' : 'DST / IST trainee account';
   if (role === 'instructor') return 'Instructor account';
   if (role === 'data_admin' && isCityLocked) return "Data Admin city will be locked to your city";
   return `${ROLE_LABELS[role] || 'User'} account`;
 };
-
-const getInitialValues = (user) => {
-  if (!user) return {};
-  const instructor = user.instructor_profile || {};
-  const trainee = user.trainee_profile || {};
-  return {
-    fullName: user.full_name || '',
-    email: user.email || '',
-    cnic: sanitizeCnicValue(user.cnic),
-    mobile: user.mobile || '',
-    fieldOrganisation: user.field_organisation || '',
-    city: user.city?.id || '',
-    emergencyContactName: user.emergency_contact_name || '',
-    emergencyContactPhone: user.emergency_contact_phone || '',
-    educationDegree: user.education_degree || '',
-    educationInstitute: user.education_institute || '',
-    educationYear: user.education_year || '',
-    fieldOfExpertise: instructor.field_of_expertise || '',
-    dateOfBirth: trainee.date_of_birth || '',
-    designation: trainee.designation || '',
-    bpsGrade: trainee.bps_grade || '',
-    batch: trainee.batch?.id || '',
-    serviceHistory: trainee.service_history || '',
-    hostelPreference: trainee.hostel_preference || '',
-    languagesAwardsPublications: instructor.languages_awards_publications || trainee.languages_awards_publications || '',
-  };
-};
-
 const toCreatePayload = (role, traineeType, values, shouldSendCity) => {
   const fields = getCreateFieldsForRole(role, traineeType, shouldSendCity).flat();
   const payload = {};
@@ -249,32 +137,6 @@ const toCreatePayload = (role, traineeType, values, shouldSendCity) => {
 };
 
 const toAssignPayload = role => ({ role });
-
-const toEditPayload = (role, traineeType, values) => {
-  const payload = {};
-  const nested = {};
-  const fields = getEditSections(role, traineeType).flatMap(section => section.rows.flat());
-
-  fields.forEach((field) => {
-    const value = normalizePayloadFieldValue(field, values[field.id]);
-    const normalized = value === '' ? null : value;
-    const finalValue = NUMBER_KEYS.includes(field.key) && normalized !== null ? Number(normalized) : normalized;
-
-    if (field.group === 'instructor_profile' || field.group === 'trainee_profile') {
-      nested[field.group] = nested[field.group] || {};
-      nested[field.group][field.key] = finalValue;
-    } else {
-      payload[field.key] = finalValue;
-    }
-  });
-
-  if (role === 'trainee') {
-    nested.trainee_profile = nested.trainee_profile || {};
-    nested.trainee_profile.trainee_type = traineeType;
-  }
-
-  return { ...payload, ...nested };
-};
 
 const FieldRow = ({
   fields, values, onChange, errors, cities, batches,
@@ -384,23 +246,19 @@ const AddUserModal = ({
   callerProfile,
   cities,
   batches,
-  editUser,
   assignmentUser,
-  editSourceTab,
-  editSourceRole,
-  editProfileMode,
 }) => {
-  const isEdit = !!editUser;
   const isAssignment = !!assignmentUser;
-  const availableEditProfileRoles = useMemo(() => getAvailableEditProfileRoles(editUser), [editUser]);
-  const editRole = isEdit ? getInitialEditRole(editUser, editSourceTab, editSourceRole) : null;
-  const showEditProfileTabs = isEdit && editProfileMode === 'all' && availableEditProfileRoles.length > 1;
   const visibleRoles = useMemo(() => ROLE_OPTIONS.filter(role => allowedRoles.includes(role.id)), [allowedRoles]);
-  const defaultRole = editRole || visibleRoles[0]?.id || 'instructor';
-  const initialTraineeType = editUser?.trainee_profile?.trainee_type || 'stp';
+  const defaultRole = visibleRoles[0]?.id || 'instructor';
+  const initialTraineeType = 'stp';
   const [selectedRole, setSelectedRole] = useState(defaultRole);
   const [traineeType, setTraineeType] = useState(initialTraineeType);
-  const [values, setValues] = useState(() => getInitialValues(editUser));
+  const getAssignmentValues = user => ({
+    fullName: [user?.first_name, user?.last_name].filter(Boolean).join(' ') || user?.username || '',
+    email: user?.email || '',
+  });
+  const [values, setValues] = useState(() => (isAssignment ? getAssignmentValues(assignmentUser) : {}));
   const [errors, setErrors] = useState({});
   const [apiError, setApiError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -411,23 +269,22 @@ const AddUserModal = ({
 
   useEffect(() => {
     setTraineeType(initialTraineeType);
-    setValues(getInitialValues(editUser));
+    setValues(isAssignment ? getAssignmentValues(assignmentUser) : {});
     setErrors({});
     setApiError('');
-  }, [assignmentUser, editUser, initialTraineeType, isAssignment]);
+  }, [assignmentUser, initialTraineeType, isAssignment]);
 
   useEffect(() => {
-    if (!isEdit && !isAssignment) {
+    if (!isAssignment) {
       setValues({});
       setErrors({});
       setApiError('');
     }
-  }, [isAssignment, isEdit, selectedRole, traineeType]);
+  }, [isAssignment, selectedRole, traineeType]);
 
   const isMiddleAdminCaller = callerProfile.roles.includes('middle_admin') && !callerProfile.roles.includes('super_admin');
   const shouldShowCity = ADMIN_ROLES.includes(selectedRole) && selectedRole !== 'super_admin' && !isMiddleAdminCaller;
   const createFields = getCreateFieldsForRole(selectedRole, traineeType, shouldShowCity);
-  const editSections = getEditSections(selectedRole, traineeType);
   const contextText = getRoleContext(selectedRole, traineeType, isMiddleAdminCaller);
 
   const handleChange = (id, val) => {
@@ -442,7 +299,7 @@ const AddUserModal = ({
     }
 
     const nextErrors = {};
-    const fields = isEdit ? editSections.flatMap(section => section.rows.flat()) : createFields.flat();
+    const fields = createFields.flat();
 
     fields.forEach((field) => {
       if (field.required && (field.id === 'mobile' || field.id === 'emergencyContactPhone') && !getPakistanMobileSubscriber(values[field.id])) {
@@ -480,26 +337,23 @@ const AddUserModal = ({
     setApiError('');
     try {
       await onSubmit({
-        id: editUser?.id,
         assignmentUserId: assignmentUser?.id,
         role: selectedRole,
-        payload: isEdit
-          ? toEditPayload(selectedRole, traineeType, values)
-          : isAssignment
-            ? toAssignPayload(selectedRole)
+        payload: isAssignment
+          ? toAssignPayload(selectedRole)
           : toCreatePayload(selectedRole, traineeType, values, shouldShowCity),
       });
       onClose();
     } catch (error) {
       const data = error?.response?.data;
-      setApiError(data?.detail || data?.non_field_errors?.join(' ') || `Unable to ${isEdit ? 'update' : isAssignment ? 'approve' : 'create'} user.`);
+      setApiError(data?.detail || data?.non_field_errors?.join(' ') || `Unable to ${isAssignment ? 'approve' : 'create'} user.`);
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const title = isEdit ? 'Edit User' : isAssignment ? 'Approve Sign-in' : 'Add User';
-  const subtitle = isEdit ? 'Update account and profile details' : isAssignment ? 'Assign a role and create the FBR profile' : 'Create a new account and send credentials by WhatsApp';
+  const title = isAssignment ? 'Approve Sign-in' : 'Add User';
+  const subtitle = isAssignment ? 'Create an FBR profile and assign access' : 'Create a new account and send credentials by WhatsApp';
 
   return (
     <div
@@ -509,11 +363,11 @@ const AddUserModal = ({
       <div style={{ background: '#fff', borderRadius: '12px', width: '880px', maxWidth: '96vw', maxHeight: '92vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '0 24px 64px rgba(0,0,0,0.28)' }}>
         <div style={{ background: 'linear-gradient(135deg, #1B3A5C 0%, #1E4976 100%)', padding: '22px 28px', borderBottom: '3px solid #C9922A', flexShrink: 0, display: 'flex', alignItems: 'center', gap: '16px', position: 'relative' }}>
           <div style={{ width: '44px', height: '44px', borderRadius: '50%', border: '2px solid rgba(255,255,255,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(255,255,255,0.6)', fontSize: '20px', flexShrink: 0 }}>
-            {isEdit ? 'i' : '+'}
+            +
           </div>
           <div>
             <p style={{ margin: 0, fontSize: '10px', fontWeight: 700, color: 'rgba(255,255,255,0.6)', letterSpacing: '0.12em', textTransform: 'uppercase' }}>
-              {isEdit ? 'EDIT RECORD' : isAssignment ? 'SIGN-IN APPROVAL' : 'NEW RECORD'}
+              {isAssignment ? 'SIGN-IN APPROVAL' : 'NEW RECORD'}
             </p>
             <h2 style={{ margin: '2px 0 0', fontSize: '20px', fontWeight: 700, color: '#fff' }}>{title}</h2>
             <p style={{ margin: '2px 0 0', fontSize: '13px', color: 'rgba(255,255,255,0.65)' }}>{subtitle}</p>
@@ -533,68 +387,33 @@ const AddUserModal = ({
             <label style={{ fontSize: '10.5px', fontWeight: 700, color: 'var(--pgn-color-text-light)', letterSpacing: '0.07em', display: 'block', marginBottom: '8px' }}>
               ROLE <span style={{ color: '#E53E3E' }}>*</span>
             </label>
-            {isEdit ? (
-              showEditProfileTabs ? (
-                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                  {availableEditProfileRoles.map((role) => {
-                    const active = selectedRole === role;
-                    return (
-                      <button
-                        key={role}
-                        type="button"
-                        onClick={() => setSelectedRole(role)}
-                        style={{
-                          minWidth: '140px',
-                          padding: '10px 14px',
-                          borderRadius: '8px',
-                          cursor: 'pointer',
-                          border: `1.5px solid ${active ? 'var(--pgn-color-primary-base)' : 'var(--pgn-color-border)'}`,
-                          background: active ? 'var(--pgn-color-primary-light)' : '#fff',
-                          color: active ? 'var(--pgn-color-primary-base)' : 'var(--pgn-color-gray-900)',
-                          fontSize: '13px',
-                          fontWeight: 600,
-                          textAlign: 'center',
-                        }}
-                      >
-                        {ROLE_LABELS[role] || role}
-                      </button>
-                    );
-                  })}
-                </div>
-              ) : (
-                <span style={{ background: 'var(--pgn-color-primary-light)', color: 'var(--pgn-color-primary-base)', border: '1.5px solid var(--pgn-color-primary-base)', padding: '6px 14px', borderRadius: '8px', fontSize: '13px', fontWeight: 600, display: 'inline-flex' }}>
-                  {ROLE_LABELS[selectedRole] || selectedRole}
-                </span>
-              )
-            ) : (
-              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                {visibleRoles.map((role) => {
-                  const active = selectedRole === role.id;
-                  return (
-                    <button
-                      key={role.id}
-                      type="button"
-                      onClick={() => setSelectedRole(role.id)}
-                      style={{
-                        flex: '1 1 130px',
-                        padding: '10px 8px',
-                        borderRadius: '8px',
-                        cursor: 'pointer',
-                        border: `1.5px solid ${active ? 'var(--pgn-color-primary-base)' : 'var(--pgn-color-border)'}`,
-                        background: active ? 'var(--pgn-color-primary-light)' : '#fff',
-                        textAlign: 'center',
-                      }}
-                    >
-                      <p style={{ margin: 0, fontSize: '13px', fontWeight: 600, color: active ? 'var(--pgn-color-primary-base)' : 'var(--pgn-color-gray-900)' }}>{role.label}</p>
-                      <p style={{ margin: '2px 0 0', fontSize: '11px', color: active ? 'var(--pgn-color-primary-base)' : 'var(--pgn-color-text-light)' }}>{role.desc}</p>
-                    </button>
-                  );
-                })}
-              </div>
-            )}
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              {visibleRoles.map((role) => {
+                const active = selectedRole === role.id;
+                return (
+                  <button
+                    key={role.id}
+                    type="button"
+                    onClick={() => setSelectedRole(role.id)}
+                    style={{
+                      flex: '1 1 130px',
+                      padding: '10px 8px',
+                      borderRadius: '8px',
+                      cursor: 'pointer',
+                      border: `1.5px solid ${active ? 'var(--pgn-color-primary-base)' : 'var(--pgn-color-border)'}`,
+                      background: active ? 'var(--pgn-color-primary-light)' : '#fff',
+                      textAlign: 'center',
+                    }}
+                  >
+                    <p style={{ margin: 0, fontSize: '13px', fontWeight: 600, color: active ? 'var(--pgn-color-primary-base)' : 'var(--pgn-color-gray-900)' }}>{role.label}</p>
+                    <p style={{ margin: '2px 0 0', fontSize: '11px', color: active ? 'var(--pgn-color-primary-base)' : 'var(--pgn-color-text-light)' }}>{role.desc}</p>
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
-          {selectedRole === 'trainee' && !isEdit && (
+          {selectedRole === 'trainee' && (
             <div style={{ marginBottom: '20px' }}>
               <label style={{ fontSize: '10.5px', fontWeight: 700, color: 'var(--pgn-color-text-light)', letterSpacing: '0.07em', display: 'block', marginBottom: '8px' }}>
                 TRAINEE TYPE <span style={{ color: '#E53E3E' }}>*</span>
@@ -626,17 +445,6 @@ const AddUserModal = ({
             </div>
           )}
 
-          {selectedRole === 'trainee' && isEdit && (
-            <div style={{ marginBottom: '20px' }}>
-              <label style={{ fontSize: '10.5px', fontWeight: 700, color: 'var(--pgn-color-text-light)', letterSpacing: '0.07em', display: 'block', marginBottom: '8px' }}>
-                TRAINEE TYPE <span style={{ color: '#E53E3E' }}>*</span>
-              </label>
-              <span style={{ background: 'var(--pgn-color-primary-light)', color: 'var(--pgn-color-primary-base)', border: '1.5px solid var(--pgn-color-primary-base)', padding: '6px 14px', borderRadius: '8px', fontSize: '13px', fontWeight: 600, display: 'inline-flex' }}>
-                {TRAINEE_TYPE_LABELS[traineeType] || traineeType}
-              </span>
-            </div>
-          )}
-
           {apiError && (
             <div style={{ background: '#FDE8E8', color: '#9B1C1C', border: '1px solid #F8B4B4', borderRadius: '6px', padding: '10px 12px', marginBottom: '14px', fontSize: '13.5px' }}>
               {apiError}
@@ -664,15 +472,6 @@ const AddUserModal = ({
                 </p>
               </div>
             </>
-          ) : isEdit ? (
-            editSections.map(section => (
-              <React.Fragment key={section.title}>
-                <SectionHeader title={section.title} note={section.note} />
-                {section.rows.map((row, index) => (
-                  <FieldRow key={`${section.title}-${index}`} fields={row} values={values} onChange={handleChange} errors={errors} cities={cities} batches={batches} />
-                ))}
-              </React.Fragment>
-            ))
           ) : (
             <>
               <SectionHeader title="INFORMATION" note={contextText} />
@@ -692,9 +491,9 @@ const AddUserModal = ({
 
         <div style={{ padding: '14px 28px', borderTop: '1px solid var(--pgn-color-border)', display: 'flex', justifyContent: 'flex-end', gap: '10px', background: '#fff', flexShrink: 0 }}>
           <Button variant="tertiary" onClick={onClose} disabled={isSubmitting}>Cancel</Button>
-          <Button variant="primary" onClick={handleSubmit} disabled={isSubmitting || (!isEdit && visibleRoles.length === 0) || (!isAssignment && shouldShowCity && cities.length === 0) || (!isAssignment && selectedRole === 'trainee' && traineeType === 'stp' && batches.length === 0)}>
+          <Button variant="primary" onClick={handleSubmit} disabled={isSubmitting || visibleRoles.length === 0 || (!isAssignment && shouldShowCity && cities.length === 0) || (!isAssignment && selectedRole === 'trainee' && traineeType === 'stp' && batches.length === 0)}>
             <FontAwesomeIcon icon={faCheck} style={{ fontSize: '12px', marginRight: '7px' }} />
-            {isSubmitting ? 'Saving...' : isEdit ? 'Update User' : isAssignment ? 'Approve User' : 'Create User'}
+            {isSubmitting ? 'Saving...' : isAssignment ? 'Approve User' : 'Create User'}
           </Button>
         </div>
       </div>
@@ -712,7 +511,6 @@ AddUserModal.propTypes = {
   }),
   cities: PropTypes.arrayOf(PropTypes.shape({ id: PropTypes.number.isRequired, name: PropTypes.string.isRequired })),
   batches: PropTypes.arrayOf(PropTypes.shape({ id: PropTypes.number.isRequired, name: PropTypes.string.isRequired })),
-  editUser: PropTypes.shape({}),
   assignmentUser: PropTypes.shape({
     id: PropTypes.number,
     username: PropTypes.string,
@@ -720,9 +518,6 @@ AddUserModal.propTypes = {
     first_name: PropTypes.string,
     last_name: PropTypes.string,
   }),
-  editSourceTab: PropTypes.string,
-  editSourceRole: PropTypes.string,
-  editProfileMode: PropTypes.oneOf(['all', 'single']),
 };
 
 AddUserModal.defaultProps = {
@@ -730,11 +525,7 @@ AddUserModal.defaultProps = {
   callerProfile: { roles: [], city: null },
   cities: [],
   batches: [],
-  editUser: null,
   assignmentUser: null,
-  editSourceTab: 'all',
-  editSourceRole: null,
-  editProfileMode: 'single',
 };
 
 export default AddUserModal;

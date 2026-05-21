@@ -405,8 +405,34 @@ const getPhotoUrl = (photo) => {
   return `${getConfig().LMS_BASE_URL}${photo.startsWith('/') ? '' : '/'}${photo}`;
 };
 
+const getProfileMfeUserUrl = (userId) => {
+  if (!userId) return null;
+
+  const configuredProfileUrl = getConfig().ACCOUNT_PROFILE_URL;
+  const fallbackBaseUrl = (() => {
+    const lmsBaseUrl = getConfig().LMS_BASE_URL;
+    if (!lmsBaseUrl) {
+      return null;
+    }
+
+    const lmsUrl = new URL(lmsBaseUrl);
+    return `${lmsUrl.protocol}//apps.${lmsUrl.hostname}:1995/profile/`;
+  })();
+
+  const baseUrl = configuredProfileUrl
+    ? `${configuredProfileUrl.replace(/\/?$/, '/')}`
+    : fallbackBaseUrl;
+
+  if (!baseUrl) return null;
+
+  const url = new URL('u/', baseUrl);
+  url.searchParams.set('for_user', String(userId));
+  return url.toString();
+};
+
 const mapProfileToUser = profile => ({
   id: profile.id,
+  username: profile.username || '',
   name: profile.full_name || 'Unnamed user',
   email: profile.email || '',
   mobile: profile.mobile || '',
@@ -1192,13 +1218,9 @@ const AdminConsolePage = () => {
   const [activeNav, setActiveNav] = useState('users');
   const [showAddModal, setShowAddModal] = useState(false);
   const [showBulkImportModal, setShowBulkImportModal] = useState(false);
-  const [editingUser, setEditingUser] = useState(null);
   const [assignmentUser, setAssignmentUser] = useState(null);
   const [viewingUser, setViewingUser] = useState(null);
   const [viewSourceTab, setViewSourceTab] = useState('all');
-  const [editSourceTab, setEditSourceTab] = useState('all');
-  const [editSourceRole, setEditSourceRole] = useState(null);
-  const [editProfileMode, setEditProfileMode] = useState('single');
   const [pendingApprovalsCount, setPendingApprovalsCount] = useState(0);
   const [pendingEditRequestsCount, setPendingEditRequestsCount] = useState(0);
   const [approvalReloadKey, setApprovalReloadKey] = useState(0);
@@ -1255,30 +1277,16 @@ const AdminConsolePage = () => {
   };
 
   const handleAdd = () => {
-    setEditingUser(null);
     setAssignmentUser(null);
-    setEditSourceTab('all');
-    setEditSourceRole(null);
-    setEditProfileMode('single');
     setShowAddModal(true);
   };
   const handleImport = () => { setShowBulkImportModal(true); };
-  const handleEdit = async (user, sourceTab = 'all') => {
-    const sourceRole = TABS.find(t => t.id === sourceTab)?.role || null;
+  const handleEdit = async (user) => {
     const detail = await fetchUserDetail(user);
-    const resolvedRole = (() => {
-      if (!sourceRole) return null;
-      if (sourceRole === 'instructor' && detail.instructor_profile) return 'instructor';
-      if (sourceRole === 'trainee' && detail.trainee_profile) return 'trainee';
-      const roles = Array.isArray(detail.roles) ? detail.roles : [];
-      return roles.includes(sourceRole) ? sourceRole : null;
-    })();
-    setEditSourceTab(sourceTab);
-    setEditSourceRole(resolvedRole);
-    setEditProfileMode(sourceTab === 'all' ? 'all' : 'single');
-    setEditingUser(detail);
-    setAssignmentUser(null);
-    setShowAddModal(true);
+    const profileUrl = getProfileMfeUserUrl(detail.id);
+    if (profileUrl) {
+      window.open(profileUrl, '_blank', 'noopener,noreferrer');
+    }
   };
   const handleView = async (user, sourceTab = 'all') => {
     setViewSourceTab(sourceTab);
@@ -1286,20 +1294,12 @@ const AdminConsolePage = () => {
     setViewingUser(detail);
   };
   const handleAssignApproval = (user) => {
-    setEditingUser(null);
     setAssignmentUser(user);
-    setEditSourceTab('all');
-    setEditSourceRole(null);
-    setEditProfileMode('single');
     setShowAddModal(true);
   };
   const handleModalClose = () => {
     setShowAddModal(false);
-    setEditingUser(null);
     setAssignmentUser(null);
-    setEditSourceTab('all');
-    setEditSourceRole(null);
-    setEditProfileMode('single');
   };
   const handleBulkImport = async ({ role, file, dryRun }) => {
     const formData = new FormData();
@@ -1320,13 +1320,11 @@ const AdminConsolePage = () => {
     return data;
   };
   const handleCreateUser = async ({
-    id, assignmentUserId, role, payload,
+    assignmentUserId, role, payload,
   }) => {
     if (assignmentUserId) {
       await getAuthenticatedHttpClient().post(getBiodataAssignRoleUrl(assignmentUserId), payload);
       setApprovalReloadKey(prev => prev + 1);
-    } else if (id) {
-      await getAuthenticatedHttpClient().patch(getBiodataUserDetailUrl(id), payload);
     } else {
       await getAuthenticatedHttpClient().post(getLmsUrl(getProfileCreatePath(role)), payload);
     }
@@ -1401,16 +1399,12 @@ const AdminConsolePage = () => {
       {showAddModal && (
         <AddUserModal
           onClose={handleModalClose}
-          editUser={editingUser}
           assignmentUser={assignmentUser}
           onSubmit={handleCreateUser}
           allowedRoles={callerProfile.creatable_roles}
           callerProfile={callerProfile}
           cities={cities}
           batches={batches}
-          editSourceTab={editSourceTab}
-          editSourceRole={editSourceRole}
-          editProfileMode={editProfileMode}
         />
       )}
       {showBulkImportModal && (
