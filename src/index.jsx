@@ -5,30 +5,29 @@ import {
   APP_INIT_ERROR, APP_READY, subscribe, initialize,
 } from '@edx/frontend-platform';
 import { AppProvider, ErrorPage } from '@edx/frontend-platform/react';
-import ReactDOM from 'react-dom';
+import { createRoot } from 'react-dom/client';
 
 import Header from '@edx/frontend-component-header';
-import Footer from '@edx/frontend-component-footer';
+import { FooterSlot } from '@edx/frontend-component-footer';
 import messages from './i18n';
 import AdminConsolePage from './AdminConsolePage';
 
-import '@edx/brand/dist/core.css';
-import '@edx/brand/dist/light.css';
 import './index.scss';
 
+const root = createRoot(document.getElementById('root'));
+
 subscribe(APP_READY, () => {
-  ReactDOM.render(
+  root.render(
     <AppProvider>
       <Header />
       <AdminConsolePage />
-      <Footer />
+      <FooterSlot />
     </AppProvider>,
-    document.getElementById('root'),
   );
 });
 
 subscribe(APP_INIT_ERROR, (error) => {
-  ReactDOM.render(<ErrorPage message={error.message} />, document.getElementById('root'));
+  root.render(<ErrorPage message={error.message} />);
 });
 
 initialize({

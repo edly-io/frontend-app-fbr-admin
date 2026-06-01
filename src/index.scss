@@ -1,3 +1,5 @@
+@use "@openedx/paragon/styles/css/core/custom-media-breakpoints" as paragonCustomMediaBreakpoints;
+
 // Override Paragon v23 CSS custom properties to match FBR admin console design
 :root {
   --pgn-color-primary-base: #1A6EFD;
