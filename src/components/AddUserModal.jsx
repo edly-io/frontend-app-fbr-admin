@@ -1,4 +1,6 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, {
+  useEffect, useMemo, useRef, useState,
+} from 'react';
 import PropTypes from 'prop-types';
 import { Button, Form } from '@openedx/paragon';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -49,6 +51,10 @@ const F = {
 
 const ADMIN_ROLES = ['super_admin', 'middle_admin', 'data_admin'];
 const NUMBER_KEYS = ['bps_grade', 'city', 'batch', 'education_year'];
+const FIELD_ID_BY_API_KEY = Object.values(F).reduce((acc, field) => {
+  acc[field.key] = field.id;
+  return acc;
+}, {});
 
 const normalizeValue = value => (typeof value === 'string' ? value.trim() : value);
 
@@ -80,6 +86,50 @@ const normalizePayloadFieldValue = (field, value) => {
 };
 
 const isValidPakistanMobile = value => /^3\d{9}$/.test(getPakistanMobileSubscriber(value));
+
+const toErrorMessage = (value) => {
+  if (Array.isArray(value)) return value.join(' ');
+  if (typeof value === 'string') return value;
+  return '';
+};
+
+const getSubmissionErrorState = (error, fallbackMessage) => {
+  const data = error?.response?.data;
+  const status = error?.response?.status;
+
+  if (!data || typeof data === 'string' || Array.isArray(data)) {
+    return {
+      fieldErrors: {},
+      apiError: toErrorMessage(data) || fallbackMessage,
+    };
+  }
+
+  const fieldErrors = Object.entries(data).reduce((acc, [key, value]) => {
+    const fieldId = FIELD_ID_BY_API_KEY[key];
+    const message = toErrorMessage(value);
+
+    if (fieldId && message) {
+      acc[fieldId] = message;
+    }
+
+    return acc;
+  }, {});
+
+  if (status === 400 && Object.keys(fieldErrors).length > 0) {
+    return {
+      fieldErrors,
+      apiError: 'Please correct the highlighted fields.',
+    };
+  }
+
+  return {
+    fieldErrors: {},
+    apiError: toErrorMessage(data.detail)
+      || toErrorMessage(data.non_field_errors)
+      || fallbackMessage,
+  };
+};
+
 const getCreateFieldsForRole = (role, traineeType, shouldShowCity) => {
   if (ADMIN_ROLES.includes(role)) {
     return [
@@ -148,14 +198,14 @@ const FieldRow = ({
 
       if (field.type === 'select' && field.id === 'city') {
         input = (
-          <Form.Control as="select" value={values[field.id] || ''} onChange={e => onChange(field.id, e.target.value)} isInvalid={!!err}>
+          <Form.Control id={field.id} as="select" value={values[field.id] || ''} onChange={e => onChange(field.id, e.target.value)} isInvalid={!!err}>
             <option value="">{field.placeholder}</option>
             {cities.map(city => <option key={city.id} value={city.id}>{city.name}</option>)}
           </Form.Control>
         );
       } else if (field.type === 'select' && field.id === 'batch') {
         input = (
-          <Form.Control as="select" value={values[field.id] || ''} onChange={e => onChange(field.id, e.target.value)} isInvalid={!!err}>
+          <Form.Control id={field.id} as="select" value={values[field.id] || ''} onChange={e => onChange(field.id, e.target.value)} isInvalid={!!err}>
             <option value="">{field.placeholder}</option>
             {batches.map(batch => <option key={batch.id} value={batch.id}>{batch.name}</option>)}
           </Form.Control>
@@ -163,6 +213,7 @@ const FieldRow = ({
       } else if (field.type === 'textarea') {
         input = (
           <Form.Control
+            id={field.id}
             as="textarea"
             value={values[field.id] || ''}
             onChange={e => onChange(field.id, e.target.value)}
@@ -177,6 +228,7 @@ const FieldRow = ({
         const isMobileField = field.id === 'mobile' || field.id === 'emergencyContactPhone';
         input = (
           <Form.Control
+            id={field.id}
             type={isCnicField || isMobileField ? 'text' : field.type}
             value={isMobileField ? formatPakistanMobileValue(values[field.id]) : isCnicField ? sanitizeCnicValue(values[field.id]) : values[field.id] || ''}
             onChange={e => onChange(field.id, normalizeFieldInputValue(field, e.target.value))}
@@ -189,7 +241,7 @@ const FieldRow = ({
       }
 
       return (
-        <Form.Group key={field.id} style={{ flex: field.full ? '0 0 100%' : '1 1 260px', minWidth: 0, marginBottom: 0 }}>
+        <Form.Group key={field.id} data-field-id={field.id} style={{ flex: field.full ? '0 0 100%' : '1 1 260px', minWidth: 0, marginBottom: 0 }}>
           <Form.Label className="x-small font-weight-bold text-uppercase" style={{ letterSpacing: '0.07em' }}>
             {field.label}
             {field.required && <span style={{ color: '#E53E3E', marginLeft: '3px' }}>*</span>}
@@ -262,6 +314,9 @@ const AddUserModal = ({
   const [errors, setErrors] = useState({});
   const [apiError, setApiError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const contentRef = useRef(null);
+  const apiErrorRef = useRef(null);
+  const shouldFocusErrorsRef = useRef(false);
 
   useEffect(() => {
     setSelectedRole(defaultRole);
@@ -272,6 +327,7 @@ const AddUserModal = ({
     setValues(isAssignment ? getAssignmentValues(assignmentUser) : {});
     setErrors({});
     setApiError('');
+    shouldFocusErrorsRef.current = false;
   }, [assignmentUser, initialTraineeType, isAssignment]);
 
   useEffect(() => {
@@ -279,6 +335,7 @@ const AddUserModal = ({
       setValues({});
       setErrors({});
       setApiError('');
+      shouldFocusErrorsRef.current = false;
     }
   }, [isAssignment, selectedRole, traineeType]);
 
@@ -286,6 +343,35 @@ const AddUserModal = ({
   const shouldShowCity = ADMIN_ROLES.includes(selectedRole) && selectedRole !== 'super_admin' && !isMiddleAdminCaller;
   const createFields = getCreateFieldsForRole(selectedRole, traineeType, shouldShowCity);
   const contextText = getRoleContext(selectedRole, traineeType, isMiddleAdminCaller);
+  const visibleFieldIds = useMemo(
+    () => createFields.flat().map(field => field.id),
+    [createFields],
+  );
+
+  useEffect(() => {
+    if (!shouldFocusErrorsRef.current || !contentRef.current) {
+      return;
+    }
+
+    const firstErrorFieldId = visibleFieldIds.find(fieldId => errors[fieldId]);
+    if (firstErrorFieldId) {
+      const fieldGroup = contentRef.current.querySelector(`[data-field-id="${firstErrorFieldId}"]`);
+      const fieldInput = fieldGroup?.querySelector('input, select, textarea');
+
+      fieldGroup?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      fieldInput?.focus({ preventScroll: true });
+      shouldFocusErrorsRef.current = false;
+      return;
+    }
+
+    if (apiError) {
+      apiErrorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      shouldFocusErrorsRef.current = false;
+      return;
+    }
+
+    shouldFocusErrorsRef.current = false;
+  }, [apiError, errors, visibleFieldIds]);
 
   const handleChange = (id, val) => {
     setValues(prev => ({ ...prev, [id]: val }));
@@ -329,6 +415,7 @@ const AddUserModal = ({
   const handleSubmit = async () => {
     const nextErrors = validate();
     if (Object.keys(nextErrors).length > 0) {
+      shouldFocusErrorsRef.current = true;
       setErrors(nextErrors);
       return;
     }
@@ -345,8 +432,18 @@ const AddUserModal = ({
       });
       onClose();
     } catch (error) {
-      const data = error?.response?.data;
-      setApiError(data?.detail || data?.non_field_errors?.join(' ') || `Unable to ${isAssignment ? 'approve' : 'create'} user.`);
+      const fallbackMessage = `Unable to ${isAssignment ? 'approve' : 'create'} user.`;
+      const { fieldErrors, apiError: nextApiError } = getSubmissionErrorState(error, fallbackMessage);
+
+      if (Object.keys(fieldErrors).length > 0) {
+        shouldFocusErrorsRef.current = true;
+        setErrors(prev => ({ ...prev, ...fieldErrors }));
+      }
+
+      if (nextApiError) {
+        shouldFocusErrorsRef.current = true;
+      }
+      setApiError(nextApiError);
     } finally {
       setIsSubmitting(false);
     }
@@ -382,7 +479,7 @@ const AddUserModal = ({
           </button>
         </div>
 
-        <div style={{ overflowY: 'auto', flex: 1, padding: '24px 28px' }}>
+        <div ref={contentRef} style={{ overflowY: 'auto', flex: 1, padding: '24px 28px' }}>
           <div style={{ marginBottom: '20px' }}>
             <label style={{ fontSize: '10.5px', fontWeight: 700, color: 'var(--pgn-color-text-light)', letterSpacing: '0.07em', display: 'block', marginBottom: '8px' }}>
               ROLE <span style={{ color: '#E53E3E' }}>*</span>
@@ -446,7 +543,7 @@ const AddUserModal = ({
           )}
 
           {apiError && (
-            <div style={{ background: '#FDE8E8', color: '#9B1C1C', border: '1px solid #F8B4B4', borderRadius: '6px', padding: '10px 12px', marginBottom: '14px', fontSize: '13.5px' }}>
+            <div ref={apiErrorRef} style={{ background: '#FDE8E8', color: '#9B1C1C', border: '1px solid #F8B4B4', borderRadius: '6px', padding: '10px 12px', marginBottom: '14px', fontSize: '13.5px' }}>
               {apiError}
             </div>
           )}
