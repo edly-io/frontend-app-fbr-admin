@@ -18,6 +18,47 @@ const TRAINEE_TYPE_LABELS = {
   dst_ist: 'DST / IST',
 };
 
+const userShape = PropTypes.shape({
+  id: PropTypes.number,
+  full_name: PropTypes.string,
+  name: PropTypes.string,
+  email: PropTypes.string,
+  mobile: PropTypes.string,
+  cnic: PropTypes.string,
+  status: PropTypes.string,
+  color: PropTypes.string,
+  photo: PropTypes.string,
+  initials: PropTypes.string,
+  role: PropTypes.string,
+  roleLabels: PropTypes.arrayOf(PropTypes.string),
+  roles: PropTypes.arrayOf(PropTypes.string),
+  field_organisation: PropTypes.string,
+  emergency_contact_name: PropTypes.string,
+  emergency_contact_phone: PropTypes.string,
+  education_degree: PropTypes.string,
+  education_institute: PropTypes.string,
+  education_year: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  city: PropTypes.shape({
+    name: PropTypes.string,
+  }),
+  instructor_profile: PropTypes.shape({
+    field_of_expertise: PropTypes.string,
+    languages_awards_publications: PropTypes.string,
+  }),
+  trainee_profile: PropTypes.shape({
+    trainee_type: PropTypes.string,
+    date_of_birth: PropTypes.string,
+    designation: PropTypes.string,
+    bps_grade: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    hostel_preference: PropTypes.string,
+    service_history: PropTypes.string,
+    languages_awards_publications: PropTypes.string,
+    batch: PropTypes.shape({
+      name: PropTypes.string,
+    }),
+  }),
+});
+
 // Maps top-level users-list tab id → profile tab id
 const SOURCE_TAB_TO_PROFILE = {
   instructors: 'instructor',
@@ -36,12 +77,12 @@ const getRoleLabels = user => (
 );
 
 const formatDate = (value) => {
-  if (!value) return '';
+  if (!value) { return ''; }
   return value;
 };
 
 const getAvailableProfileTabs = (user) => {
-  if (!user) return [];
+  if (!user) { return []; }
   return PROFILE_TABS.filter(t => (
     (t.id === 'instructor' && !!user.instructor_profile)
     || (t.id === 'trainee' && !!user.trainee_profile)
@@ -49,21 +90,29 @@ const getAvailableProfileTabs = (user) => {
 };
 
 const getInitialProfileTab = (user, sourceTab) => {
-  if (!user) return null;
+  if (!user) { return null; }
   const preferred = SOURCE_TAB_TO_PROFILE[sourceTab];
-  if (preferred === 'instructor' && user.instructor_profile) return 'instructor';
-  if (preferred === 'trainee' && user.trainee_profile) return 'trainee';
-  if (user.instructor_profile) return 'instructor';
-  if (user.trainee_profile) return 'trainee';
+  if (preferred === 'instructor' && user.instructor_profile) { return 'instructor'; }
+  if (preferred === 'trainee' && user.trainee_profile) { return 'trainee'; }
+  if (user.instructor_profile) { return 'instructor'; }
+  if (user.trainee_profile) { return 'trainee'; }
   return null;
 };
 
 const DetailCell = ({ label, value }) => {
-  if (value === undefined || value === null || value === '') return null;
+  if (value === undefined || value === null || value === '') { return null; }
   return (
     <div style={{ minWidth: 0 }}>
-      <p style={{ margin: 0, fontSize: '10.5px', fontWeight: 700, color: 'var(--pgn-color-gray-400)', letterSpacing: '0.07em', textTransform: 'uppercase', marginBottom: '4px' }}>{label}</p>
-      <p style={{ margin: 0, fontSize: '14px', color: 'var(--pgn-color-gray-900)', wordBreak: 'break-word' }}>{value}</p>
+      <p style={{
+        margin: 0, fontSize: '10.5px', fontWeight: 700, color: 'var(--pgn-color-gray-400)', letterSpacing: '0.07em', textTransform: 'uppercase', marginBottom: '4px',
+      }}
+      >{label}
+      </p>
+      <p style={{
+        margin: 0, fontSize: '14px', color: 'var(--pgn-color-gray-900)', wordBreak: 'break-word',
+      }}
+      >{value}
+      </p>
     </div>
   );
 };
@@ -79,7 +128,11 @@ DetailCell.defaultProps = {
 
 const DetailSection = ({ title, children }) => (
   <div style={{ borderTop: '1px solid var(--pgn-color-gray-100)', padding: '18px 28px 22px' }}>
-    <p style={{ margin: '0 0 14px', fontSize: '11px', fontWeight: 700, color: '#2A6496', letterSpacing: '0.08em' }}>{title}</p>
+    <p style={{
+      margin: '0 0 14px', fontSize: '11px', fontWeight: 700, color: '#2A6496', letterSpacing: '0.08em',
+    }}
+    >{title}
+    </p>
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '18px 24px' }}>
       {children}
     </div>
@@ -91,13 +144,15 @@ DetailSection.propTypes = {
   children: PropTypes.node.isRequired,
 };
 
-const ViewUserModal = ({ user, onClose, onEdit, sourceTab }) => {
+const ViewUserModal = ({
+  user, onClose, onEdit, sourceTab,
+}) => {
   const availableProfileTabs = getAvailableProfileTabs(user);
   const [activeProfileTab, setActiveProfileTab] = useState(
     () => getInitialProfileTab(user, sourceTab),
   );
 
-  if (!user) return null;
+  if (!user) { return null; }
 
   const roles = getRoleLabels(user);
   const instructor = user.instructor_profile;
@@ -109,21 +164,47 @@ const ViewUserModal = ({ user, onClose, onEdit, sourceTab }) => {
 
   return (
     <div
-      style={{ position: 'fixed', inset: 0, zIndex: 1050, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-      onClick={e => { if (e.target === e.currentTarget) onClose(); }}
+      role="button"
+      tabIndex={0}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 1050, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+      }}
+      onClick={e => { if (e.target === e.currentTarget) { onClose(); } }}
+      onKeyDown={(e) => {
+        if ((e.key === 'Enter' || e.key === ' ') && e.target === e.currentTarget) {
+          onClose();
+        }
+      }}
     >
-      <div style={{ background: '#fff', borderRadius: '12px', width: '720px', maxWidth: '96vw', maxHeight: '92vh', overflow: 'hidden', display: 'flex', flexDirection: 'column', boxShadow: '0 24px 64px rgba(0,0,0,0.25)' }}>
-        <div style={{ background: 'linear-gradient(135deg, #1B3A5C 0%, #1E4976 100%)', height: '94px', position: 'relative', flexShrink: 0, borderRadius: '12px 12px 0 0' }}>
+      <div style={{
+        background: '#fff', borderRadius: '12px', width: '720px', maxWidth: '96vw', maxHeight: '92vh', overflow: 'hidden', display: 'flex', flexDirection: 'column', boxShadow: '0 24px 64px rgba(0,0,0,0.25)',
+      }}
+      >
+        <div style={{
+          background: 'linear-gradient(135deg, #1B3A5C 0%, #1E4976 100%)', height: '94px', position: 'relative', flexShrink: 0, borderRadius: '12px 12px 0 0',
+        }}
+        >
           <button
             type="button"
             onClick={onClose}
-            style={{ position: 'absolute', top: '12px', right: '14px', background: 'rgba(255,255,255,0.18)', border: 'none', borderRadius: '6px', color: '#fff', width: '28px', height: '28px', cursor: 'pointer', fontSize: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            style={{
+              position: 'absolute', top: '12px', right: '14px', background: 'rgba(255,255,255,0.18)', border: 'none', borderRadius: '6px', color: '#fff', width: '28px', height: '28px', cursor: 'pointer', fontSize: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}
           >
             x
           </button>
-          <div style={{ position: 'absolute', bottom: '-38px', left: '32px', width: '76px', height: '76px', borderRadius: '50%', background: user.color || '#1B5E7A', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px', fontWeight: 700, border: '3px solid #fff', boxShadow: '0 4px 14px rgba(0,0,0,0.18)', letterSpacing: '0.03em', overflow: 'hidden' }}>
+          <div style={{
+            position: 'absolute', bottom: '-38px', left: '32px', width: '76px', height: '76px', borderRadius: '50%', background: user.color || '#1B5E7A', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px', fontWeight: 700, border: '3px solid #fff', boxShadow: '0 4px 14px rgba(0,0,0,0.18)', letterSpacing: '0.03em', overflow: 'hidden',
+          }}
+          >
             {String(avatarValue).startsWith('http') || String(avatarValue).startsWith('/') ? (
-              <img src={avatarValue} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
+              <img
+                src={avatarValue}
+                alt=""
+                style={{
+                  width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%',
+                }}
+              />
             ) : avatarValue}
           </div>
         </div>
@@ -201,7 +282,10 @@ const ViewUserModal = ({ user, onClose, onEdit, sourceTab }) => {
           )}
         </div>
 
-        <div style={{ padding: '14px 28px', borderTop: '1px solid var(--pgn-color-border)', display: 'flex', justifyContent: 'flex-end', gap: '10px', flexShrink: 0 }}>
+        <div style={{
+          padding: '14px 28px', borderTop: '1px solid var(--pgn-color-border)', display: 'flex', justifyContent: 'flex-end', gap: '10px', flexShrink: 0,
+        }}
+        >
           <Button variant="tertiary" onClick={onClose}>
             <FontAwesomeIcon icon={faTimes} style={{ fontSize: '11px', marginRight: '6px' }} />
             Close
@@ -217,7 +301,7 @@ const ViewUserModal = ({ user, onClose, onEdit, sourceTab }) => {
 };
 
 ViewUserModal.propTypes = {
-  user: PropTypes.shape({}),
+  user: userShape,
   onClose: PropTypes.func.isRequired,
   onEdit: PropTypes.func.isRequired,
   sourceTab: PropTypes.string,

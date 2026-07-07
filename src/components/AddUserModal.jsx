@@ -28,25 +28,63 @@ const ROLE_LABELS = {
 };
 
 const F = {
-  fullName: { id: 'fullName', key: 'full_name', label: 'FULL NAME', type: 'text', placeholder: 'e.g. Asma Khan', required: true, full: true, group: 'base' },
-  email: { id: 'email', key: 'email', label: 'EMAIL', type: 'email', placeholder: 'name@fbr.gov.pk', required: true, group: 'base' },
-  cnic: { id: 'cnic', key: 'cnic', label: 'CNIC', type: 'text', placeholder: '13 digits without dashes', helper: 'Use 13 digits, no dashes.', group: 'base' },
-  mobile: { id: 'mobile', key: 'mobile', label: 'MOBILE', type: 'tel', placeholder: '+92 3XX XXXXXXX', required: true, group: 'base' },
-  fieldOrganisation: { id: 'fieldOrganisation', key: 'field_organisation', label: 'FIELD ORGANISATION', type: 'text', placeholder: 'e.g. RTO Lahore / FBR Training Academy', required: true, full: true, group: 'base' },
-  city: { id: 'city', key: 'city', label: 'CITY', type: 'select', placeholder: 'Select city...', required: true, group: 'base' },
-  emergencyContactName: { id: 'emergencyContactName', key: 'emergency_contact_name', label: 'EMERGENCY CONTACT NAME', type: 'text', group: 'base' },
-  emergencyContactPhone: { id: 'emergencyContactPhone', key: 'emergency_contact_phone', label: 'EMERGENCY CONTACT PHONE', type: 'tel', group: 'base' },
-  educationDegree: { id: 'educationDegree', key: 'education_degree', label: 'EDUCATION DEGREE', type: 'text', group: 'base' },
-  educationInstitute: { id: 'educationInstitute', key: 'education_institute', label: 'EDUCATION INSTITUTE', type: 'text', group: 'base' },
-  educationYear: { id: 'educationYear', key: 'education_year', label: 'EDUCATION YEAR', type: 'number', group: 'base' },
-  fieldOfExpertise: { id: 'fieldOfExpertise', key: 'field_of_expertise', label: 'FIELD OF EXPERTISE', type: 'text', placeholder: 'e.g. Inland Revenue', required: true, full: true, group: 'instructor_profile' },
-  dateOfBirth: { id: 'dateOfBirth', key: 'date_of_birth', label: 'DATE OF BIRTH', type: 'date', required: true, group: 'trainee_profile' },
-  designation: { id: 'designation', key: 'designation', label: 'DESIGNATION', type: 'text', placeholder: 'e.g. Assistant Commissioner IR', required: true, group: 'trainee_profile' },
-  bpsGrade: { id: 'bpsGrade', key: 'bps_grade', label: 'BPS GRADE', type: 'number', placeholder: '17', required: true, group: 'trainee_profile' },
-  batch: { id: 'batch', key: 'batch', label: 'BATCH', type: 'select', placeholder: 'Select batch...', group: 'trainee_profile' },
-  serviceHistory: { id: 'serviceHistory', key: 'service_history', label: 'SERVICE HISTORY', type: 'textarea', placeholder: 'Previous postings, if available', group: 'trainee_profile' },
-  hostelPreference: { id: 'hostelPreference', key: 'hostel_preference', label: 'HOSTEL PREFERENCE', type: 'text', placeholder: 'Hostel Required / Own Accommodation', group: 'trainee_profile' },
-  languagesAwardsPublications: { id: 'languagesAwardsPublications', key: 'languages_awards_publications', label: 'LANGUAGES, AWARDS, PUBLICATIONS', type: 'textarea', full: true },
+  fullName: {
+    id: 'fullName', key: 'full_name', label: 'FULL NAME', type: 'text', placeholder: 'e.g. Asma Khan', required: true, full: true, group: 'base',
+  },
+  email: {
+    id: 'email', key: 'email', label: 'EMAIL', type: 'email', placeholder: 'name@fbr.gov.pk', required: true, group: 'base',
+  },
+  cnic: {
+    id: 'cnic', key: 'cnic', label: 'CNIC', type: 'text', placeholder: '13 digits without dashes', helper: 'Use 13 digits, no dashes.', group: 'base',
+  },
+  mobile: {
+    id: 'mobile', key: 'mobile', label: 'MOBILE', type: 'tel', placeholder: '+92 3XX XXXXXXX', required: true, group: 'base',
+  },
+  fieldOrganisation: {
+    id: 'fieldOrganisation', key: 'field_organisation', label: 'FIELD ORGANISATION', type: 'text', placeholder: 'e.g. RTO Lahore / FBR Training Academy', required: true, full: true, group: 'base',
+  },
+  city: {
+    id: 'city', key: 'city', label: 'CITY', type: 'select', placeholder: 'Select city...', required: true, group: 'base',
+  },
+  emergencyContactName: {
+    id: 'emergencyContactName', key: 'emergency_contact_name', label: 'EMERGENCY CONTACT NAME', type: 'text', group: 'base',
+  },
+  emergencyContactPhone: {
+    id: 'emergencyContactPhone', key: 'emergency_contact_phone', label: 'EMERGENCY CONTACT PHONE', type: 'tel', group: 'base',
+  },
+  educationDegree: {
+    id: 'educationDegree', key: 'education_degree', label: 'EDUCATION DEGREE', type: 'text', group: 'base',
+  },
+  educationInstitute: {
+    id: 'educationInstitute', key: 'education_institute', label: 'EDUCATION INSTITUTE', type: 'text', group: 'base',
+  },
+  educationYear: {
+    id: 'educationYear', key: 'education_year', label: 'EDUCATION YEAR', type: 'number', group: 'base',
+  },
+  fieldOfExpertise: {
+    id: 'fieldOfExpertise', key: 'field_of_expertise', label: 'FIELD OF EXPERTISE', type: 'text', placeholder: 'e.g. Inland Revenue', required: true, full: true, group: 'instructor_profile',
+  },
+  dateOfBirth: {
+    id: 'dateOfBirth', key: 'date_of_birth', label: 'DATE OF BIRTH', type: 'date', required: true, group: 'trainee_profile',
+  },
+  designation: {
+    id: 'designation', key: 'designation', label: 'DESIGNATION', type: 'text', placeholder: 'e.g. Assistant Commissioner IR', required: true, group: 'trainee_profile',
+  },
+  bpsGrade: {
+    id: 'bpsGrade', key: 'bps_grade', label: 'BPS GRADE', type: 'number', placeholder: '17', required: true, group: 'trainee_profile',
+  },
+  batch: {
+    id: 'batch', key: 'batch', label: 'BATCH', type: 'select', placeholder: 'Select batch...', group: 'trainee_profile',
+  },
+  serviceHistory: {
+    id: 'serviceHistory', key: 'service_history', label: 'SERVICE HISTORY', type: 'textarea', placeholder: 'Previous postings, if available', group: 'trainee_profile',
+  },
+  hostelPreference: {
+    id: 'hostelPreference', key: 'hostel_preference', label: 'HOSTEL PREFERENCE', type: 'text', placeholder: 'Hostel Required / Own Accommodation', group: 'trainee_profile',
+  },
+  languagesAwardsPublications: {
+    id: 'languagesAwardsPublications', key: 'languages_awards_publications', label: 'LANGUAGES, AWARDS, PUBLICATIONS', type: 'textarea', full: true,
+  },
 };
 
 const ADMIN_ROLES = ['super_admin', 'middle_admin', 'data_admin'];
@@ -62,22 +100,22 @@ const sanitizeCnicValue = value => String(value || '').replace(/\D/g, '').slice(
 
 const getPakistanMobileSubscriber = (value) => {
   let digits = String(value || '').replace(/\D/g, '');
-  if (digits.startsWith('92')) digits = digits.slice(2);
-  if (digits.startsWith('0')) digits = digits.slice(1);
-  if (digits && digits[0] !== '3') digits = '';
+  if (digits.startsWith('92')) { digits = digits.slice(2); }
+  if (digits.startsWith('0')) { digits = digits.slice(1); }
+  if (digits && digits[0] !== '3') { digits = ''; }
   return digits.slice(0, 10);
 };
 
 const formatPakistanMobileValue = value => `+92${getPakistanMobileSubscriber(value)}`;
 
 const normalizeFieldInputValue = (field, value) => {
-  if (field.id === 'cnic') return sanitizeCnicValue(value);
-  if (field.id === 'mobile' || field.id === 'emergencyContactPhone') return formatPakistanMobileValue(value);
+  if (field.id === 'cnic') { return sanitizeCnicValue(value); }
+  if (field.id === 'mobile' || field.id === 'emergencyContactPhone') { return formatPakistanMobileValue(value); }
   return value;
 };
 
 const normalizePayloadFieldValue = (field, value) => {
-  if (field.id === 'cnic') return sanitizeCnicValue(value);
+  if (field.id === 'cnic') { return sanitizeCnicValue(value); }
   if (field.id === 'mobile' || field.id === 'emergencyContactPhone') {
     const subscriber = getPakistanMobileSubscriber(value);
     return subscriber ? `+92${subscriber}` : '';
@@ -88,8 +126,8 @@ const normalizePayloadFieldValue = (field, value) => {
 const isValidPakistanMobile = value => /^3\d{9}$/.test(getPakistanMobileSubscriber(value));
 
 const toErrorMessage = (value) => {
-  if (Array.isArray(value)) return value.join(' ');
-  if (typeof value === 'string') return value;
+  if (Array.isArray(value)) { return value.join(' '); }
+  if (typeof value === 'string') { return value; }
   return '';
 };
 
@@ -165,9 +203,9 @@ const getCreateFieldsForRole = (role, traineeType, shouldShowCity) => {
 };
 
 const getRoleContext = (role, traineeType, isCityLocked) => {
-  if (role === 'trainee') return traineeType === 'stp' ? 'STP trainee account' : 'DST / IST trainee account';
-  if (role === 'instructor') return 'Instructor account';
-  if (role === 'data_admin' && isCityLocked) return "Data Admin city will be locked to your city";
+  if (role === 'trainee') { return traineeType === 'stp' ? 'STP trainee account' : 'DST / IST trainee account'; }
+  if (role === 'instructor') { return 'Instructor account'; }
+  if (role === 'data_admin' && isCityLocked) { return 'Data Admin city will be locked to your city'; }
   return `${ROLE_LABELS[role] || 'User'} account`;
 };
 const toCreatePayload = (role, traineeType, values, shouldSendCity) => {
@@ -181,17 +219,46 @@ const toCreatePayload = (role, traineeType, values, shouldSendCity) => {
     }
   });
 
-  if (ADMIN_ROLES.includes(role)) payload.role = role;
-  if (role === 'trainee') payload.trainee_type = traineeType;
+  if (ADMIN_ROLES.includes(role)) { payload.role = role; }
+  if (role === 'trainee') { payload.trainee_type = traineeType; }
   return payload;
 };
 
 const toAssignPayload = role => ({ role });
 
+const getFieldInputValue = (field, value) => {
+  if (field.id === 'mobile' || field.id === 'emergencyContactPhone') {
+    return formatPakistanMobileValue(value);
+  }
+
+  if (field.id === 'cnic') {
+    return sanitizeCnicValue(value);
+  }
+
+  return value || '';
+};
+
+const getFieldInputMaxLength = (field) => {
+  if (field.id === 'cnic') {
+    return 13;
+  }
+
+  if (field.id === 'mobile' || field.id === 'emergencyContactPhone') {
+    return 13;
+  }
+
+  return undefined;
+};
+
+const getRowKey = row => row.map(field => field.id).join('-');
+
 const FieldRow = ({
   fields, values, onChange, errors, cities, batches,
 }) => (
-  <div style={{ display: 'flex', gap: '16px', marginBottom: '16px', flexWrap: 'wrap' }}>
+  <div style={{
+    display: 'flex', gap: '16px', marginBottom: '16px', flexWrap: 'wrap',
+  }}
+  >
     {fields.map((field) => {
       const err = errors[field.id];
       let input;
@@ -230,11 +297,11 @@ const FieldRow = ({
           <Form.Control
             id={field.id}
             type={isCnicField || isMobileField ? 'text' : field.type}
-            value={isMobileField ? formatPakistanMobileValue(values[field.id]) : isCnicField ? sanitizeCnicValue(values[field.id]) : values[field.id] || ''}
+            value={getFieldInputValue(field, values[field.id])}
             onChange={e => onChange(field.id, normalizeFieldInputValue(field, e.target.value))}
             placeholder={field.placeholder}
             inputMode={isCnicField || isMobileField ? 'numeric' : undefined}
-            maxLength={isCnicField ? 13 : isMobileField ? 13 : undefined}
+            maxLength={getFieldInputMaxLength(field)}
             isInvalid={!!err}
           />
         );
@@ -270,13 +337,25 @@ FieldRow.propTypes = {
   values: PropTypes.objectOf(PropTypes.oneOfType([PropTypes.string, PropTypes.number])).isRequired,
   onChange: PropTypes.func.isRequired,
   errors: PropTypes.objectOf(PropTypes.string).isRequired,
-  cities: PropTypes.arrayOf(PropTypes.shape({ id: PropTypes.number.isRequired, name: PropTypes.string.isRequired })).isRequired,
-  batches: PropTypes.arrayOf(PropTypes.shape({ id: PropTypes.number.isRequired, name: PropTypes.string.isRequired })).isRequired,
+  cities: PropTypes.arrayOf(PropTypes.shape({
+    id: PropTypes.number.isRequired,
+    name: PropTypes.string.isRequired,
+  })).isRequired,
+  batches: PropTypes.arrayOf(PropTypes.shape({
+    id: PropTypes.number.isRequired,
+    name: PropTypes.string.isRequired,
+  })).isRequired,
 };
 
 const SectionHeader = ({ title, note }) => (
-  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '20px 0 16px', borderTop: '1px solid var(--pgn-color-border)', paddingTop: '18px' }}>
-    <span style={{ fontSize: '11.5px', fontWeight: 700, color: '#2A6496', letterSpacing: '0.08em', display: 'flex', alignItems: 'center', gap: '6px' }}>
+  <div style={{
+    display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '20px 0 16px', borderTop: '1px solid var(--pgn-color-border)', paddingTop: '18px',
+  }}
+  >
+    <span style={{
+      fontSize: '11.5px', fontWeight: 700, color: '#2A6496', letterSpacing: '0.08em', display: 'flex', alignItems: 'center', gap: '6px',
+    }}
+    >
       <FontAwesomeIcon icon={faUserCircle} style={{ fontSize: '12px' }} />
       {title}
     </span>
@@ -343,6 +422,13 @@ const AddUserModal = ({
   const shouldShowCity = ADMIN_ROLES.includes(selectedRole) && selectedRole !== 'super_admin' && !isMiddleAdminCaller;
   const createFields = getCreateFieldsForRole(selectedRole, traineeType, shouldShowCity);
   const contextText = getRoleContext(selectedRole, traineeType, isMiddleAdminCaller);
+  const assignmentEmail = assignmentUser?.email || assignmentUser?.username;
+  let submitLabel = 'Create User';
+  if (isSubmitting) {
+    submitLabel = 'Saving...';
+  } else if (isAssignment) {
+    submitLabel = 'Approve User';
+  }
   const visibleFieldIds = useMemo(
     () => createFields.flat().map(field => field.id),
     [createFields],
@@ -375,8 +461,8 @@ const AddUserModal = ({
 
   const handleChange = (id, val) => {
     setValues(prev => ({ ...prev, [id]: val }));
-    if (errors[id]) setErrors(prev => ({ ...prev, [id]: null }));
-    if (apiError) setApiError('');
+    if (errors[id]) { setErrors(prev => ({ ...prev, [id]: null })); }
+    if (apiError) { setApiError(''); }
   };
 
   const validate = () => {
@@ -400,7 +486,11 @@ const AddUserModal = ({
     if (getPakistanMobileSubscriber(values.mobile) && !isValidPakistanMobile(values.mobile)) {
       nextErrors.mobile = 'Mobile must start with 3 and contain 10 digits after +92';
     }
-    if (values.emergencyContactPhone && getPakistanMobileSubscriber(values.emergencyContactPhone) && !isValidPakistanMobile(values.emergencyContactPhone)) {
+    if (
+      values.emergencyContactPhone
+      && getPakistanMobileSubscriber(values.emergencyContactPhone)
+      && !isValidPakistanMobile(values.emergencyContactPhone)
+    ) {
       nextErrors.emergencyContactPhone = 'Emergency phone must start with 3 and contain 10 digits after +92';
     }
     if (selectedRole === 'trainee' && values.bpsGrade && Number.isNaN(Number(values.bpsGrade))) {
@@ -454,26 +544,53 @@ const AddUserModal = ({
 
   return (
     <div
-      style={{ position: 'fixed', inset: 0, zIndex: 1050, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-      onClick={e => { if (e.target === e.currentTarget && !isSubmitting) onClose(); }}
+      role="button"
+      tabIndex={0}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 1050, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+      }}
+      onClick={e => { if (e.target === e.currentTarget && !isSubmitting) { onClose(); } }}
+      onKeyDown={(e) => {
+        if ((e.key === 'Enter' || e.key === ' ') && e.target === e.currentTarget && !isSubmitting) {
+          onClose();
+        }
+      }}
     >
-      <div style={{ background: '#fff', borderRadius: '12px', width: '880px', maxWidth: '96vw', maxHeight: '92vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '0 24px 64px rgba(0,0,0,0.28)' }}>
-        <div style={{ background: 'linear-gradient(135deg, #1B3A5C 0%, #1E4976 100%)', padding: '22px 28px', borderBottom: '3px solid #C9922A', flexShrink: 0, display: 'flex', alignItems: 'center', gap: '16px', position: 'relative' }}>
-          <div style={{ width: '44px', height: '44px', borderRadius: '50%', border: '2px solid rgba(255,255,255,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(255,255,255,0.6)', fontSize: '20px', flexShrink: 0 }}>
+      <div style={{
+        background: '#fff', borderRadius: '12px', width: '880px', maxWidth: '96vw', maxHeight: '92vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '0 24px 64px rgba(0,0,0,0.28)',
+      }}
+      >
+        <div style={{
+          background: 'linear-gradient(135deg, #1B3A5C 0%, #1E4976 100%)', padding: '22px 28px', borderBottom: '3px solid #C9922A', flexShrink: 0, display: 'flex', alignItems: 'center', gap: '16px', position: 'relative',
+        }}
+        >
+          <div style={{
+            width: '44px', height: '44px', borderRadius: '50%', border: '2px solid rgba(255,255,255,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(255,255,255,0.6)', fontSize: '20px', flexShrink: 0,
+          }}
+          >
             +
           </div>
           <div>
-            <p style={{ margin: 0, fontSize: '10px', fontWeight: 700, color: 'rgba(255,255,255,0.6)', letterSpacing: '0.12em', textTransform: 'uppercase' }}>
+            <p style={{
+              margin: 0, fontSize: '10px', fontWeight: 700, color: 'rgba(255,255,255,0.6)', letterSpacing: '0.12em', textTransform: 'uppercase',
+            }}
+            >
               {isAssignment ? 'SIGN-IN APPROVAL' : 'NEW RECORD'}
             </p>
-            <h2 style={{ margin: '2px 0 0', fontSize: '20px', fontWeight: 700, color: '#fff' }}>{title}</h2>
+            <h2 style={{
+              margin: '2px 0 0', fontSize: '20px', fontWeight: 700, color: '#fff',
+            }}
+            >{title}
+            </h2>
             <p style={{ margin: '2px 0 0', fontSize: '13px', color: 'rgba(255,255,255,0.65)' }}>{subtitle}</p>
           </div>
           <button
             type="button"
             onClick={onClose}
             disabled={isSubmitting}
-            style={{ position: 'absolute', top: '18px', right: '20px', background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: '6px', color: '#fff', width: '28px', height: '28px', cursor: 'pointer', fontSize: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            style={{
+              position: 'absolute', top: '18px', right: '20px', background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: '6px', color: '#fff', width: '28px', height: '28px', cursor: 'pointer', fontSize: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}
           >
             x
           </button>
@@ -481,9 +598,12 @@ const AddUserModal = ({
 
         <div ref={contentRef} style={{ overflowY: 'auto', flex: 1, padding: '24px 28px' }}>
           <div style={{ marginBottom: '20px' }}>
-            <label style={{ fontSize: '10.5px', fontWeight: 700, color: 'var(--pgn-color-text-light)', letterSpacing: '0.07em', display: 'block', marginBottom: '8px' }}>
+            <p style={{
+              fontSize: '10.5px', fontWeight: 700, color: 'var(--pgn-color-text-light)', letterSpacing: '0.07em', display: 'block', marginBottom: '8px',
+            }}
+            >
               ROLE <span style={{ color: '#E53E3E' }}>*</span>
-            </label>
+            </p>
             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
               {visibleRoles.map((role) => {
                 const active = selectedRole === role.id;
@@ -502,7 +622,11 @@ const AddUserModal = ({
                       textAlign: 'center',
                     }}
                   >
-                    <p style={{ margin: 0, fontSize: '13px', fontWeight: 600, color: active ? 'var(--pgn-color-primary-base)' : 'var(--pgn-color-gray-900)' }}>{role.label}</p>
+                    <p style={{
+                      margin: 0, fontSize: '13px', fontWeight: 600, color: active ? 'var(--pgn-color-primary-base)' : 'var(--pgn-color-gray-900)',
+                    }}
+                    >{role.label}
+                    </p>
                     <p style={{ margin: '2px 0 0', fontSize: '11px', color: active ? 'var(--pgn-color-primary-base)' : 'var(--pgn-color-text-light)' }}>{role.desc}</p>
                   </button>
                 );
@@ -512,9 +636,12 @@ const AddUserModal = ({
 
           {selectedRole === 'trainee' && (
             <div style={{ marginBottom: '20px' }}>
-              <label style={{ fontSize: '10.5px', fontWeight: 700, color: 'var(--pgn-color-text-light)', letterSpacing: '0.07em', display: 'block', marginBottom: '8px' }}>
+              <p style={{
+                fontSize: '10.5px', fontWeight: 700, color: 'var(--pgn-color-text-light)', letterSpacing: '0.07em', display: 'block', marginBottom: '8px',
+              }}
+              >
                 TRAINEE TYPE <span style={{ color: '#E53E3E' }}>*</span>
-              </label>
+              </p>
               <div style={{ display: 'flex', gap: '10px' }}>
                 {TRAINEE_TYPES.map((type) => {
                   const active = traineeType === type.id;
@@ -533,7 +660,11 @@ const AddUserModal = ({
                         textAlign: 'center',
                       }}
                     >
-                      <p style={{ margin: 0, fontSize: '14px', fontWeight: 600, color: active ? 'var(--pgn-color-primary-base)' : 'var(--pgn-color-gray-900)' }}>{type.label}</p>
+                      <p style={{
+                        margin: 0, fontSize: '14px', fontWeight: 600, color: active ? 'var(--pgn-color-primary-base)' : 'var(--pgn-color-gray-900)',
+                      }}
+                      >{type.label}
+                      </p>
                       <p style={{ margin: '3px 0 0', fontSize: '12px', color: active ? 'var(--pgn-color-primary-base)' : 'var(--pgn-color-text-light)' }}>{type.desc}</p>
                     </button>
                   );
@@ -543,19 +674,30 @@ const AddUserModal = ({
           )}
 
           {apiError && (
-            <div ref={apiErrorRef} style={{ background: '#FDE8E8', color: '#9B1C1C', border: '1px solid #F8B4B4', borderRadius: '6px', padding: '10px 12px', marginBottom: '14px', fontSize: '13.5px' }}>
+            <div
+              ref={apiErrorRef}
+              style={{
+                background: '#FDE8E8', color: '#9B1C1C', border: '1px solid #F8B4B4', borderRadius: '6px', padding: '10px 12px', marginBottom: '14px', fontSize: '13.5px',
+              }}
+            >
               {apiError}
             </div>
           )}
 
           {!isAssignment && shouldShowCity && cities.length === 0 && (
-            <div style={{ background: '#FFF8E5', color: '#7A4D00', border: '1px solid #F0D28A', borderRadius: '6px', padding: '10px 12px', marginBottom: '14px', fontSize: '13.5px' }}>
+            <div style={{
+              background: '#FFF8E5', color: '#7A4D00', border: '1px solid #F0D28A', borderRadius: '6px', padding: '10px 12px', marginBottom: '14px', fontSize: '13.5px',
+            }}
+            >
               No cities are available yet. Add cities before creating Middle Admin or Data Admin accounts.
             </div>
           )}
 
           {!isAssignment && selectedRole === 'trainee' && traineeType === 'stp' && batches.length === 0 && (
-            <div style={{ background: '#FFF8E5', color: '#7A4D00', border: '1px solid #F0D28A', borderRadius: '6px', padding: '10px 12px', marginBottom: '14px', fontSize: '13.5px' }}>
+            <div style={{
+              background: '#FFF8E5', color: '#7A4D00', border: '1px solid #F0D28A', borderRadius: '6px', padding: '10px 12px', marginBottom: '14px', fontSize: '13.5px',
+            }}
+            >
               No batches are available yet. Add batches before creating STP trainee accounts.
             </div>
           )}
@@ -563,34 +705,62 @@ const AddUserModal = ({
           {isAssignment ? (
             <>
               <SectionHeader title="SIGN-IN APPROVAL" note="Role only; profile details can be completed later." />
-              <div style={{ background: 'var(--pgn-color-gray-100)', border: '1px solid var(--pgn-color-border)', borderRadius: '8px', padding: '14px 16px' }}>
+              <div style={{
+                background: 'var(--pgn-color-gray-100)', border: '1px solid var(--pgn-color-border)', borderRadius: '8px', padding: '14px 16px',
+              }}
+              >
                 <p style={{ margin: 0, fontSize: '13px', color: 'var(--pgn-color-gray-900)' }}>
-                  This approval will create an FBR profile for <strong>{assignmentUser?.email || assignmentUser?.username}</strong> and assign the selected role.
+                  This approval will create an FBR profile for <strong>{assignmentEmail}</strong>
+                  {' '}
+                  and assign the selected role.
                 </p>
               </div>
             </>
           ) : (
             <>
               <SectionHeader title="INFORMATION" note={contextText} />
-              {createFields.map((row, index) => (
-                <FieldRow key={index} fields={row} values={values} onChange={handleChange} errors={errors} cities={cities} batches={batches} />
+              {createFields.map((row) => (
+                <FieldRow
+                  key={getRowKey(row)}
+                  fields={row}
+                  values={values}
+                  onChange={handleChange}
+                  errors={errors}
+                  cities={cities}
+                  batches={batches}
+                />
               ))}
             </>
           )}
 
           {!isAssignment && selectedRole === 'trainee' && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--pgn-color-text-light)', fontSize: '12px', marginTop: '6px' }}>
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--pgn-color-text-light)', fontSize: '12px', marginTop: '6px',
+            }}
+            >
               <FontAwesomeIcon icon={faHome} />
               <span>Batch is required only for STP trainees.</span>
             </div>
           )}
         </div>
 
-        <div style={{ padding: '14px 28px', borderTop: '1px solid var(--pgn-color-border)', display: 'flex', justifyContent: 'flex-end', gap: '10px', background: '#fff', flexShrink: 0 }}>
+        <div style={{
+          padding: '14px 28px', borderTop: '1px solid var(--pgn-color-border)', display: 'flex', justifyContent: 'flex-end', gap: '10px', background: '#fff', flexShrink: 0,
+        }}
+        >
           <Button variant="tertiary" onClick={onClose} disabled={isSubmitting}>Cancel</Button>
-          <Button variant="primary" onClick={handleSubmit} disabled={isSubmitting || visibleRoles.length === 0 || (!isAssignment && shouldShowCity && cities.length === 0) || (!isAssignment && selectedRole === 'trainee' && traineeType === 'stp' && batches.length === 0)}>
+          <Button
+            variant="primary"
+            onClick={handleSubmit}
+            disabled={
+              isSubmitting
+              || visibleRoles.length === 0
+              || (!isAssignment && shouldShowCity && cities.length === 0)
+              || (!isAssignment && selectedRole === 'trainee' && traineeType === 'stp' && batches.length === 0)
+            }
+          >
             <FontAwesomeIcon icon={faCheck} style={{ fontSize: '12px', marginRight: '7px' }} />
-            {isSubmitting ? 'Saving...' : isAssignment ? 'Approve User' : 'Create User'}
+            {submitLabel}
           </Button>
         </div>
       </div>
@@ -606,8 +776,14 @@ AddUserModal.propTypes = {
     roles: PropTypes.arrayOf(PropTypes.string),
     city: PropTypes.shape({ id: PropTypes.number, name: PropTypes.string }),
   }),
-  cities: PropTypes.arrayOf(PropTypes.shape({ id: PropTypes.number.isRequired, name: PropTypes.string.isRequired })),
-  batches: PropTypes.arrayOf(PropTypes.shape({ id: PropTypes.number.isRequired, name: PropTypes.string.isRequired })),
+  cities: PropTypes.arrayOf(PropTypes.shape({
+    id: PropTypes.number.isRequired,
+    name: PropTypes.string.isRequired,
+  })),
+  batches: PropTypes.arrayOf(PropTypes.shape({
+    id: PropTypes.number.isRequired,
+    name: PropTypes.string.isRequired,
+  })),
   assignmentUser: PropTypes.shape({
     id: PropTypes.number,
     username: PropTypes.string,

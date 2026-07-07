@@ -18,15 +18,15 @@ const ROLE_HINTS = {
 
 const getApiErrorMessage = (error, fallback) => {
   const data = error?.response?.data;
-  if (!data) return fallback;
-  if (typeof data === 'string') return data;
-  if (Array.isArray(data)) return data.join(' ');
-  if (data.detail) return Array.isArray(data.detail) ? data.detail.join(' ') : data.detail;
-  if (data.non_field_errors) return Array.isArray(data.non_field_errors) ? data.non_field_errors.join(' ') : data.non_field_errors;
+  if (!data) { return fallback; }
+  if (typeof data === 'string') { return data; }
+  if (Array.isArray(data)) { return data.join(' '); }
+  if (data.detail) { return Array.isArray(data.detail) ? data.detail.join(' ') : data.detail; }
+  if (data.non_field_errors) { return Array.isArray(data.non_field_errors) ? data.non_field_errors.join(' ') : data.non_field_errors; }
 
   const firstError = Object.values(data)[0];
-  if (Array.isArray(firstError)) return firstError.join(' ');
-  if (typeof firstError === 'string') return firstError;
+  if (Array.isArray(firstError)) { return firstError.join(' '); }
+  if (typeof firstError === 'string') { return firstError; }
   return fallback;
 };
 
@@ -43,7 +43,12 @@ const downloadBlob = (blob, fallbackName) => {
 
 const ResultStatus = ({ status }) => {
   const isError = status === 'error';
-  const label = status === 'valid' ? 'Valid' : status === 'created' ? 'Created' : 'Error';
+  let label = 'Error';
+  if (status === 'valid') {
+    label = 'Valid';
+  } else if (status === 'created') {
+    label = 'Created';
+  }
   return (
     <span style={{
       background: isError ? '#FDE8E8' : '#EDFAF1',
@@ -65,7 +70,7 @@ ResultStatus.propTypes = {
 };
 
 const formatErrors = errors => {
-  if (!errors || Object.keys(errors).length === 0) return '';
+  if (!errors || Object.keys(errors).length === 0) { return ''; }
   return Object.entries(errors)
     .map(([field, message]) => `${field}: ${Array.isArray(message) ? message.join(' ') : message}`)
     .join(' | ');
@@ -90,6 +95,12 @@ const BulkImportUsersModal = ({
   const [isDownloading, setIsDownloading] = useState(false);
 
   const canSubmit = importableRoles.length > 0 && file && !isSubmitting;
+  let submitLabel = 'Import Users';
+  if (isSubmitting) {
+    submitLabel = 'Processing...';
+  } else if (dryRun) {
+    submitLabel = 'Run Validation';
+  }
 
   const handleDownloadSample = async () => {
     setIsDownloading(true);
@@ -127,24 +138,52 @@ const BulkImportUsersModal = ({
 
   return (
     <div
-      style={{ position: 'fixed', inset: 0, zIndex: 1050, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-      onClick={event => { if (event.target === event.currentTarget && !closeDisabled) onClose(); }}
+      role="button"
+      tabIndex={0}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 1050, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+      }}
+      onClick={event => { if (event.target === event.currentTarget && !closeDisabled) { onClose(); } }}
+      onKeyDown={(event) => {
+        if ((event.key === 'Enter' || event.key === ' ') && event.target === event.currentTarget && !closeDisabled) {
+          onClose();
+        }
+      }}
     >
-      <div style={{ background: '#fff', borderRadius: '12px', width: '900px', maxWidth: '96vw', maxHeight: '92vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '0 24px 64px rgba(0,0,0,0.28)' }}>
-        <div style={{ background: 'linear-gradient(135deg, #1B3A5C 0%, #1E4976 100%)', padding: '22px 28px', borderBottom: '3px solid #C9922A', flexShrink: 0, display: 'flex', alignItems: 'center', gap: '16px', position: 'relative' }}>
-          <div style={{ width: '44px', height: '44px', borderRadius: '50%', border: '2px solid rgba(255,255,255,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(255,255,255,0.7)', fontSize: '18px', flexShrink: 0 }}>
+      <div style={{
+        background: '#fff', borderRadius: '12px', width: '900px', maxWidth: '96vw', maxHeight: '92vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '0 24px 64px rgba(0,0,0,0.28)',
+      }}
+      >
+        <div style={{
+          background: 'linear-gradient(135deg, #1B3A5C 0%, #1E4976 100%)', padding: '22px 28px', borderBottom: '3px solid #C9922A', flexShrink: 0, display: 'flex', alignItems: 'center', gap: '16px', position: 'relative',
+        }}
+        >
+          <div style={{
+            width: '44px', height: '44px', borderRadius: '50%', border: '2px solid rgba(255,255,255,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(255,255,255,0.7)', fontSize: '18px', flexShrink: 0,
+          }}
+          >
             <FontAwesomeIcon icon={faFileCsv} />
           </div>
           <div>
-            <p style={{ margin: 0, fontSize: '10px', fontWeight: 700, color: 'rgba(255,255,255,0.6)', letterSpacing: '0.12em', textTransform: 'uppercase' }}>BULK IMPORT</p>
-            <h2 style={{ margin: '2px 0 0', fontSize: '20px', fontWeight: 700, color: '#fff' }}>Import Users</h2>
+            <p style={{
+              margin: 0, fontSize: '10px', fontWeight: 700, color: 'rgba(255,255,255,0.6)', letterSpacing: '0.12em', textTransform: 'uppercase',
+            }}
+            >BULK IMPORT
+            </p>
+            <h2 style={{
+              margin: '2px 0 0', fontSize: '20px', fontWeight: 700, color: '#fff',
+            }}
+            >Import Users
+            </h2>
             <p style={{ margin: '2px 0 0', fontSize: '13px', color: 'rgba(255,255,255,0.65)' }}>Upload a CSV to validate or create trainees and instructors.</p>
           </div>
           <button
             type="button"
             onClick={onClose}
             disabled={closeDisabled}
-            style={{ position: 'absolute', top: '18px', right: '20px', background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: '6px', color: '#fff', width: '28px', height: '28px', cursor: closeDisabled ? 'not-allowed' : 'pointer', fontSize: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            style={{
+              position: 'absolute', top: '18px', right: '20px', background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: '6px', color: '#fff', width: '28px', height: '28px', cursor: closeDisabled ? 'not-allowed' : 'pointer', fontSize: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}
           >
             <FontAwesomeIcon icon={faTimes} />
           </button>
@@ -152,7 +191,10 @@ const BulkImportUsersModal = ({
 
         <div style={{ overflowY: 'auto', flex: 1, padding: '24px 28px' }}>
           {importableRoles.length === 0 ? (
-            <div style={{ background: '#FFF8E5', color: '#7A4D00', border: '1px solid #F0D28A', borderRadius: '6px', padding: '10px 12px', marginBottom: '14px', fontSize: '13.5px' }}>
+            <div style={{
+              background: '#FFF8E5', color: '#7A4D00', border: '1px solid #F0D28A', borderRadius: '6px', padding: '10px 12px', marginBottom: '14px', fontSize: '13.5px',
+            }}
+            >
               You do not have permission to import trainees or instructors.
             </div>
           ) : (
@@ -191,7 +233,10 @@ const BulkImportUsersModal = ({
                 <div className="small text-muted mt-2">{ROLE_HINTS[role]}</div>
               </Form.Group>
 
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', margin: '18px 0' }}>
+              <div style={{
+                display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', margin: '18px 0',
+              }}
+              >
                 <Button variant="outline-primary" size="sm" onClick={handleDownloadSample} disabled={isDownloading}>
                   <FontAwesomeIcon icon={faDownload} style={{ marginRight: '6px' }} />
                   {isDownloading ? 'Downloading...' : 'Download Sample CSV'}
@@ -223,22 +268,37 @@ const BulkImportUsersModal = ({
           )}
 
           {error && (
-            <div style={{ background: '#FDE8E8', color: '#9B1C1C', border: '1px solid #F8B4B4', borderRadius: '6px', padding: '10px 12px', marginBottom: '14px', fontSize: '13.5px' }}>
+            <div style={{
+              background: '#FDE8E8', color: '#9B1C1C', border: '1px solid #F8B4B4', borderRadius: '6px', padding: '10px 12px', marginBottom: '14px', fontSize: '13.5px',
+            }}
+            >
               {error}
             </div>
           )}
 
           {result && (
             <div style={{ marginTop: '22px' }}>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginBottom: '14px' }}>
+              <div style={{
+                display: 'flex', flexWrap: 'wrap', gap: '10px', marginBottom: '14px',
+              }}
+              >
                 {[
                   ['Mode', result.dry_run ? 'Dry run' : 'Import'],
                   ['Total rows', result.total],
                   [result.dry_run ? 'Valid rows' : 'Created', result.dry_run ? result.valid : result.created],
                   ['Failed', result.failed],
                 ].map(([label, value]) => (
-                  <div key={label} style={{ border: '1px solid var(--pgn-color-border)', borderRadius: '8px', padding: '10px 12px', minWidth: '130px' }}>
-                    <div style={{ fontSize: '11px', color: 'var(--pgn-color-text-light)', textTransform: 'uppercase', fontWeight: 700 }}>{label}</div>
+                  <div
+                    key={label}
+                    style={{
+                      border: '1px solid var(--pgn-color-border)', borderRadius: '8px', padding: '10px 12px', minWidth: '130px',
+                    }}
+                  >
+                    <div style={{
+                      fontSize: '11px', color: 'var(--pgn-color-text-light)', textTransform: 'uppercase', fontWeight: 700,
+                    }}
+                    >{label}
+                    </div>
                     <div style={{ fontSize: '18px', color: 'var(--pgn-color-gray-900)', fontWeight: 700 }}>{value ?? 0}</div>
                   </div>
                 ))}
@@ -250,7 +310,13 @@ const BulkImportUsersModal = ({
                     <thead>
                       <tr style={{ background: 'var(--pgn-color-gray-100)' }}>
                         {['ROW', 'EMAIL', 'STATUS', 'ERRORS'].map(label => (
-                          <th key={label} style={{ padding: '9px 12px', textAlign: 'left', fontSize: '11px', color: 'var(--pgn-color-gray-500)', fontWeight: 700 }}>{label}</th>
+                          <th
+                            key={label}
+                            style={{
+                              padding: '9px 12px', textAlign: 'left', fontSize: '11px', color: 'var(--pgn-color-gray-500)', fontWeight: 700,
+                            }}
+                          >{label}
+                          </th>
                         ))}
                       </tr>
                     </thead>
@@ -273,11 +339,14 @@ const BulkImportUsersModal = ({
           )}
         </div>
 
-        <div style={{ padding: '14px 28px', borderTop: '1px solid var(--pgn-color-border)', display: 'flex', justifyContent: 'flex-end', gap: '10px', background: '#fff', flexShrink: 0 }}>
+        <div style={{
+          padding: '14px 28px', borderTop: '1px solid var(--pgn-color-border)', display: 'flex', justifyContent: 'flex-end', gap: '10px', background: '#fff', flexShrink: 0,
+        }}
+        >
           <Button variant="tertiary" onClick={onClose} disabled={closeDisabled}>Close</Button>
           <Button variant="primary" onClick={handleSubmit} disabled={!canSubmit}>
             <FontAwesomeIcon icon={dryRun ? faCheck : faUpload} style={{ fontSize: '12px', marginRight: '7px' }} />
-            {isSubmitting ? 'Processing...' : dryRun ? 'Run Validation' : 'Import Users'}
+            {submitLabel}
           </Button>
         </div>
       </div>
