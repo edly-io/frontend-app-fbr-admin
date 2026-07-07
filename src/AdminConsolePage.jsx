@@ -16,6 +16,7 @@ import AddUserModal from './components/AddUserModal';
 import BulkImportUsersModal from './components/BulkImportUsersModal';
 import ViewUserModal from './components/ViewUserModal';
 import DebouncedSearchInput from './components/DebouncedSearchInput';
+import UserIdentity from './components/UserIdentity';
 
 ensureConfig(['LMS_BASE_URL'], 'FBR admin console');
 
@@ -312,19 +313,6 @@ const RoleBadge = ({ role }) => {
 
 RoleBadge.propTypes = { role: PropTypes.string.isRequired };
 
-const RoleBadges = ({ roles }) => {
-  if (!roles.length) return <RoleBadge role="Unassigned" />;
-  return (
-    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-      {roles.map(role => <RoleBadge key={role} role={role} />)}
-    </div>
-  );
-};
-
-RoleBadges.propTypes = {
-  roles: PropTypes.arrayOf(PropTypes.string).isRequired,
-};
-
 const StatusBadge = ({ status }) => {
   const active = status === 'Active';
   return (
@@ -348,22 +336,6 @@ const RequestStatusBadge = ({ status }) => {
 };
 
 RequestStatusBadge.propTypes = { status: PropTypes.string.isRequired };
-
-const UserAvatar = ({ initials, color, size }) => (
-  <div style={{ width: `${size}px`, height: `${size}px`, borderRadius: '50%', background: color, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: size < 40 ? '12px' : '14px', fontWeight: 700, flexShrink: 0, letterSpacing: '0.03em', overflow: 'hidden' }}>
-    {initials?.startsWith('http') || initials?.startsWith('/') ? (
-      <img src={initials} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-    ) : initials}
-  </div>
-);
-
-UserAvatar.propTypes = {
-  initials: PropTypes.string.isRequired,
-  color: PropTypes.string.isRequired,
-  size: PropTypes.number,
-};
-
-UserAvatar.defaultProps = { size: 34 };
 
 const getBiodataUsersUrl = () => `${getConfig().LMS_BASE_URL}${BIODATA_USER_LIST_PATH}`;
 
@@ -527,7 +499,7 @@ const UsersView = ({
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   const [currentPage, setCurrentPage] = useState(1);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [rowsPerPage, setRowsPerPage] = useState(25);
   const [openMenuId, setOpenMenuId] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
@@ -703,7 +675,7 @@ const UsersView = ({
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13.5px' }}>
           <thead>
             <tr style={{ background: 'var(--pgn-color-gray-100)', borderBottom: '1px solid var(--pgn-color-border)' }}>
-              {[['#', '52px'], ['FULL NAME'], ['EMAIL'], ['ROLES'], ['BATCH'], ['MOBILE'], ['STATUS'], ['ACTIONS', '110px']].map(([label, width]) => (
+              {[['#', '52px'], ['FULL NAME'], ['EMAIL'], ['BATCH'], ['MOBILE'], ['STATUS'], ['ACTIONS', '110px']].map(([label, width]) => (
                 <th key={label} style={{ padding: '11px 16px', textAlign: label === 'ACTIONS' ? 'center' : 'left', fontSize: '11px', fontWeight: 700, color: 'var(--pgn-color-gray-400)', letterSpacing: '0.06em', width }}>
                   {label}
                 </th>
@@ -712,9 +684,9 @@ const UsersView = ({
           </thead>
           <tbody>
             {isLoading ? (
-              <tr><td colSpan={8} style={{ padding: '48px 16px', textAlign: 'center', color: 'var(--pgn-color-text-light)' }}>Loading users...</td></tr>
+              <tr><td colSpan={7} style={{ padding: '48px 16px', textAlign: 'center', color: 'var(--pgn-color-text-light)' }}>Loading users...</td></tr>
             ) : pageUsers.length === 0 ? (
-              <tr><td colSpan={8} style={{ padding: '48px 16px', textAlign: 'center', color: 'var(--pgn-color-text-light)' }}>No users found.</td></tr>
+              <tr><td colSpan={7} style={{ padding: '48px 16px', textAlign: 'center', color: 'var(--pgn-color-text-light)' }}>No users found.</td></tr>
             ) : pageUsers.map((user, idx) => (
               <tr
                 key={user.id}
@@ -724,13 +696,14 @@ const UsersView = ({
               >
                 <td style={{ padding: '12px 16px', color: 'var(--pgn-color-gray-400)', fontWeight: 500 }}>{(page - 1) * rowsPerPage + idx + 1}</td>
                 <td style={{ padding: '12px 16px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <UserAvatar initials={user.photo || user.initials} color={user.color} />
-                    <span style={{ fontWeight: 500, color: 'var(--pgn-color-text-base)' }}>{user.name}</span>
-                  </div>
+                  <UserIdentity
+                    name={user.name}
+                    badges={[user.role].filter(Boolean)}
+                    size="compact"
+                    avatarValue={user.photo || user.initials}
+                  />
                 </td>
                 <td style={{ padding: '12px 16px', color: 'var(--pgn-color-primary-base)' }}>{user.email}</td>
-                <td style={{ padding: '12px 16px' }}><RoleBadges roles={user.roleLabels} /></td>
                 <td style={{ padding: '12px 16px', color: 'var(--pgn-color-gray-700)' }}>{user.batchNo || '—'}</td>
                 <td style={{ padding: '12px 16px', color: 'var(--pgn-color-gray-700)' }}>{user.mobile || '—'}</td>
                 <td style={{ padding: '12px 16px' }}><StatusBadge status={user.status} /></td>
@@ -919,15 +892,13 @@ const SignupApprovalsView = ({
               onMouseEnter={e => { e.currentTarget.style.background = 'var(--pgn-color-primary-light)'; }}
               onMouseLeave={e => { e.currentTarget.style.background = ''; }}
             >
-              <UserAvatar
-                initials={getInitials([req.first_name, req.last_name].filter(Boolean).join(' ') || req.username)}
-                color="#1B5E7A"
-                size={44}
-              />
               <div style={{ flex: 1, minWidth: 0 }}>
-                <p style={{ margin: 0, fontWeight: 600, fontSize: '14px', color: 'var(--pgn-color-text-base)' }}>
-                  {[req.first_name, req.last_name].filter(Boolean).join(' ') || req.username}
-                </p>
+                <UserIdentity
+                  name={[req.first_name, req.last_name].filter(Boolean).join(' ') || req.username}
+                  badges={['Pending Approval']}
+                  size="compact"
+                  avatarValue={getInitials([req.first_name, req.last_name].filter(Boolean).join(' ') || req.username)}
+                />
                 <p style={{ margin: '3px 0 0', fontSize: '13px', color: 'var(--pgn-color-text-light)', display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
                   <span style={{ color: 'var(--pgn-color-primary-base)' }}>{req.email}</span>
                   <span style={{ opacity: 0.4 }}>·</span>
@@ -1125,11 +1096,27 @@ const BiodataEditRequestsView = ({ onCountChange }) => {
               <tr><td colSpan={7} style={{ padding: '48px 16px', textAlign: 'center', color: 'var(--pgn-color-text-light)' }}>No biodata edit requests found.</td></tr>
             ) : requests.map((request, idx) => (
               <tr key={request.id} style={{ borderBottom: idx < requests.length - 1 ? '1px solid var(--pgn-color-gray-100)' : 'none', verticalAlign: 'top' }}>
-                <td style={{ padding: '14px 16px', fontWeight: 600, color: 'var(--pgn-color-text-base)', minWidth: '150px' }}>{request.profile_name || `Profile #${request.profile_id}`}</td>
+                <td style={{ padding: '14px 16px', minWidth: '150px' }}>
+                  <UserIdentity
+                    name={request.profile_name || `Profile #${request.profile_id}`}
+                    badges={['Trainee']}
+                    size="compact"
+                    avatarValue={getInitials(request.profile_name || `Profile ${request.profile_id}`)}
+                  />
+                </td>
                 <td style={{ padding: '14px 16px', color: 'var(--pgn-color-gray-700)', maxWidth: '320px', whiteSpace: 'pre-wrap' }}>{request.message}</td>
                 <td style={{ padding: '14px 16px' }}><RequestStatusBadge status={request.status} /></td>
                 <td style={{ padding: '14px 16px', color: 'var(--pgn-color-gray-700)', minWidth: '130px' }}>{formatDateTime(request.created_at)}</td>
-                <td style={{ padding: '14px 16px', color: 'var(--pgn-color-gray-700)' }}>{request.resolved_by_name || '—'}</td>
+                <td style={{ padding: '14px 16px', color: 'var(--pgn-color-gray-700)' }}>
+                  {request.resolved_by_name ? (
+                    <UserIdentity
+                      name={request.resolved_by_name}
+                      badges={['Admin']}
+                      size="compact"
+                      avatarValue={getInitials(request.resolved_by_name)}
+                    />
+                  ) : '—'}
+                </td>
                 <td style={{ padding: '14px 16px', minWidth: '220px' }}>
                   {request.status === 'pending' ? (
                     <Form.Control

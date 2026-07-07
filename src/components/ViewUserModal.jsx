@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { Button } from '@openedx/paragon';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPen, faTimes } from '@fortawesome/free-solid-svg-icons';
+import UserIdentity from './UserIdentity';
 
 const ROLE_LABELS = {
   super_admin: 'Super Admin',
@@ -10,14 +11,6 @@ const ROLE_LABELS = {
   data_admin: 'Data Admin',
   instructor: 'Instructor',
   trainee: 'Trainee',
-};
-
-const ROLE_STYLE = {
-  'Super Admin': { bg: '#FDE8E8', text: '#C53030' },
-  'Middle Admin': { bg: '#F2EBFF', text: '#6B3FA0' },
-  'Data Admin': { bg: '#FFF3E0', text: '#B45309' },
-  Instructor: { bg: '#E8F0FF', text: '#2B5CB0' },
-  Trainee: { bg: '#E8F7EE', text: '#276749' },
 };
 
 const TRAINEE_TYPE_LABELS = {
@@ -137,18 +130,12 @@ const ViewUserModal = ({ user, onClose, onEdit, sourceTab }) => {
 
         <div style={{ overflowY: 'auto', flex: 1 }}>
           <div style={{ padding: '48px 28px 20px 128px', minHeight: '106px' }}>
-            <h3 style={{ margin: '0 0 8px', fontSize: '20px', fontWeight: 700, color: 'var(--pgn-color-text-base)' }}>{user.full_name || user.name}</h3>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-              {roles.map((role) => {
-                const style = ROLE_STYLE[role] || { bg: '#F0F0F0', text: '#555' };
-                return (
-                  <span key={role} style={{ background: style.bg, color: style.text, padding: '3px 12px', borderRadius: '12px', fontSize: '12px', fontWeight: 500, display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
-                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: style.text }} />
-                    {role}
-                  </span>
-                );
-              })}
-            </div>
+            <UserIdentity
+              name={user.full_name || user.name}
+              badges={roles}
+              size="large"
+              showAvatar={false}
+            />
           </div>
 
           {showProfileTabs && (
