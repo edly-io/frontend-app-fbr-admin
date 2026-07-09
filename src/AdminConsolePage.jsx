@@ -10,240 +10,22 @@ import {
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faUsers, faUserCheck, faEye, faPen, faEllipsisV, faPlus,
-  faSync, faCheck, faTimes, faChevronLeft, faChevronRight, faUpload,
+  faSync, faCheck, faChevronLeft, faChevronRight, faUpload,
 } from '@fortawesome/free-solid-svg-icons';
 import AddUserModal from './components/AddUserModal';
 import BulkImportUsersModal from './components/BulkImportUsersModal';
 import ViewUserModal from './components/ViewUserModal';
 import DebouncedSearchInput from './components/DebouncedSearchInput';
+import UserIdentity from './components/UserIdentity';
 
 ensureConfig(['LMS_BASE_URL'], 'FBR admin console');
-
-// ─── Mock data ────────────────────────────────────────────────────────────────
-
-const INITIAL_USERS = [
-  {
-    id: 1,
-    initials: 'SA',
-    color: '#5C7A8A',
-    name: 'Sana Akhtar',
-    email: 'sana.akhtar@fbr.gov.pk',
-    role: 'Super Admin',
-    org: 'HQ Islamabad',
-    status: 'Active',
-    bpsGrade: 'BPS-20',
-    designation: 'Chief Commissioner IR',
-    mobile: '+92-321-1234567',
-    cnic: '61101-1234567-8',
-  },
-  {
-    id: 2,
-    initials: 'TM',
-    color: '#C98A2A',
-    name: 'Tariq Mahmood',
-    email: 't.mahmood@fbr.gov.pk',
-    role: 'Super Admin',
-    org: 'HQ Islamabad',
-    status: 'Active',
-    bpsGrade: 'BPS-21',
-    designation: 'Member Inland Revenue',
-    mobile: '+92-300-9876543',
-    cnic: '35202-9876543-2',
-  },
-  {
-    id: 3,
-    initials: 'RB',
-    color: '#5E8A6A',
-    name: 'Rashid Bhatti',
-    email: 'r.bhatti@fbr.gov.pk',
-    role: 'Middle Admin',
-    org: 'RTO Lahore',
-    status: 'Active',
-    bpsGrade: 'BPS-18',
-    designation: 'ACIR',
-    mobile: '+92-333-1122334',
-    cnic: '35301-1122334-5',
-  },
-  {
-    id: 4,
-    initials: 'ZH',
-    color: '#2A9E9A',
-    name: 'Zainab Hameed',
-    email: 'z.hameed@fbr.gov.pk',
-    role: 'Middle Admin',
-    org: 'RTO Karachi',
-    status: 'Active',
-    bpsGrade: 'BPS-17',
-    designation: 'Superintendent IR',
-    mobile: '+92-345-5566778',
-    cnic: '42101-5566778-9',
-  },
-  {
-    id: 5,
-    initials: 'OM',
-    color: '#C07820',
-    name: 'Owais Mukhtar',
-    email: 'o.mukhtar@fbr.gov.pk',
-    role: 'Middle Admin',
-    org: 'RTO Peshawar',
-    status: 'Inactive',
-    bpsGrade: 'BPS-18',
-    designation: 'ACIR',
-    mobile: '+92-313-7788990',
-    cnic: '17301-7788990-1',
-  },
-  {
-    id: 6,
-    initials: 'NI',
-    color: '#7A4FC4',
-    name: 'Nadia Iqbal',
-    email: 'n.iqbal@fbr.gov.pk',
-    role: 'Data Admin',
-    org: 'LTU Karachi',
-    status: 'Active',
-    bpsGrade: 'BPS-17',
-    designation: 'Inspector IR',
-    mobile: '+92-321-1122334',
-    cnic: '42101-1122334-5',
-  },
-  {
-    id: 7,
-    initials: 'AK',
-    color: '#3A7DC9',
-    name: 'Asad Khan',
-    email: 'a.khan@fbr.gov.pk',
-    role: 'Data Admin',
-    org: 'RTO Islamabad',
-    status: 'Active',
-    bpsGrade: 'BPS-17',
-    designation: 'Inspector IR',
-    mobile: '+92-300-5544332',
-    cnic: '61101-5544332-1',
-  },
-  {
-    id: 8,
-    initials: 'HR',
-    color: '#9E5A2A',
-    name: 'Hassan Raza',
-    email: 'h.raza@fbr.gov.pk',
-    role: 'Data Admin',
-    org: 'RTO Faisalabad',
-    status: 'Inactive',
-    bpsGrade: 'BPS-17',
-    designation: 'Inspector IR',
-    mobile: '+92-333-6677889',
-    cnic: '33100-6677889-0',
-  },
-  {
-    id: 9,
-    initials: 'FA',
-    color: '#2A8A5A',
-    name: 'Fatima Ali',
-    email: 'f.ali@fbr.gov.pk',
-    role: 'Instructor',
-    org: 'FBR Training Academy',
-    status: 'Active',
-  },
-  {
-    id: 10,
-    initials: 'MK',
-    color: '#5A3A8A',
-    name: 'Muhammad Khan',
-    email: 'm.khan@fbr.gov.pk',
-    role: 'Instructor',
-    org: 'NTRC Islamabad',
-    status: 'Active',
-  },
-  {
-    id: 11,
-    initials: 'AS',
-    color: '#8A5C3A',
-    name: 'Ayesha Siddiqui',
-    email: 'a.siddiqui@fbr.gov.pk',
-    role: 'Trainee',
-    org: 'Batch 2024-A',
-    status: 'Active',
-    bpsGrade: 'BPS-17',
-    cnic: '35202-1122334-0',
-  },
-  {
-    id: 12,
-    initials: 'HN',
-    color: '#3A7A5C',
-    name: 'Hassan Naqvi',
-    email: 'h.naqvi@fbr.gov.pk',
-    role: 'Trainee',
-    org: 'Batch 2024-A',
-    status: 'Active',
-    bpsGrade: 'BPS-17',
-    cnic: '61101-9988776-5',
-  },
-  {
-    id: 13,
-    initials: 'ZA',
-    color: '#7A3A5C',
-    name: 'Zara Ahmed',
-    email: 'z.ahmed@fbr.gov.pk',
-    role: 'Trainee',
-    org: 'Batch 2024-B',
-    status: 'Inactive',
-    bpsGrade: 'BPS-17',
-    cnic: '42101-3344556-7',
-  },
-];
-
-const INITIAL_APPROVALS = [
-  {
-    id: 1,
-    initials: 'MS',
-    color: '#7A9DAE',
-    name: 'Mariam Sajid',
-    email: 'mariam.sajid@fbr.gov.pk',
-    org: 'RTO Faisalabad',
-    requestedAt: '03 May 2026, 09:14',
-  },
-  {
-    id: 2,
-    initials: 'FM',
-    color: '#C4922A',
-    name: 'Faraz Mehboob',
-    email: 'faraz.m@customs.gov.pk',
-    org: 'Pakistan Customs',
-    requestedAt: '03 May 2026, 11:02',
-  },
-  {
-    id: 3,
-    initials: 'HS',
-    color: '#8A9CAC',
-    name: 'Hira Sultan',
-    email: 'hira.sultan@fbr.gov.pk',
-    org: 'HQ Islamabad',
-    requestedAt: '04 May 2026, 08:35',
-  },
-  {
-    id: 4,
-    initials: 'BK',
-    color: '#4A9A8A',
-    name: 'Bilal Khattak',
-    email: 'b.khattak@fbr.gov.pk',
-    org: 'RTO Peshawar',
-    requestedAt: '04 May 2026, 10:48',
-  },
-];
-
-const APPROVAL_DEFAULT_ROLES = {
-  1: 'Trainee',
-  2: 'Instructor',
-  3: 'Middle Admin',
-  4: 'Trainee',
-};
-const APPROVAL_ROLES = ['Super Admin', 'Middle Admin', 'Data Admin', 'Instructor', 'Trainee'];
 
 // ─── Nav config ───────────────────────────────────────────────────────────────
 
 const NAV_SECTIONS = [
   {
-    id: 'administration', title: 'Administration',
+    id: 'administration',
+    title: 'Administration',
     items: [
       { id: 'users', label: 'Users', icon: faUsers },
       { id: 'signup-approvals', label: 'Signup Approvals', icon: faUserCheck },
@@ -254,8 +36,12 @@ const NAV_SECTIONS = [
 
 const TABS = [
   { id: 'all', label: 'All', role: null },
-  { id: 'super-admins', label: 'Super Admins', role: 'super_admin', superAdminOnly: true },
-  { id: 'middle-admins', label: 'Middle Admins', role: 'middle_admin', superAdminOnly: true },
+  {
+    id: 'super-admins', label: 'Super Admins', role: 'super_admin', superAdminOnly: true,
+  },
+  {
+    id: 'middle-admins', label: 'Middle Admins', role: 'middle_admin', superAdminOnly: true,
+  },
   { id: 'data-admins', label: 'Data Admins', role: 'data_admin' },
   { id: 'instructors', label: 'Instructors', role: 'instructor' },
   { id: 'trainees', label: 'Trainees', role: 'trainee' },
@@ -283,14 +69,6 @@ const ROLE_LABELS = {
   trainee: 'Trainee',
 };
 
-const ROLE_STYLE = {
-  'Super Admin': { bg: '#FDE8E8', text: '#C53030' },
-  'Middle Admin': { bg: '#F2EBFF', text: '#6B3FA0' },
-  'Data Admin': { bg: '#FFF3E0', text: '#B45309' },
-  Instructor: { bg: '#E8F0FF', text: '#2B5CB0' },
-  Trainee: { bg: '#E8F7EE', text: '#276749' },
-};
-
 const STATUS_LABELS = {
   invited: 'Invited',
   active: 'Active',
@@ -300,36 +78,17 @@ const STATUS_LABELS = {
   lapsed: 'Lapsed',
 };
 
-const RoleBadge = ({ role }) => {
-  const s = ROLE_STYLE[role] || { bg: '#F0F0F0', text: '#555' };
-  return (
-    <span style={{ background: s.bg, color: s.text, padding: '3px 10px', borderRadius: '12px', fontSize: '12px', fontWeight: 500, display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
-      <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: s.text, flexShrink: 0 }} />
-      {role}
-    </span>
-  );
-};
-
-RoleBadge.propTypes = { role: PropTypes.string.isRequired };
-
-const RoleBadges = ({ roles }) => {
-  if (!roles.length) return <RoleBadge role="Unassigned" />;
-  return (
-    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-      {roles.map(role => <RoleBadge key={role} role={role} />)}
-    </div>
-  );
-};
-
-RoleBadges.propTypes = {
-  roles: PropTypes.arrayOf(PropTypes.string).isRequired,
-};
-
 const StatusBadge = ({ status }) => {
   const active = status === 'Active';
   return (
-    <span style={{ background: active ? '#EDFAF1' : 'var(--pgn-color-gray-100)', color: active ? 'var(--pgn-color-green)' : 'var(--pgn-color-gray-base)', padding: '3px 10px', borderRadius: '12px', fontSize: '12px', fontWeight: 500, display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
-      <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: active ? 'var(--pgn-color-green)' : 'var(--pgn-color-gray-400)', flexShrink: 0 }} />
+    <span style={{
+      background: active ? '#EDFAF1' : 'var(--pgn-color-gray-100)', color: active ? 'var(--pgn-color-green)' : 'var(--pgn-color-gray-base)', padding: '3px 10px', borderRadius: '12px', fontSize: '12px', fontWeight: 500, display: 'inline-flex', alignItems: 'center', gap: '5px',
+    }}
+    >
+      <span style={{
+        width: '6px', height: '6px', borderRadius: '50%', background: active ? 'var(--pgn-color-green)' : 'var(--pgn-color-gray-400)', flexShrink: 0,
+      }}
+      />
       {status}
     </span>
   );
@@ -340,8 +99,14 @@ StatusBadge.propTypes = { status: PropTypes.string.isRequired };
 const RequestStatusBadge = ({ status }) => {
   const isPending = status === 'pending';
   return (
-    <span style={{ background: isPending ? '#FFF3E0' : '#EDFAF1', color: isPending ? '#B45309' : 'var(--pgn-color-green)', padding: '3px 10px', borderRadius: '12px', fontSize: '12px', fontWeight: 500, display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
-      <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: isPending ? '#B45309' : 'var(--pgn-color-green)', flexShrink: 0 }} />
+    <span style={{
+      background: isPending ? '#FFF3E0' : '#EDFAF1', color: isPending ? '#B45309' : 'var(--pgn-color-green)', padding: '3px 10px', borderRadius: '12px', fontSize: '12px', fontWeight: 500, display: 'inline-flex', alignItems: 'center', gap: '5px',
+    }}
+    >
+      <span style={{
+        width: '6px', height: '6px', borderRadius: '50%', background: isPending ? '#B45309' : 'var(--pgn-color-green)', flexShrink: 0,
+      }}
+      />
       {isPending ? 'Pending' : 'Resolved'}
     </span>
   );
@@ -349,21 +114,17 @@ const RequestStatusBadge = ({ status }) => {
 
 RequestStatusBadge.propTypes = { status: PropTypes.string.isRequired };
 
-const UserAvatar = ({ initials, color, size }) => (
-  <div style={{ width: `${size}px`, height: `${size}px`, borderRadius: '50%', background: color, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: size < 40 ? '12px' : '14px', fontWeight: 700, flexShrink: 0, letterSpacing: '0.03em', overflow: 'hidden' }}>
-    {initials?.startsWith('http') || initials?.startsWith('/') ? (
-      <img src={initials} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-    ) : initials}
-  </div>
-);
+const getEditRequestStatusLabel = (status) => {
+  if (status === 'all') {
+    return 'All';
+  }
 
-UserAvatar.propTypes = {
-  initials: PropTypes.string.isRequired,
-  color: PropTypes.string.isRequired,
-  size: PropTypes.number,
+  if (status === 'pending') {
+    return 'Pending';
+  }
+
+  return 'Resolved';
 };
-
-UserAvatar.defaultProps = { size: 34 };
 
 const getBiodataUsersUrl = () => `${getConfig().LMS_BASE_URL}${BIODATA_USER_LIST_PATH}`;
 
@@ -381,7 +142,7 @@ const getProfileCreatePath = (role) => {
   if (['super_admin', 'middle_admin', 'data_admin'].includes(role)) {
     return BIODATA_USER_ADMIN_CREATE_PATH;
   }
-  if (role === 'instructor') return BIODATA_USER_INSTRUCTOR_CREATE_PATH;
+  if (role === 'instructor') { return BIODATA_USER_INSTRUCTOR_CREATE_PATH; }
   return BIODATA_USER_TRAINEE_CREATE_PATH;
 };
 
@@ -400,13 +161,25 @@ const getInitials = (name) => (
 );
 
 const getPhotoUrl = (photo) => {
-  if (!photo) return null;
-  if (/^https?:\/\//.test(photo)) return photo;
+  if (!photo) { return null; }
+  if (/^https?:\/\//.test(photo)) { return photo; }
   return `${getConfig().LMS_BASE_URL}${photo.startsWith('/') ? '' : '/'}${photo}`;
 };
 
+const getPaginatedResults = (data) => {
+  if (Array.isArray(data?.results)) {
+    return data.results;
+  }
+
+  if (Array.isArray(data)) {
+    return data;
+  }
+
+  return [];
+};
+
 const getProfileMfeUserUrl = (userId) => {
-  if (!userId) return null;
+  if (!userId) { return null; }
 
   const configuredProfileUrl = getConfig().ACCOUNT_PROFILE_URL;
   const fallbackBaseUrl = (() => {
@@ -423,7 +196,7 @@ const getProfileMfeUserUrl = (userId) => {
     ? `${configuredProfileUrl.replace(/\/?$/, '/')}`
     : fallbackBaseUrl;
 
-  if (!baseUrl) return null;
+  if (!baseUrl) { return null; }
 
   const url = new URL('u/', baseUrl);
   url.searchParams.set('for_user', String(userId));
@@ -452,9 +225,15 @@ const mapProfileToUser = profile => ({
 // ─── Three-dot action menu ────────────────────────────────────────────────────
 
 const MENU_ITEM = {
-  display: 'block', width: '100%', textAlign: 'left',
-  padding: '8px 16px', border: 'none', background: 'none',
-  cursor: 'pointer', fontSize: '13.5px', color: 'var(--pgn-color-gray-900)',
+  display: 'block',
+  width: '100%',
+  textAlign: 'left',
+  padding: '8px 16px',
+  border: 'none',
+  background: 'none',
+  cursor: 'pointer',
+  fontSize: '13.5px',
+  color: 'var(--pgn-color-gray-900)',
 };
 
 const ActionMenu = ({
@@ -465,10 +244,19 @@ const ActionMenu = ({
   const isActive = userStatus === 'Active';
 
   useEffect(() => {
-    if (!isOpen) return;
-    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpenId(null); };
+    if (!isOpen) {
+      return undefined;
+    }
+
+    const handler = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) {
+        setOpenId(null);
+      }
+    };
     document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
+    return () => {
+      document.removeEventListener('mousedown', handler);
+    };
   }, [isOpen, setOpenId]);
 
   return (
@@ -477,15 +265,22 @@ const ActionMenu = ({
         type="button"
         onClick={() => setOpenId(isOpen ? null : userId)}
         style={{
-          background: 'none', border: isOpen ? '1.5px solid var(--pgn-color-primary-base)' : '1px solid var(--pgn-color-border)',
-          borderRadius: '5px', cursor: 'pointer', padding: '4px 8px',
-          color: isOpen ? 'var(--pgn-color-primary-base)' : 'var(--pgn-color-text-light)', lineHeight: 1,
+          background: 'none',
+          border: isOpen ? '1.5px solid var(--pgn-color-primary-base)' : '1px solid var(--pgn-color-border)',
+          borderRadius: '5px',
+          cursor: 'pointer',
+          padding: '4px 8px',
+          color: isOpen ? 'var(--pgn-color-primary-base)' : 'var(--pgn-color-text-light)',
+          lineHeight: 1,
         }}
       >
         <FontAwesomeIcon icon={faEllipsisV} />
       </button>
       {isOpen && (
-        <div style={{ position: 'absolute', right: 0, top: 'calc(100% + 4px)', background: '#fff', border: '1px solid var(--pgn-color-border)', borderRadius: '8px', boxShadow: '0 8px 24px rgba(0,0,0,0.12)', zIndex: 200, minWidth: '160px', padding: '4px 0' }}>
+        <div style={{
+          position: 'absolute', right: 0, top: 'calc(100% + 4px)', background: '#fff', border: '1px solid var(--pgn-color-border)', borderRadius: '8px', boxShadow: '0 8px 24px rgba(0,0,0,0.12)', zIndex: 200, minWidth: '160px', padding: '4px 0',
+        }}
+        >
           <button type="button" onClick={() => { setOpenId(null); onView(); }} style={MENU_ITEM}>View Profile</button>
           <button type="button" onClick={() => { setOpenId(null); onEdit(); }} style={MENU_ITEM}>Edit User</button>
           <div style={{ borderTop: '1px solid var(--pgn-color-gray-100)', margin: '4px 0' }} />
@@ -527,7 +322,7 @@ const UsersView = ({
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   const [currentPage, setCurrentPage] = useState(1);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [rowsPerPage, setRowsPerPage] = useState(25);
   const [openMenuId, setOpenMenuId] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
@@ -583,23 +378,23 @@ const UsersView = ({
         page_size: String(rowsPerPage),
       });
 
-      if (activeRole) params.set('role', activeRole);
-      if (search.trim()) params.set('search', search.trim());
+      if (activeRole) { params.set('role', activeRole); }
+      if (search.trim()) { params.set('search', search.trim()); }
 
       try {
         const { data } = await getAuthenticatedHttpClient().get(`${getBiodataUsersUrl()}?${params.toString()}`);
-        const results = Array.isArray(data?.results) ? data.results : Array.isArray(data) ? data : [];
+        const results = getPaginatedResults(data);
 
-        if (!isMounted) return;
+        if (!isMounted) { return; }
         setUsers(results.map(mapProfileToUser));
         setTotalUsers(typeof data?.count === 'number' ? data.count : results.length);
       } catch (error) {
-        if (!isMounted) return;
+        if (!isMounted) { return; }
         setUsers([]);
         setTotalUsers(0);
         setErrorMessage(error?.response?.data?.detail || 'Unable to load users.');
       } finally {
-        if (isMounted) setIsLoading(false);
+        if (isMounted) { setIsLoading(false); }
       }
     };
 
@@ -638,8 +433,15 @@ const UsersView = ({
       </p>
 
       {/* Title row */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '6px' }}>
-        <h1 style={{ fontSize: '22px', fontWeight: 700, color: 'var(--pgn-color-text-base)', margin: 0 }}>Users</h1>
+      <div style={{
+        display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '6px',
+      }}
+      >
+        <h1 style={{
+          fontSize: '22px', fontWeight: 700, color: 'var(--pgn-color-text-base)', margin: 0,
+        }}
+        >Users
+        </h1>
         <div style={{ display: 'flex', gap: '10px', marginTop: '2px' }}>
           <Button variant="outline-primary" size="sm" onClick={onImport}>
             <FontAwesomeIcon icon={faUpload} style={{ marginRight: '6px' }} />
@@ -660,9 +462,19 @@ const UsersView = ({
         {visibleTabs.map(tab => {
           const active = activeTab === tab.id;
           return (
-            <button key={tab.id} type="button" onClick={() => handleTabChange(tab.id)} style={{ padding: '8px 14px', border: 'none', cursor: 'pointer', fontSize: '13.5px', fontWeight: active ? 600 : 400, color: active ? 'var(--pgn-color-primary-base)' : 'var(--pgn-color-text-light)', background: 'transparent', borderBottom: active ? '2px solid var(--pgn-color-primary-base)' : '2px solid transparent', marginBottom: '-2px', display: 'flex', alignItems: 'center', gap: '6px', whiteSpace: 'nowrap' }}>
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => handleTabChange(tab.id)}
+              style={{
+                padding: '8px 14px', border: 'none', cursor: 'pointer', fontSize: '13.5px', fontWeight: active ? 600 : 400, color: active ? 'var(--pgn-color-primary-base)' : 'var(--pgn-color-text-light)', background: 'transparent', borderBottom: active ? '2px solid var(--pgn-color-primary-base)' : '2px solid transparent', marginBottom: '-2px', display: 'flex', alignItems: 'center', gap: '6px', whiteSpace: 'nowrap',
+              }}
+            >
               {tab.label}
-              <span style={{ background: active ? 'var(--pgn-color-primary-base)' : 'var(--pgn-color-border)', color: active ? '#fff' : 'var(--pgn-color-text-light)', borderRadius: '9px', padding: '1px 6px', fontSize: '11px', fontWeight: 600 }}>
+              <span style={{
+                background: active ? 'var(--pgn-color-primary-base)' : 'var(--pgn-color-border)', color: active ? '#fff' : 'var(--pgn-color-text-light)', borderRadius: '9px', padding: '1px 6px', fontSize: '11px', fontWeight: 600,
+              }}
+              >
                 {tabCounts[tab.id] ?? '—'}
               </span>
             </button>
@@ -671,7 +483,10 @@ const UsersView = ({
       </div>
 
       {/* Search / filter */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+      <div style={{
+        display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px',
+      }}
+      >
         <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
           <DebouncedSearchInput
             value={search}
@@ -693,29 +508,42 @@ const UsersView = ({
       </div>
 
       {errorMessage && (
-        <div style={{ background: '#FDE8E8', color: '#9B1C1C', border: '1px solid #F8B4B4', borderRadius: '6px', padding: '10px 12px', marginBottom: '14px', fontSize: '13.5px' }}>
+        <div style={{
+          background: '#FDE8E8', color: '#9B1C1C', border: '1px solid #F8B4B4', borderRadius: '6px', padding: '10px 12px', marginBottom: '14px', fontSize: '13.5px',
+        }}
+        >
           {errorMessage}
         </div>
       )}
 
       {/* Table */}
-      <div style={{ background: '#fff', borderRadius: '10px', border: '1px solid var(--pgn-color-border)', overflow: 'visible' }}>
+      <div style={{
+        background: '#fff', borderRadius: '10px', border: '1px solid var(--pgn-color-border)', overflow: 'visible',
+      }}
+      >
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13.5px' }}>
           <thead>
             <tr style={{ background: 'var(--pgn-color-gray-100)', borderBottom: '1px solid var(--pgn-color-border)' }}>
-              {[['#', '52px'], ['FULL NAME'], ['EMAIL'], ['ROLES'], ['BATCH'], ['MOBILE'], ['STATUS'], ['ACTIONS', '110px']].map(([label, width]) => (
-                <th key={label} style={{ padding: '11px 16px', textAlign: label === 'ACTIONS' ? 'center' : 'left', fontSize: '11px', fontWeight: 700, color: 'var(--pgn-color-gray-400)', letterSpacing: '0.06em', width }}>
+              {[['#', '52px'], ['FULL NAME'], ['EMAIL'], ['BATCH'], ['MOBILE'], ['STATUS'], ['ACTIONS', '110px']].map(([label, width]) => (
+                <th
+                  key={label}
+                  style={{
+                    padding: '11px 16px', textAlign: label === 'ACTIONS' ? 'center' : 'left', fontSize: '11px', fontWeight: 700, color: 'var(--pgn-color-gray-400)', letterSpacing: '0.06em', width,
+                  }}
+                >
                   {label}
                 </th>
               ))}
             </tr>
           </thead>
           <tbody>
-            {isLoading ? (
-              <tr><td colSpan={8} style={{ padding: '48px 16px', textAlign: 'center', color: 'var(--pgn-color-text-light)' }}>Loading users...</td></tr>
-            ) : pageUsers.length === 0 ? (
-              <tr><td colSpan={8} style={{ padding: '48px 16px', textAlign: 'center', color: 'var(--pgn-color-text-light)' }}>No users found.</td></tr>
-            ) : pageUsers.map((user, idx) => (
+            {isLoading && (
+              <tr><td colSpan={7} style={{ padding: '48px 16px', textAlign: 'center', color: 'var(--pgn-color-text-light)' }}>Loading users...</td></tr>
+            )}
+            {!isLoading && pageUsers.length === 0 && (
+              <tr><td colSpan={7} style={{ padding: '48px 16px', textAlign: 'center', color: 'var(--pgn-color-text-light)' }}>No users found.</td></tr>
+            )}
+            {!isLoading && pageUsers.map((user, idx) => (
               <tr
                 key={user.id}
                 style={{ borderBottom: idx < pageUsers.length - 1 ? '1px solid var(--pgn-color-gray-100)' : 'none' }}
@@ -724,18 +552,22 @@ const UsersView = ({
               >
                 <td style={{ padding: '12px 16px', color: 'var(--pgn-color-gray-400)', fontWeight: 500 }}>{(page - 1) * rowsPerPage + idx + 1}</td>
                 <td style={{ padding: '12px 16px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <UserAvatar initials={user.photo || user.initials} color={user.color} />
-                    <span style={{ fontWeight: 500, color: 'var(--pgn-color-text-base)' }}>{user.name}</span>
-                  </div>
+                  <UserIdentity
+                    name={user.name}
+                    badges={[user.role].filter(Boolean)}
+                    size="compact"
+                    avatarValue={user.photo || user.initials}
+                  />
                 </td>
                 <td style={{ padding: '12px 16px', color: 'var(--pgn-color-primary-base)' }}>{user.email}</td>
-                <td style={{ padding: '12px 16px' }}><RoleBadges roles={user.roleLabels} /></td>
                 <td style={{ padding: '12px 16px', color: 'var(--pgn-color-gray-700)' }}>{user.batchNo || '—'}</td>
                 <td style={{ padding: '12px 16px', color: 'var(--pgn-color-gray-700)' }}>{user.mobile || '—'}</td>
                 <td style={{ padding: '12px 16px' }}><StatusBadge status={user.status} /></td>
                 <td style={{ padding: '12px 16px' }}>
-                  <div style={{ display: 'flex', gap: '2px', justifyContent: 'center', alignItems: 'center' }}>
+                  <div style={{
+                    display: 'flex', gap: '2px', justifyContent: 'center', alignItems: 'center',
+                  }}
+                  >
                     <Button variant="tertiary" size="sm" title="View" onClick={() => onView(user, activeTab)}>
                       <FontAwesomeIcon icon={faEye} />
                     </Button>
@@ -749,7 +581,7 @@ const UsersView = ({
                       setOpenId={setOpenMenuId}
                       onView={() => onView(user, activeTab)}
                       onEdit={() => onEdit(user, activeTab)}
-                      onDeactivate={() => setUsers(prev => prev.map(u => u.id === user.id ? { ...u, status: u.status === 'Active' ? 'Inactive' : 'Active' } : u))}
+                      onDeactivate={() => setUsers(prev => prev.map(u => (u.id === user.id ? { ...u, status: u.status === 'Active' ? 'Inactive' : 'Active' } : u)))}
                     />
                   </div>
                 </td>
@@ -759,7 +591,10 @@ const UsersView = ({
         </table>
 
         {/* Pagination footer */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', borderTop: '1px solid var(--pgn-color-gray-100)', background: 'var(--pgn-color-gray-100)' }}>
+        <div style={{
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', borderTop: '1px solid var(--pgn-color-gray-100)', background: 'var(--pgn-color-gray-100)',
+        }}
+        >
           <span style={{ fontSize: '13px', color: 'var(--pgn-color-text-light)' }}>
             Showing <strong>{start}–{end}</strong> of <strong>{totalUsers}</strong>
           </span>
@@ -776,7 +611,10 @@ const UsersView = ({
               <FontAwesomeIcon icon={faChevronRight} style={{ fontSize: '10px' }} />
             </Button>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: 'var(--pgn-color-text-light)' }}>
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: 'var(--pgn-color-text-light)',
+          }}
+          >
             Rows per page
             <Form.Control
               as="select"
@@ -835,23 +673,23 @@ const SignupApprovalsView = ({
         page: String(currentPage),
         page_size: String(rowsPerPage),
       });
-      if (search.trim()) params.set('search', search.trim());
+      if (search.trim()) { params.set('search', search.trim()); }
 
       try {
         const { data } = await getAuthenticatedHttpClient().get(`${getBiodataUnregisteredUsersUrl()}?${params.toString()}`);
-        const results = Array.isArray(data?.results) ? data.results : Array.isArray(data) ? data : [];
-        if (!isMounted) return;
+        const results = getPaginatedResults(data);
+        if (!isMounted) { return; }
         setApprovals(results);
         setTotalApprovals(typeof data?.count === 'number' ? data.count : results.length);
         onCountChange(typeof data?.count === 'number' ? data.count : results.length);
       } catch (error) {
-        if (!isMounted) return;
+        if (!isMounted) { return; }
         setApprovals([]);
         setTotalApprovals(0);
         onCountChange(0);
         setErrorMessage(error?.response?.data?.detail || 'Unable to load sign-in approvals.');
       } finally {
-        if (isMounted) setIsLoading(false);
+        if (isMounted) { setIsLoading(false); }
       }
     };
 
@@ -876,8 +714,15 @@ const SignupApprovalsView = ({
         <span style={{ margin: '0 8px', opacity: 0.4 }}>/</span>
         <span style={{ color: 'var(--pgn-color-gray-800)', fontWeight: 500 }}>Signup Approvals</span>
       </p>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '6px' }}>
-        <h1 style={{ fontSize: '22px', fontWeight: 700, color: 'var(--pgn-color-text-base)', margin: 0 }}>Signup Approvals</h1>
+      <div style={{
+        display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '6px',
+      }}
+      >
+        <h1 style={{
+          fontSize: '22px', fontWeight: 700, color: 'var(--pgn-color-text-base)', margin: 0,
+        }}
+        >Signup Approvals
+        </h1>
         <Button variant="outline-secondary" size="sm" onClick={handleRefresh} style={{ marginTop: '2px' }}>
           <FontAwesomeIcon icon={faSync} style={{ marginRight: '6px' }} />
           Refresh
@@ -887,7 +732,10 @@ const SignupApprovalsView = ({
         Review pending sign-up requests and assign each user a role before granting access.
       </p>
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+      <div style={{
+        display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px',
+      }}
+      >
         <DebouncedSearchInput
           value={search}
           onChange={handleSearchChange}
@@ -897,38 +745,55 @@ const SignupApprovalsView = ({
       </div>
 
       {errorMessage && (
-        <div style={{ background: '#FDE8E8', color: '#9B1C1C', border: '1px solid #F8B4B4', borderRadius: '6px', padding: '10px 12px', marginBottom: '14px', fontSize: '13.5px' }}>
+        <div style={{
+          background: '#FDE8E8', color: '#9B1C1C', border: '1px solid #F8B4B4', borderRadius: '6px', padding: '10px 12px', marginBottom: '14px', fontSize: '13.5px',
+        }}
+        >
           {errorMessage}
         </div>
       )}
 
-      {isLoading ? (
-        <div style={{ background: '#fff', borderRadius: '10px', border: '1px solid var(--pgn-color-border)', padding: '56px 32px', textAlign: 'center' }}>
+      {isLoading && (
+        <div style={{
+          background: '#fff', borderRadius: '10px', border: '1px solid var(--pgn-color-border)', padding: '56px 32px', textAlign: 'center',
+        }}
+        >
           <p style={{ color: 'var(--pgn-color-text-light)', fontSize: '15px', margin: 0 }}>Loading approvals...</p>
         </div>
-      ) : approvals.length === 0 ? (
-        <div style={{ background: '#fff', borderRadius: '10px', border: '1px solid var(--pgn-color-border)', padding: '56px 32px', textAlign: 'center' }}>
+      )}
+      {!isLoading && approvals.length === 0 && (
+        <div style={{
+          background: '#fff', borderRadius: '10px', border: '1px solid var(--pgn-color-border)', padding: '56px 32px', textAlign: 'center',
+        }}
+        >
           <p style={{ color: 'var(--pgn-color-text-light)', fontSize: '15px', margin: 0 }}>No pending approval requests.</p>
         </div>
-      ) : (
-        <div style={{ background: '#fff', borderRadius: '10px', border: '1px solid var(--pgn-color-border)', overflow: 'hidden' }}>
+      )}
+      {!isLoading && approvals.length > 0 && (
+        <div style={{
+          background: '#fff', borderRadius: '10px', border: '1px solid var(--pgn-color-border)', overflow: 'hidden',
+        }}
+        >
           {approvals.map((req, idx) => (
             <div
               key={req.id}
-              style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '18px 24px', borderBottom: idx < approvals.length - 1 ? '1px solid var(--pgn-color-gray-100)' : 'none' }}
+              style={{
+                display: 'flex', alignItems: 'center', gap: '16px', padding: '18px 24px', borderBottom: idx < approvals.length - 1 ? '1px solid var(--pgn-color-gray-100)' : 'none',
+              }}
               onMouseEnter={e => { e.currentTarget.style.background = 'var(--pgn-color-primary-light)'; }}
               onMouseLeave={e => { e.currentTarget.style.background = ''; }}
             >
-              <UserAvatar
-                initials={getInitials([req.first_name, req.last_name].filter(Boolean).join(' ') || req.username)}
-                color="#1B5E7A"
-                size={44}
-              />
               <div style={{ flex: 1, minWidth: 0 }}>
-                <p style={{ margin: 0, fontWeight: 600, fontSize: '14px', color: 'var(--pgn-color-text-base)' }}>
-                  {[req.first_name, req.last_name].filter(Boolean).join(' ') || req.username}
-                </p>
-                <p style={{ margin: '3px 0 0', fontSize: '13px', color: 'var(--pgn-color-text-light)', display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                <UserIdentity
+                  name={[req.first_name, req.last_name].filter(Boolean).join(' ') || req.username}
+                  badges={['Pending Approval']}
+                  size="compact"
+                  avatarValue={getInitials([req.first_name, req.last_name].filter(Boolean).join(' ') || req.username)}
+                />
+                <p style={{
+                  margin: '3px 0 0', fontSize: '13px', color: 'var(--pgn-color-text-light)', display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap',
+                }}
+                >
                   <span style={{ color: 'var(--pgn-color-primary-base)' }}>{req.email}</span>
                   <span style={{ opacity: 0.4 }}>·</span>
                   <span>{req.username}</span>
@@ -944,7 +809,10 @@ const SignupApprovalsView = ({
               </div>
             </div>
           ))}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', borderTop: '1px solid var(--pgn-color-gray-100)', background: 'var(--pgn-color-gray-100)' }}>
+          <div style={{
+            display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', borderTop: '1px solid var(--pgn-color-gray-100)', background: 'var(--pgn-color-gray-100)',
+          }}
+          >
             <span style={{ fontSize: '13px', color: 'var(--pgn-color-text-light)' }}>
               Showing <strong>{start}–{end}</strong> of <strong>{totalApprovals}</strong>
             </span>
@@ -956,7 +824,10 @@ const SignupApprovalsView = ({
                 <FontAwesomeIcon icon={faChevronRight} style={{ fontSize: '10px' }} />
               </Button>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: 'var(--pgn-color-text-light)' }}>
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: 'var(--pgn-color-text-light)',
+            }}
+            >
               Rows per page
               <Form.Control
                 as="select"
@@ -1013,25 +884,25 @@ const BiodataEditRequestsView = ({ onCountChange }) => {
         page: String(currentPage),
         page_size: String(rowsPerPage),
       });
-      if (statusFilter !== 'all') params.set('status', statusFilter);
+      if (statusFilter !== 'all') { params.set('status', statusFilter); }
 
       try {
         const { data } = await getAuthenticatedHttpClient().get(`${getBiodataEditRequestsUrl()}?${params.toString()}`);
-        const results = Array.isArray(data?.results) ? data.results : Array.isArray(data) ? data : [];
-        if (!isMounted) return;
+        const results = getPaginatedResults(data);
+        if (!isMounted) { return; }
         setRequests(results);
         setTotalRequests(typeof data?.count === 'number' ? data.count : results.length);
         if (statusFilter === 'pending') {
           onCountChange(typeof data?.count === 'number' ? data.count : results.length);
         }
       } catch (error) {
-        if (!isMounted) return;
+        if (!isMounted) { return; }
         setRequests([]);
         setTotalRequests(0);
-        if (statusFilter === 'pending') onCountChange(0);
+        if (statusFilter === 'pending') { onCountChange(0); }
         setErrorMessage(error?.response?.data?.detail || 'Unable to load biodata edit requests.');
       } finally {
-        if (isMounted) setIsLoading(false);
+        if (isMounted) { setIsLoading(false); }
       }
     };
 
@@ -1070,8 +941,15 @@ const BiodataEditRequestsView = ({ onCountChange }) => {
         <span style={{ margin: '0 8px', opacity: 0.4 }}>/</span>
         <span style={{ color: 'var(--pgn-color-gray-800)', fontWeight: 500 }}>Biodata Edit Request</span>
       </p>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '6px' }}>
-        <h1 style={{ fontSize: '22px', fontWeight: 700, color: 'var(--pgn-color-text-base)', margin: 0 }}>Biodata Edit Request</h1>
+      <div style={{
+        display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '6px',
+      }}
+      >
+        <h1 style={{
+          fontSize: '22px', fontWeight: 700, color: 'var(--pgn-color-text-base)', margin: 0,
+        }}
+        >Biodata Edit Request
+        </h1>
         <Button variant="outline-secondary" size="sm" onClick={() => setRefreshKey(prev => prev + 1)} style={{ marginTop: '2px' }}>
           <FontAwesomeIcon icon={faSync} style={{ marginRight: '6px' }} />
           Refresh
@@ -1081,10 +959,13 @@ const BiodataEditRequestsView = ({ onCountChange }) => {
         Review trainee biodata edit requests and mark them resolved after making required updates.
       </p>
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+      <div style={{
+        display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px',
+      }}
+      >
         <Dropdown>
           <Dropdown.Toggle variant="outline-secondary" id="edit-request-status-filter" style={{ fontSize: '13.5px' }}>
-            Status: {statusFilter === 'all' ? 'All' : statusFilter === 'pending' ? 'Pending' : 'Resolved'}
+            Status: {getEditRequestStatusLabel(statusFilter)}
           </Dropdown.Toggle>
           <Dropdown.Menu>
             {[
@@ -1102,34 +983,67 @@ const BiodataEditRequestsView = ({ onCountChange }) => {
       </div>
 
       {errorMessage && (
-        <div style={{ background: '#FDE8E8', color: '#9B1C1C', border: '1px solid #F8B4B4', borderRadius: '6px', padding: '10px 12px', marginBottom: '14px', fontSize: '13.5px' }}>
+        <div style={{
+          background: '#FDE8E8', color: '#9B1C1C', border: '1px solid #F8B4B4', borderRadius: '6px', padding: '10px 12px', marginBottom: '14px', fontSize: '13.5px',
+        }}
+        >
           {Array.isArray(errorMessage) ? errorMessage.join(' ') : errorMessage}
         </div>
       )}
 
-      <div style={{ background: '#fff', borderRadius: '10px', border: '1px solid var(--pgn-color-border)', overflow: 'hidden' }}>
+      <div style={{
+        background: '#fff', borderRadius: '10px', border: '1px solid var(--pgn-color-border)', overflow: 'hidden',
+      }}
+      >
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13.5px' }}>
           <thead>
             <tr style={{ background: 'var(--pgn-color-gray-100)', borderBottom: '1px solid var(--pgn-color-border)' }}>
               {['PROFILE', 'MESSAGE', 'STATUS', 'REQUESTED', 'RESOLVED BY', 'ADMIN NOTE', 'ACTION'].map(label => (
-                <th key={label} style={{ padding: '11px 16px', textAlign: label === 'ACTION' ? 'center' : 'left', fontSize: '11px', fontWeight: 700, color: 'var(--pgn-color-gray-400)', letterSpacing: '0.06em' }}>
+                <th
+                  key={label}
+                  style={{
+                    padding: '11px 16px', textAlign: label === 'ACTION' ? 'center' : 'left', fontSize: '11px', fontWeight: 700, color: 'var(--pgn-color-gray-400)', letterSpacing: '0.06em',
+                  }}
+                >
                   {label}
                 </th>
               ))}
             </tr>
           </thead>
           <tbody>
-            {isLoading ? (
+            {isLoading && (
               <tr><td colSpan={7} style={{ padding: '48px 16px', textAlign: 'center', color: 'var(--pgn-color-text-light)' }}>Loading requests...</td></tr>
-            ) : requests.length === 0 ? (
+            )}
+            {!isLoading && requests.length === 0 && (
               <tr><td colSpan={7} style={{ padding: '48px 16px', textAlign: 'center', color: 'var(--pgn-color-text-light)' }}>No biodata edit requests found.</td></tr>
-            ) : requests.map((request, idx) => (
+            )}
+            {!isLoading && requests.map((request, idx) => (
               <tr key={request.id} style={{ borderBottom: idx < requests.length - 1 ? '1px solid var(--pgn-color-gray-100)' : 'none', verticalAlign: 'top' }}>
-                <td style={{ padding: '14px 16px', fontWeight: 600, color: 'var(--pgn-color-text-base)', minWidth: '150px' }}>{request.profile_name || `Profile #${request.profile_id}`}</td>
-                <td style={{ padding: '14px 16px', color: 'var(--pgn-color-gray-700)', maxWidth: '320px', whiteSpace: 'pre-wrap' }}>{request.message}</td>
+                <td style={{ padding: '14px 16px', minWidth: '150px' }}>
+                  <UserIdentity
+                    name={request.profile_name || `Profile #${request.profile_id}`}
+                    badges={['Trainee']}
+                    size="compact"
+                    avatarValue={getInitials(request.profile_name || `Profile ${request.profile_id}`)}
+                  />
+                </td>
+                <td style={{
+                  padding: '14px 16px', color: 'var(--pgn-color-gray-700)', maxWidth: '320px', whiteSpace: 'pre-wrap',
+                }}
+                >{request.message}
+                </td>
                 <td style={{ padding: '14px 16px' }}><RequestStatusBadge status={request.status} /></td>
                 <td style={{ padding: '14px 16px', color: 'var(--pgn-color-gray-700)', minWidth: '130px' }}>{formatDateTime(request.created_at)}</td>
-                <td style={{ padding: '14px 16px', color: 'var(--pgn-color-gray-700)' }}>{request.resolved_by_name || '—'}</td>
+                <td style={{ padding: '14px 16px', color: 'var(--pgn-color-gray-700)' }}>
+                  {request.resolved_by_name ? (
+                    <UserIdentity
+                      name={request.resolved_by_name}
+                      badges={['Admin']}
+                      size="compact"
+                      avatarValue={getInitials(request.resolved_by_name)}
+                    />
+                  ) : '—'}
+                </td>
                 <td style={{ padding: '14px 16px', minWidth: '220px' }}>
                   {request.status === 'pending' ? (
                     <Form.Control
@@ -1157,7 +1071,10 @@ const BiodataEditRequestsView = ({ onCountChange }) => {
             ))}
           </tbody>
         </table>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', borderTop: '1px solid var(--pgn-color-gray-100)', background: 'var(--pgn-color-gray-100)' }}>
+        <div style={{
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', borderTop: '1px solid var(--pgn-color-gray-100)', background: 'var(--pgn-color-gray-100)',
+        }}
+        >
           <span style={{ fontSize: '13px', color: 'var(--pgn-color-text-light)' }}>
             Showing <strong>{start}–{end}</strong> of <strong>{totalRequests}</strong>
           </span>
@@ -1169,7 +1086,10 @@ const BiodataEditRequestsView = ({ onCountChange }) => {
               <FontAwesomeIcon icon={faChevronRight} style={{ fontSize: '10px' }} />
             </Button>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: 'var(--pgn-color-text-light)' }}>
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: 'var(--pgn-color-text-light)',
+          }}
+          >
             Rows per page
             <Form.Control
               as="select"
@@ -1203,8 +1123,15 @@ const PlaceholderView = ({ title }) => (
       <span style={{ margin: '0 8px', opacity: 0.4 }}>/</span>
       <span style={{ color: 'var(--pgn-color-gray-800)', fontWeight: 500 }}>{title}</span>
     </p>
-    <h1 style={{ fontSize: '22px', fontWeight: 700, color: 'var(--pgn-color-text-base)', marginBottom: '24px' }}>{title}</h1>
-    <div style={{ background: '#fff', borderRadius: '10px', border: '1px solid var(--pgn-color-border)', padding: '56px 32px', textAlign: 'center' }}>
+    <h1 style={{
+      fontSize: '22px', fontWeight: 700, color: 'var(--pgn-color-text-base)', marginBottom: '24px',
+    }}
+    >{title}
+    </h1>
+    <div style={{
+      background: '#fff', borderRadius: '10px', border: '1px solid var(--pgn-color-border)', padding: '56px 32px', textAlign: 'center',
+    }}
+    >
       <p style={{ color: 'var(--pgn-color-text-light)', fontSize: '15px', margin: 0 }}>This section is under construction.</p>
     </div>
   </>
@@ -1240,7 +1167,7 @@ const AdminConsolePage = () => {
           getAuthenticatedHttpClient().get(getLmsUrl(BIODATA_USER_BATCHES_PATH)),
         ]);
 
-        if (!isMounted) return;
+        if (!isMounted) { return; }
         setCallerProfile({
           ...profileData,
           roles: Array.isArray(profileData?.roles) ? profileData.roles : [],
@@ -1251,7 +1178,7 @@ const AdminConsolePage = () => {
         setCities(Array.isArray(cityData) ? cityData : []);
         setBatches(Array.isArray(batchData) ? batchData : []);
       } catch (error) {
-        if (!isMounted) return;
+        if (!isMounted) { return; }
         setCallerProfile({ roles: [], city: null, creatable_roles: ['instructor', 'trainee'] });
         setCities([]);
         setBatches([]);
@@ -1365,16 +1292,29 @@ const AdminConsolePage = () => {
     <main style={{ display: 'flex', background: 'var(--pgn-color-theme-bg-gray)', minHeight: '100vh' }}>
 
       {/* Sidebar */}
-      <aside style={{ width: '240px', flexShrink: 0, background: '#fff', borderRight: '1px solid var(--pgn-color-border)', padding: '24px 12px' }}>
+      <aside style={{
+        width: '240px', flexShrink: 0, background: '#fff', borderRight: '1px solid var(--pgn-color-border)', padding: '24px 12px',
+      }}
+      >
         {NAV_SECTIONS.map(section => (
           <div key={section.id}>
-            <p style={{ fontSize: '10.5px', fontWeight: 700, color: 'var(--pgn-color-gray-400)', letterSpacing: '0.1em', textTransform: 'uppercase', padding: '0 8px', margin: '16px 0 6px' }}>
+            <p style={{
+              fontSize: '10.5px', fontWeight: 700, color: 'var(--pgn-color-gray-400)', letterSpacing: '0.1em', textTransform: 'uppercase', padding: '0 8px', margin: '16px 0 6px',
+            }}
+            >
               {section.title}
             </p>
             {section.items.map(item => {
               const active = activeNav === item.id;
               return (
-                <button key={item.id} type="button" onClick={() => setActiveNav(item.id)} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 10px', width: '100%', border: 'none', borderRadius: '7px', cursor: 'pointer', fontSize: '13.5px', fontWeight: active ? 600 : 400, background: active ? 'var(--pgn-color-primary-light)' : 'transparent', color: active ? 'var(--pgn-color-primary-base)' : 'var(--pgn-color-gray-700)', textAlign: 'left', marginBottom: '2px' }}>
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => setActiveNav(item.id)}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 10px', width: '100%', border: 'none', borderRadius: '7px', cursor: 'pointer', fontSize: '13.5px', fontWeight: active ? 600 : 400, background: active ? 'var(--pgn-color-primary-light)' : 'transparent', color: active ? 'var(--pgn-color-primary-base)' : 'var(--pgn-color-gray-700)', textAlign: 'left', marginBottom: '2px',
+                  }}
+                >
                   <FontAwesomeIcon icon={item.icon} style={{ width: '15px', opacity: 0.8, flexShrink: 0 }} />
                   <span style={{ flex: 1 }}>{item.label}</span>
                   {item.id === 'signup-approvals' && pendingApprovalsCount > 0 && (
