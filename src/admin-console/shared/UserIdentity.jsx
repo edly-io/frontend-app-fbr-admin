@@ -2,6 +2,12 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { Avatar } from '@openedx/paragon';
 
+// NOTE: `badges` are role/status *values* passed in by callers (e.g. the
+// already-localized-or-not role/status labels computed in each feature's
+// `data/api.js`), not UI chrome owned by this component, so they are not
+// routed through `intl.formatMessage` here. See the i18n-scope comment in
+// `admin-console/users/constants.js` for why role/status labels intentionally
+// stay plain English strings that this component pattern-matches on.
 const ROLE_META = {
   'Super Admin': { tone: 'super-admin', code: 'SA' },
   Admin: { tone: 'admin', code: 'AD' },

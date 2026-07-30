@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import { Form } from '@openedx/paragon';
+import { useIntl } from '@edx/frontend-platform/i18n';
+import messages from './messages';
 
 const DebouncedSearchInput = ({
   value,
@@ -9,6 +11,7 @@ const DebouncedSearchInput = ({
   placeholder,
   width,
 }) => {
+  const intl = useIntl();
   const [localValue, setLocalValue] = useState(value);
 
   useEffect(() => {
@@ -55,7 +58,7 @@ const DebouncedSearchInput = ({
       </span>
       <Form.Control
         type="text"
-        placeholder={placeholder}
+        placeholder={placeholder ?? intl.formatMessage(messages.defaultSearchPlaceholder)}
         value={localValue}
         onChange={event => setLocalValue(event.target.value)}
         style={{ paddingLeft: '34px', width }}
@@ -74,7 +77,7 @@ DebouncedSearchInput.propTypes = {
 
 DebouncedSearchInput.defaultProps = {
   delay: 350,
-  placeholder: 'Search...',
+  placeholder: undefined,
   width: '340px',
 };
 
