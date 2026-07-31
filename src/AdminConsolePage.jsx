@@ -2,6 +2,7 @@ import React, {
   useEffect, useMemo, useRef, useState,
 } from 'react';
 import PropTypes from 'prop-types';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { ensureConfig, getConfig } from '@edx/frontend-platform';
 import { getAuthenticatedHttpClient } from '@edx/frontend-platform/auth';
 import {
@@ -10,9 +11,10 @@ import {
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faUsers, faUserCheck, faEye, faPen, faEllipsisV, faPlus,
-  faSync, faCheck, faChevronLeft, faChevronRight, faUpload,
+  faSync, faCheck, faChevronLeft, faChevronRight, faUpload, faBullhorn,
 } from '@fortawesome/free-solid-svg-icons';
 import AddUserModal from './components/AddUserModal';
+import AnnouncementsView from './announcements/AnnouncementsView';
 import BulkImportUsersModal from './components/BulkImportUsersModal';
 import ViewUserModal from './components/ViewUserModal';
 import DebouncedSearchInput from './components/DebouncedSearchInput';
@@ -30,6 +32,13 @@ const NAV_SECTIONS = [
       { id: 'users', label: 'Users', icon: faUsers },
       { id: 'signup-approvals', label: 'Signup Approvals', icon: faUserCheck },
       { id: 'biodata-edit-requests', label: 'Biodata Edit Request', icon: faPen },
+    ],
+  },
+  {
+    id: 'communications',
+    title: 'Communications',
+    items: [
+      { id: 'announcements', label: 'Announcements', icon: faBullhorn },
     ],
   },
 ];
@@ -1141,8 +1150,18 @@ PlaceholderView.propTypes = { title: PropTypes.string.isRequired };
 
 // ─── Root component ───────────────────────────────────────────────────────────
 
+const VALID_NAV_IDS = new Set(
+  NAV_SECTIONS.flatMap(s => s.items.map(i => i.id)),
+);
+
 const AdminConsolePage = () => {
-  const [activeNav, setActiveNav] = useState('users');
+  const navigate = useNavigate();
+  const { pathname } = useLocation();
+  const activeNav = (() => {
+    const id = pathname.replace(/^\/+/, '').split('/')[0];
+    return VALID_NAV_IDS.has(id) ? id : 'users';
+  })();
+  const setActiveNav = (id) => navigate(`/${id}`);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showBulkImportModal, setShowBulkImportModal] = useState(false);
   const [assignmentUser, setAssignmentUser] = useState(null);
@@ -1272,6 +1291,7 @@ const AdminConsolePage = () => {
           onCountChange={setPendingEditRequestsCount}
         />
       );
+      case 'announcements': return <AnnouncementsView />;
       case 'courses': return <PlaceholderView title="Courses" />;
       case 'regional-offices': return <PlaceholderView title="Regional Offices" />;
       case 'access-policies': return <PlaceholderView title="Access Policies" />;

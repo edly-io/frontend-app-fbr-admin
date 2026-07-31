@@ -1,0 +1,252 @@
+/* ── shared tag pill ── */
+.ann-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 7px;
+  border-radius: 9px;
+  font-size: 11px;
+  font-weight: 600;
+  margin-right: 4px;
+}
+
+/* channel tags */
+.ann-tag--channel {
+  background: #EFF6FF;
+  color: #1D4ED8;
+}
+.ann-tag--empty {
+  color: var(--pgn-color-gray-400);
+  font-size: 12px;
+}
+
+/* status badge (Sent / Draft) */
+.ann-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 7px;
+  border-radius: 9px;
+  font-size: 11px;
+  font-weight: 600;
+  margin-right: 4px;
+}
+.ann-badge--sent {
+  background: #EDFAF1;
+  color: var(--pgn-color-green);
+}
+.ann-badge--draft {
+  background: var(--pgn-color-gray-100);
+  color: var(--pgn-color-gray-base);
+}
+
+/* status dot inside badge */
+.ann-status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  margin-right: 5px;
+  flex-shrink: 0;
+  display: inline-block;
+}
+.ann-status-dot--sent { background: var(--pgn-color-green); }
+.ann-status-dot--draft { background: var(--pgn-color-gray-400); }
+
+/* delivery badge variants */
+.ann-delivery--sent    { background: #EDFAF1; color: var(--pgn-color-green); }
+.ann-delivery--failed  { background: #FDE8E8; color: #9B1C1C; }
+.ann-delivery--skipped { background: var(--pgn-color-gray-100); color: var(--pgn-color-gray-400); }
+.ann-delivery--pending { background: #FFF3E0; color: #B45309; }
+
+/* ── Recipients log ── */
+.ann-log-cell {
+  padding: 16px 32px;
+  background: #F8FAFC;
+  border-bottom: 1px solid var(--pgn-color-border);
+}
+.ann-log-cell--border {
+  padding: 0;
+  border-bottom: 2px solid var(--pgn-color-border);
+}
+.ann-log-loading-text {
+  font-size: 13px;
+  color: var(--pgn-color-text-light);
+}
+.ann-log-error-text {
+  font-size: 13px;
+  color: #9B1C1C;
+}
+.ann-log-inner {
+  background: #F8FAFC;
+  padding: 12px 32px 20px;
+}
+.ann-log-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--pgn-color-gray-400);
+  letter-spacing: 0.06em;
+  margin: 0 0 10px;
+  text-transform: uppercase;
+}
+.ann-log-empty {
+  font-size: 13px;
+  color: var(--pgn-color-text-light);
+  margin: 0;
+}
+.ann-log-scroll {
+  max-height: 320px;
+  overflow-y: auto;
+  border: 1px solid var(--pgn-color-border);
+  border-radius: 8px;
+  background: #fff;
+}
+.ann-log-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.ann-log-thead-row {
+  background: var(--pgn-color-gray-100);
+  border-bottom: 1px solid var(--pgn-color-border);
+}
+.ann-log-th {
+  padding: 8px 12px;
+  text-align: left;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--pgn-color-gray-400);
+  letter-spacing: 0.06em;
+}
+.ann-log-tr {
+  border-bottom: 1px solid var(--pgn-color-gray-100);
+}
+.ann-log-tr--last {
+  border-bottom: none;
+}
+.ann-log-td {
+  padding: 8px 12px;
+}
+.ann-log-td--name { color: var(--pgn-color-gray-800); }
+.ann-log-td--username { color: var(--pgn-color-gray-700); }
+.ann-log-td--email { color: var(--pgn-color-primary-base); }
+
+/* ── Announcements view ── */
+.ann-breadcrumb {
+  font-size: 13px;
+  color: var(--pgn-color-text-light);
+  margin-bottom: 14px;
+}
+.ann-breadcrumb-sep {
+  margin: 0 8px;
+  opacity: 0.4;
+}
+.ann-breadcrumb-active {
+  color: var(--pgn-color-gray-800);
+  font-weight: 500;
+}
+.ann-view-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 6px;
+}
+.ann-view-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--pgn-color-text-base);
+  margin: 0;
+}
+.ann-create-btn {
+  margin-top: 2px;
+}
+.ann-create-btn-icon {
+  margin-right: 6px;
+}
+.ann-view-desc {
+  color: var(--pgn-color-text-light);
+  font-size: 13.5px;
+  margin-bottom: 22px;
+}
+.ann-error-banner {
+  background: #FDE8E8;
+  color: #9B1C1C;
+  border: 1px solid #F8B4B4;
+  border-radius: 6px;
+  padding: 10px 12px;
+  margin-bottom: 14px;
+  font-size: 13.5px;
+}
+.ann-table-wrap {
+  background: #fff;
+  border-radius: 10px;
+  border: 1px solid var(--pgn-color-border);
+  overflow: hidden;
+}
+.ann-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13.5px;
+}
+.ann-thead-row {
+  background: var(--pgn-color-gray-100);
+  border-bottom: 1px solid var(--pgn-color-border);
+}
+.ann-th {
+  padding: 11px 16px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--pgn-color-gray-400);
+  letter-spacing: 0.06em;
+}
+.ann-th--center { text-align: center; }
+.ann-td-empty {
+  padding: 48px 16px;
+  text-align: center;
+  color: var(--pgn-color-text-light);
+}
+.ann-row {
+  border-bottom: 1px solid var(--pgn-color-gray-100);
+}
+.ann-row--clickable { cursor: pointer; }
+.ann-row--expanded {
+  background: var(--pgn-color-primary-light);
+  border-bottom: none;
+}
+.ann-row--clickable:not(.ann-row--expanded):hover {
+  background: var(--pgn-color-primary-light);
+}
+.ann-td {
+  padding: 12px 16px;
+}
+.ann-td-subject {
+  padding: 12px 16px;
+  color: var(--pgn-color-gray-800);
+  font-weight: 500;
+}
+.ann-td-subject-chevron {
+  margin-left: 8px;
+  font-size: 10px;
+  color: var(--pgn-color-gray-400);
+}
+.ann-td-scope {
+  padding: 12px 16px;
+  color: var(--pgn-color-gray-700);
+}
+.ann-scope-sub {
+  font-size: 11px;
+  color: var(--pgn-color-gray-400);
+  margin-top: 2px;
+}
+.ann-td-date {
+  padding: 12px 16px;
+  color: var(--pgn-color-gray-700);
+}
+.ann-td-actions {
+  padding: 12px 16px;
+  text-align: center;
+}
+.ann-delete-btn { color: var(--pgn-color-red); }
+.ann-confirm-btn {
+  color: var(--pgn-color-red);
+  font-size: 12px;
+  font-weight: 600;
+}

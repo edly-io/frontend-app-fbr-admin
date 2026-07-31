@@ -1,0 +1,265 @@
+/* Overlay */
+.ann-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Modal container */
+.ann-modal {
+  background: #fff;
+  border-radius: 12px;
+  width: 680px;
+  max-width: 95vw;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+}
+
+/* Header */
+.ann-header {
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid var(--pgn-color-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.ann-modal-title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--pgn-color-text-base);
+}
+
+.ann-close-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 20px;
+  color: var(--pgn-color-gray-400);
+  line-height: 1;
+  padding: 0;
+}
+
+/* Body */
+.ann-body {
+  padding: 20px 24px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+/* Footer */
+.ann-footer {
+  padding: 14px 24px;
+  border-top: 1px solid var(--pgn-color-border);
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+/* Form fields */
+.ann-field {
+  margin-bottom: 16px;
+}
+
+.ann-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--pgn-color-gray-400);
+  letter-spacing: 0.06em;
+  margin-bottom: 5px;
+  text-transform: uppercase;
+}
+
+.ann-label-note {
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.ann-summary-count {
+  display: block;
+  color: var(--pgn-color-gray-400);
+  font-size: 11px;
+  margin-top: 3px;
+}
+
+/* Error box */
+.ann-error {
+  background: #fde8e8;
+  color: #9b1c1c;
+  border: 1px solid #f8b4b4;
+  border-radius: 6px;
+  padding: 10px 12px;
+  margin-bottom: 14px;
+  font-size: 13.5px;
+}
+
+/* Attachment list */
+.ann-file-list {
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ann-file-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  padding: 5px 10px;
+  margin-bottom: 4px;
+}
+
+.ann-file-name {
+  flex: 1;
+  color: #374151;
+}
+
+.ann-file-size {
+  color: #9ca3af;
+}
+
+.ann-file-remove {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #ef4444;
+  font-size: 14px;
+  line-height: 1;
+  padding: 0;
+}
+
+/* Channel tiles grid */
+.ann-channels-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+/* Audience card */
+.ann-audience-card {
+  border: 1px solid var(--pgn-color-border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+/* Scope tiles row */
+.ann-scope-tiles {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  padding: 14px;
+  background: var(--pgn-color-gray-100);
+  border-bottom: 1px solid var(--pgn-color-border);
+}
+
+/* Tile — shared by scope and channel grids */
+.ann-tile {
+  border: 2px solid var(--pgn-color-border);
+  border-radius: 8px;
+  padding: 10px 14px;
+  cursor: pointer;
+  background: #fff;
+  text-align: left;
+  width: 100%;
+}
+
+.ann-tile.ann-tile--selected {
+  border-color: var(--pgn-color-primary-base);
+  background: #e8eef4;
+}
+
+.ann-tile-title {
+  font-weight: 700;
+  font-size: 14px;
+  color: #111827;
+}
+
+.ann-tile--selected .ann-tile-title {
+  color: var(--pgn-color-primary-base);
+}
+
+.ann-tile-desc {
+  font-size: 12px;
+  color: #6b7280;
+  margin-top: 2px;
+}
+
+/* Program selector */
+.ann-program-selector {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--pgn-color-border);
+}
+
+.ann-program-loading {
+  font-size: 13px;
+  color: var(--pgn-color-text-light);
+  margin: 0;
+}
+
+/* Send-to row */
+.ann-send-to-row {
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  background: #f9fafb;
+}
+
+.ann-send-to-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #6b7280;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.ann-pills {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* Recipient pills */
+.ann-pill {
+  border: 2px solid #6b7280;
+  border-radius: 20px;
+  padding: 4px 14px;
+  font-size: 13px;
+  cursor: pointer;
+  background: #fff;
+  color: #374151;
+  font-weight: 600;
+}
+
+.ann-pill.ann-pill--active {
+  border-color: var(--pgn-color-primary-base);
+  background: var(--pgn-color-primary-base);
+  color: #fff;
+}
+
+/* Recipient count bar */
+.ann-recipient-bar {
+  padding: 10px 24px;
+  border-top: 1px solid var(--pgn-color-border);
+  background: var(--pgn-color-gray-100);
+  font-size: 13px;
+  color: var(--pgn-color-gray-700);
+}
+
+.ann-recipient-muted {
+  color: var(--pgn-color-gray-400);
+}
