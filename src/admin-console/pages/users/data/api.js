@@ -2,7 +2,7 @@ import { getConfig } from '@edx/frontend-platform';
 import { getAuthenticatedHttpClient } from '@edx/frontend-platform/auth';
 import {
   getInitials, getPhotoUrl, getPaginatedResults, getUserDetail as fetchUserDetail,
-} from '../../data/api';
+} from '../../../data/api';
 import { ROLE_LABELS, STATUS_LABELS } from '../constants';
 
 export const BIODATA_USER_LIST_PATH = '/fbr/api/biodata/v1/users/';

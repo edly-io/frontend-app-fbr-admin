@@ -4,7 +4,7 @@ import { Button } from '@openedx/paragon';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSync } from '@fortawesome/free-solid-svg-icons';
 import { useIntl } from '@edx/frontend-platform/i18n';
-import Breadcrumb from '../components/breadcrumb/Breadcrumb';
+import Breadcrumb from '../../components/breadcrumb/Breadcrumb';
 import messages from './messages';
 
 const SignupApprovalsToolbar = ({ onRefresh }) => {

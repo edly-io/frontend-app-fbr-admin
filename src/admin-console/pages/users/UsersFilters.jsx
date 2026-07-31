@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { Dropdown } from '@openedx/paragon';
 import { useIntl } from '@edx/frontend-platform/i18n';
-import DebouncedSearchInput from '../shared/DebouncedSearchInput';
+import DebouncedSearchInput from '../../shared/DebouncedSearchInput';
 import { STATUS_FILTER_OPTIONS } from './constants';
 import messages from './messages';
 

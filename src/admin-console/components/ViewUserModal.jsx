@@ -7,7 +7,7 @@ import { useIntl } from '@edx/frontend-platform/i18n';
 import UserIdentity from '../shared/UserIdentity';
 import DetailCell from './DetailCell';
 import DetailSection from './DetailSection';
-import { ROLE_LABELS } from '../users/constants';
+import { ROLE_LABELS } from '../pages/users/constants';
 import messages from './messages';
 
 const userShape = PropTypes.shape({

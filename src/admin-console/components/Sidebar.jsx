@@ -5,8 +5,8 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useIntl } from '@edx/frontend-platform/i18n';
 import { NAV_SECTIONS } from '../constants';
 import messages from '../messages';
-import { useSignupApprovals } from '../signup-approvals/data/apiHooks';
-import { useBiodataEditRequests } from '../biodata-edit-requests/data/apiHooks';
+import { useSignupApprovals } from '../pages/signup-approvals/data/apiHooks';
+import { useBiodataEditRequests } from '../pages/biodata-edit-requests/data/apiHooks';
 
 const NAV_ITEM_LABEL_MESSAGES = {
   users: messages.navUsers,

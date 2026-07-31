@@ -4,10 +4,10 @@ import { Button } from '@openedx/paragon';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEye, faPen } from '@fortawesome/free-solid-svg-icons';
 import { useIntl } from '@edx/frontend-platform/i18n';
-import UserIdentity from '../shared/UserIdentity';
-import StatusBadge from '../components/StatusBadge';
-import ActionMenu from '../components/ActionMenu';
-import PaginationFooter from '../components/PaginationFooter';
+import UserIdentity from '../../shared/UserIdentity';
+import StatusBadge from '../../components/StatusBadge';
+import ActionMenu from '../../components/ActionMenu';
+import PaginationFooter from '../../components/PaginationFooter';
 import messages from './messages';
 
 const COLUMN_WIDTHS = {

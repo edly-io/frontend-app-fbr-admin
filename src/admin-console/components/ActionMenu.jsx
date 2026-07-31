@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEllipsisV } from '@fortawesome/free-solid-svg-icons';
 import { useIntl } from '@edx/frontend-platform/i18n';
-import messages from '../users/messages';
+import messages from '../pages/users/messages';
 
 const MENU_ITEM = {
   display: 'block',

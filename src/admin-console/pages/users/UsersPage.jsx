@@ -1,14 +1,14 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useIntl } from '@edx/frontend-platform/i18n';
-import { getProfileMfeUserUrl } from '../data/api';
+import { getProfileMfeUserUrl } from '../../data/api';
 import { useUsers, useSuperAdminAccessProbe, useUserDetailMutation } from './data/apiHooks';
 import { TABS, DEFAULT_USERS_ROWS_PER_PAGE } from './constants';
 import UsersToolbar from './UsersToolbar';
 import UsersFilters from './UsersFilters';
 import UsersTable from './UsersTable';
-import AddUserModal from '../components/AddUserModal';
-import BulkImportUsersModal from '../components/BulkImportUsersModal';
-import ViewUserModal from '../components/ViewUserModal';
+import AddUserModal from '../../components/AddUserModal';
+import BulkImportUsersModal from '../../components/BulkImportUsersModal';
+import ViewUserModal from '../../components/ViewUserModal';
 import messages from './messages';
 
 const TAB_LABEL_MESSAGES = {

@@ -7,7 +7,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCheck, faHome, faUserCircle } from '@fortawesome/free-solid-svg-icons';
 import { useIntl } from '@edx/frontend-platform/i18n';
 import { useAdminConsoleBootstrap, useCreateUserMutation, useAssignUserRoleMutation } from '../data/apiHooks';
-import { ROLE_LABELS } from '../users/constants';
+import { ROLE_LABELS } from '../pages/users/constants';
 import {
   ROLE_OPTIONS,
   TRAINEE_TYPES,

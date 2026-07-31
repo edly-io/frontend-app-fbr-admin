@@ -6,8 +6,8 @@ import {
   assignUserRole,
   bulkImportUsers,
 } from './api';
-import { usersQueryKeys } from '../users/data/apiHooks';
-import { signupApprovalsQueryKeys } from '../signup-approvals/data/apiHooks';
+import { usersQueryKeys } from '../pages/users/data/apiHooks';
+import { signupApprovalsQueryKeys } from '../pages/signup-approvals/data/apiHooks';
 
 export const adminConsoleQueryKeys = {
   all: ['adminConsole'],

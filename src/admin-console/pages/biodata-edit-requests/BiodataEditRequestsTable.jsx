@@ -4,10 +4,10 @@ import { Button, Form } from '@openedx/paragon';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCheck } from '@fortawesome/free-solid-svg-icons';
 import { useIntl } from '@edx/frontend-platform/i18n';
-import UserIdentity from '../shared/UserIdentity';
-import RequestStatusBadge from '../components/RequestStatusBadge';
-import PaginationFooter from '../components/PaginationFooter';
-import { getInitials } from '../data/api';
+import UserIdentity from '../../shared/UserIdentity';
+import RequestStatusBadge from '../../components/RequestStatusBadge';
+import PaginationFooter from '../../components/PaginationFooter';
+import { getInitials } from '../../data/api';
 import messages from './messages';
 
 const formatDateTime = value => (value ? new Date(value).toLocaleString() : null);

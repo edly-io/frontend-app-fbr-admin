@@ -1,14 +1,14 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import AdminConsolePage from './AdminConsolePage';
-import UsersPage from './users/UsersPage';
-import SignupApprovalsPage from './signup-approvals/SignupApprovalsPage';
-import BiodataEditRequestsPage from './biodata-edit-requests/BiodataEditRequestsPage';
-import CoursesPage from './courses/CoursesPage';
-import RegionalOfficesPage from './regional-offices/RegionalOfficesPage';
-import AccessPoliciesPage from './access-policies/AccessPoliciesPage';
-import AuditLogPage from './audit-log/AuditLogPage';
-import ReportsPage from './reports/ReportsPage';
+import UsersPage from './pages/users/UsersPage';
+import SignupApprovalsPage from './pages/signup-approvals/SignupApprovalsPage';
+import BiodataEditRequestsPage from './pages/biodata-edit-requests/BiodataEditRequestsPage';
+import CoursesPage from './pages/courses/CoursesPage';
+import RegionalOfficesPage from './pages/regional-offices/RegionalOfficesPage';
+import AccessPoliciesPage from './pages/access-policies/AccessPoliciesPage';
+import AuditLogPage from './pages/audit-log/AuditLogPage';
+import ReportsPage from './pages/reports/ReportsPage';
 
 /**
  * Top-level admin console routes. `AdminConsolePage` is the layout route

@@ -4,8 +4,8 @@ import { useIntl } from '@edx/frontend-platform/i18n';
 import { useSignupApprovals } from './data/apiHooks';
 import SignupApprovalsToolbar from './SignupApprovalsToolbar';
 import SignupApprovalsList from './SignupApprovalsList';
-import AddUserModal from '../components/AddUserModal';
-import DebouncedSearchInput from '../shared/DebouncedSearchInput';
+import AddUserModal from '../../components/AddUserModal';
+import DebouncedSearchInput from '../../shared/DebouncedSearchInput';
 import messages from './messages';
 
 const ROWS_PER_PAGE = 10;
