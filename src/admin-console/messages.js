@@ -11,6 +11,11 @@ const messages = defineMessages({
     defaultMessage: 'Analytics',
     description: 'Sidebar section heading grouping the analytics nav items.',
   },
+  navSectionReports: {
+    id: 'fbrAdmin.shell.nav.section.reports',
+    defaultMessage: 'Reports',
+    description: 'Sidebar section heading grouping the reports nav items.',
+  },
   navUsers: {
     id: 'fbrAdmin.shell.nav.users',
     defaultMessage: 'Users',
@@ -50,6 +55,11 @@ const messages = defineMessages({
     id: 'fbrAdmin.shell.nav.navOverView',
     defaultMessage: 'Overview',
     description: 'Sidebar nav item label for the placeholder Over view page.',
+  },
+  navProgram: {
+    id: 'fbrAdmin.shell.nav.navProgram',
+    defaultMessage: 'Program',
+    description: 'Sidebar nav item label for the placeholder Program page.',
   },
   navReports: {
     id: 'fbrAdmin.shell.nav.navReports',

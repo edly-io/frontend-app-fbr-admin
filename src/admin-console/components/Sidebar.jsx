@@ -18,11 +18,13 @@ const NAV_ITEM_LABEL_MESSAGES = {
   'audit-log': messages.navAuditLog,
   overview: messages.navOverView,
   reports: messages.navReports,
+  program: messages.navProgram,
 };
 
 const SECTION_TITLE_MESSAGES = {
   administration: messages.navSectionAdministration,
   analytics: messages.navSectionAnalytics,
+  reports: messages.navSectionReports,
 };
 
 /**

@@ -5,33 +5,29 @@ import { faFileExport } from '@fortawesome/free-solid-svg-icons';
 import { useIntl } from '@edx/frontend-platform/i18n';
 import Breadcrumb from '../../components/breadcrumb/Breadcrumb';
 import FilterBar from '../../components/filter-bar/FilterBar';
-import ReportTypeTabs from './ReportTypeTabs';
-import ReportStatCards from './ReportStatCards';
 import ReportDataTable from './ReportDataTable';
-import { buildReportData, getFilterOptionLists } from './data/mockData';
-import { DEFAULT_REPORT_ID } from './constants';
+import ReportStatCards from './ReportStatCards';
+import { buildProgramReportData, getFilterOptionLists } from './data/mockData';
 import messages from './messages';
 import './reports-styles.scss';
 
-const DEFAULT_FILTERS = { program: 'all', instructor: 'all', region: 'all' };
+const DEFAULT_FILTERS = { program: 'all', instructor: 'all', city: 'all' };
 
 /**
- * Reports page: report-type pills + a Program/Instructor/Region filter row
- * driving a dynamic stat-card + data-table pair. Data range/Category/
- * Department filters and any backend integration are intentionally out of
+ * Program Report page: a Program/Instructor/City filter row driving a data
+ * table. Data range and any backend integration are intentionally out of
  * scope for this iteration (UI-only, static mock data).
  */
-const ReportsPage = () => {
+const ProgramReportsPage = () => {
   const intl = useIntl();
 
-  const [selectedReport, setSelectedReport] = useState(DEFAULT_REPORT_ID);
   const [filters, setFilters] = useState(DEFAULT_FILTERS);
   const [showToast, setShowToast] = useState(false);
 
   const filterOptions = useMemo(() => getFilterOptionLists(), []);
   const { rows, stats } = useMemo(
-    () => buildReportData(selectedReport, filters),
-    [selectedReport, filters],
+    () => buildProgramReportData(filters),
+    [filters],
   );
 
   const handleFilterChange = (key) => (value) => {
@@ -65,13 +61,13 @@ const ReportsPage = () => {
       ],
     },
     {
-      id: 'region',
-      label: intl.formatMessage(messages.filterRegion),
-      value: filters.region,
-      onChange: handleFilterChange('region'),
+      id: 'city',
+      label: intl.formatMessage(messages.filterCity),
+      value: filters.city,
+      onChange: handleFilterChange('city'),
       options: [
-        { value: 'all', label: intl.formatMessage(messages.filterAllRegions) },
-        ...filterOptions.regions.map(name => ({ value: name, label: name })),
+        { value: 'all', label: intl.formatMessage(messages.filterAllCities) },
+        ...filterOptions.cities.map(name => ({ value: name, label: name })),
       ],
     },
   ];
@@ -95,11 +91,9 @@ const ReportsPage = () => {
 
       <FilterBar filters={filterConfig} />
 
-      <ReportTypeTabs selectedReport={selectedReport} onChange={setSelectedReport} />
-
       <ReportStatCards stats={stats} />
 
-      <ReportDataTable reportId={selectedReport} rows={rows} />
+      <ReportDataTable rows={rows} />
 
       <Toast show={showToast} onClose={() => setShowToast(false)}>
         {intl.formatMessage(messages.exportToast)}
@@ -108,4 +102,4 @@ const ReportsPage = () => {
   );
 };
 
-export default ReportsPage;
+export default ProgramReportsPage;

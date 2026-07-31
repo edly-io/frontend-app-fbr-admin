@@ -8,7 +8,7 @@ import CoursesPage from './pages/courses/CoursesPage';
 import RegionalOfficesPage from './pages/regional-offices/RegionalOfficesPage';
 import AccessPoliciesPage from './pages/access-policies/AccessPoliciesPage';
 import AuditLogPage from './pages/audit-log/AuditLogPage';
-import ReportsPage from './pages/reports/ReportsPage';
+import ProgramReportsPage from './pages/program-reports/ProgramReportsPage';
 
 /**
  * Top-level admin console routes. `AdminConsolePage` is the layout route
@@ -23,7 +23,7 @@ const AdminConsoleRoutes = () => (
       <Route path="users" element={<UsersPage />} />
       <Route path="signup-approvals" element={<SignupApprovalsPage />} />
       <Route path="biodata-edit-requests" element={<BiodataEditRequestsPage />} />
-      <Route path="reports" element={<ReportsPage />} />
+      <Route path="program-reports" element={<ProgramReportsPage />} />
       <Route path="courses" element={<CoursesPage />} />
       <Route path="regional-offices" element={<RegionalOfficesPage />} />
       <Route path="access-policies" element={<AccessPoliciesPage />} />

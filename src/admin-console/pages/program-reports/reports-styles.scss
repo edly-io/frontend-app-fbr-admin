@@ -1,0 +1,93 @@
+.reports-page {
+  .reports-page__subtitle {
+    color: var(--pgn-color-text-light);
+  }
+
+  .report-stat-card {
+    border-left: 4px solid var(--pgn-color-primary-base);
+  }
+
+  .report-stat-card--accent-1 {
+    border-left-color: var(--pgn-color-green);
+  }
+
+  .report-stat-card--accent-2 {
+    border-left-color: #b45309;
+  }
+
+  .report-stat-card__label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--pgn-color-text-light);
+  }
+
+  .report-stat-card__value {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--pgn-color-text-base);
+  }
+
+  .report-count-btn {
+    font-weight: 600;
+    text-decoration: underline;
+  }
+
+  .report-text-cell--strong {
+    font-weight: 600;
+    color: var(--pgn-color-text-base);
+  }
+
+  .report-column-header__info-icon {
+    color: var(--pgn-color-text-light);
+    cursor: help;
+
+    &:hover,
+    &:focus {
+      color: var(--pgn-color-text-base);
+    }
+  }
+}
+
+.people-sheet {
+  width: 100%;
+  max-width: 380px;
+
+  .people-sheet__eyebrow {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--pgn-color-text-light);
+  }
+
+  .people-sheet__list {
+    margin-top: 1.5rem;
+  }
+
+  .people-sheet__item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--pgn-color-border);
+
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+
+  .people-sheet__email {
+    font-size: 13px;
+    color: var(--pgn-color-text-light);
+  }
+
+  .people-sheet__empty {
+    margin-top: 1.5rem;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .people-sheet {
+    max-width: 100%;
+  }
+}
