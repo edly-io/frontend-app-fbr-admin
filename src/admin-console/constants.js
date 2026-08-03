@@ -1,5 +1,5 @@
 import {
-  faUsers, faUserCheck, faPen, faChartLine,
+  faUsers, faUserCheck, faPen, faChartLine, faIdBadge,
 } from '@fortawesome/free-solid-svg-icons';
 
 // ─── Nav config ───────────────────────────────────────────────────────────────
@@ -17,6 +17,12 @@ export const NAV_SECTIONS = [
       },
       {
         id: 'biodata-edit-requests', path: 'biodata-edit-requests', icon: faPen,
+      },
+      {
+        id: 'hrms',
+        path: 'hrms',
+        icon: faIdBadge,
+        allowedRoles: ['data_admin', 'middle_admin', 'super_admin'],
       },
     ],
   },

@@ -31,6 +31,11 @@ const messages = defineMessages({
     defaultMessage: 'Biodata Edit Request',
     description: 'Sidebar nav item label for the Biodata Edit Requests page.',
   },
+  navHrms: {
+    id: 'fbrAdmin.shell.nav.hrms',
+    defaultMessage: 'HRMS',
+    description: 'Sidebar nav item label for the HRMS employees page.',
+  },
   navCourses: {
     id: 'fbrAdmin.shell.nav.courses',
     defaultMessage: 'Courses',
