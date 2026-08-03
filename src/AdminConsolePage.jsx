@@ -10,13 +10,15 @@ import {
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faUsers, faUserCheck, faEye, faPen, faEllipsisV, faPlus,
-  faSync, faCheck, faChevronLeft, faChevronRight, faUpload,
+  faSync, faCheck, faChevronLeft, faChevronRight, faUpload, faIdBadge,
 } from '@fortawesome/free-solid-svg-icons';
 import AddUserModal from './components/AddUserModal';
 import BulkImportUsersModal from './components/BulkImportUsersModal';
 import ViewUserModal from './components/ViewUserModal';
 import DebouncedSearchInput from './components/DebouncedSearchInput';
 import UserIdentity from './components/UserIdentity';
+import HrmsEmployeesView from './components/hrms/HrmsEmployeesView';
+import { assignHrmsEmployeeRole } from './api/hrms';
 
 ensureConfig(['LMS_BASE_URL'], 'FBR admin console');
 
@@ -30,6 +32,12 @@ const NAV_SECTIONS = [
       { id: 'users', label: 'Users', icon: faUsers },
       { id: 'signup-approvals', label: 'Signup Approvals', icon: faUserCheck },
       { id: 'biodata-edit-requests', label: 'Biodata Edit Request', icon: faPen },
+      {
+        id: 'hrms',
+        label: 'HRMS',
+        icon: faIdBadge,
+        allowedRoles: ['data_admin', 'middle_admin', 'super_admin'],
+      },
     ],
   },
 ];
@@ -149,6 +157,17 @@ const getProfileCreatePath = (role) => {
 const getRoleLabel = role => ROLE_LABELS[role] || role || 'Unassigned';
 
 const getStatusLabel = status => STATUS_LABELS[status] || status || 'Unknown';
+
+const normalizeRole = role => String(role || '').toLowerCase();
+
+const canAccessNavItem = (item, roles) => {
+  if (!item.allowedRoles) {
+    return true;
+  }
+
+  const normalizedRoles = roles.map(normalizeRole);
+  return item.allowedRoles.some(role => normalizedRoles.includes(normalizeRole(role)));
+};
 
 const getInitials = (name) => (
   (name || '?')
@@ -1146,12 +1165,14 @@ const AdminConsolePage = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showBulkImportModal, setShowBulkImportModal] = useState(false);
   const [assignmentUser, setAssignmentUser] = useState(null);
+  const [assignmentSource, setAssignmentSource] = useState('signup');
   const [viewingUser, setViewingUser] = useState(null);
   const [viewSourceTab, setViewSourceTab] = useState('all');
   const [pendingApprovalsCount, setPendingApprovalsCount] = useState(0);
   const [pendingEditRequestsCount, setPendingEditRequestsCount] = useState(0);
   const [approvalReloadKey, setApprovalReloadKey] = useState(0);
   const [userListReloadKey, setUserListReloadKey] = useState(0);
+  const [hrmsReloadKey, setHrmsReloadKey] = useState(0);
   const [callerProfile, setCallerProfile] = useState({ roles: [], city: null, creatable_roles: ['instructor', 'trainee'] });
   const [cities, setCities] = useState([]);
   const [batches, setBatches] = useState([]);
@@ -1205,6 +1226,7 @@ const AdminConsolePage = () => {
 
   const handleAdd = () => {
     setAssignmentUser(null);
+    setAssignmentSource('signup');
     setShowAddModal(true);
   };
   const handleImport = () => { setShowBulkImportModal(true); };
@@ -1222,11 +1244,18 @@ const AdminConsolePage = () => {
   };
   const handleAssignApproval = (user) => {
     setAssignmentUser(user);
+    setAssignmentSource('signup');
+    setShowAddModal(true);
+  };
+  const handleAssignHrmsEmployee = (employee) => {
+    setAssignmentUser(employee);
+    setAssignmentSource('hrms');
     setShowAddModal(true);
   };
   const handleModalClose = () => {
     setShowAddModal(false);
     setAssignmentUser(null);
+    setAssignmentSource('signup');
   };
   const handleBulkImport = async ({ role, file, dryRun }) => {
     const formData = new FormData();
@@ -1250,13 +1279,25 @@ const AdminConsolePage = () => {
     assignmentUserId, role, payload,
   }) => {
     if (assignmentUserId) {
-      await getAuthenticatedHttpClient().post(getBiodataAssignRoleUrl(assignmentUserId), payload);
-      setApprovalReloadKey(prev => prev + 1);
+      if (assignmentSource === 'hrms') {
+        await assignHrmsEmployeeRole(payload);
+        setHrmsReloadKey(prev => prev + 1);
+      } else {
+        await getAuthenticatedHttpClient().post(getBiodataAssignRoleUrl(assignmentUserId), payload);
+        setApprovalReloadKey(prev => prev + 1);
+      }
     } else {
       await getAuthenticatedHttpClient().post(getLmsUrl(getProfileCreatePath(role)), payload);
     }
     setUserListReloadKey(prev => prev + 1);
   };
+
+  const visibleNavSections = useMemo(() => (
+    NAV_SECTIONS.map(section => ({
+      ...section,
+      items: section.items.filter(item => canAccessNavItem(item, callerProfile.roles)),
+    })).filter(section => section.items.length > 0)
+  ), [callerProfile.roles]);
 
   const renderView = () => {
     switch (activeNav) {
@@ -1272,6 +1313,7 @@ const AdminConsolePage = () => {
           onCountChange={setPendingEditRequestsCount}
         />
       );
+      case 'hrms': return <HrmsEmployeesView onAssign={handleAssignHrmsEmployee} reloadKey={hrmsReloadKey} />;
       case 'courses': return <PlaceholderView title="Courses" />;
       case 'regional-offices': return <PlaceholderView title="Regional Offices" />;
       case 'access-policies': return <PlaceholderView title="Access Policies" />;
@@ -1296,7 +1338,7 @@ const AdminConsolePage = () => {
         width: '240px', flexShrink: 0, background: '#fff', borderRight: '1px solid var(--pgn-color-border)', padding: '24px 12px',
       }}
       >
-        {NAV_SECTIONS.map(section => (
+        {visibleNavSections.map(section => (
           <div key={section.id}>
             <p style={{
               fontSize: '10.5px', fontWeight: 700, color: 'var(--pgn-color-gray-400)', letterSpacing: '0.1em', textTransform: 'uppercase', padding: '0 8px', margin: '16px 0 6px',
@@ -1345,6 +1387,7 @@ const AdminConsolePage = () => {
           callerProfile={callerProfile}
           cities={cities}
           batches={batches}
+          assignmentSource={assignmentSource}
         />
       )}
       {showBulkImportModal && (
