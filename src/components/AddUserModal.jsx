@@ -202,6 +202,18 @@ const getCreateFieldsForRole = (role, traineeType, shouldShowCity) => {
   ];
 };
 
+const getAssignmentFieldsForRole = (role, traineeType, shouldShowCity) => {
+  if (ADMIN_ROLES.includes(role) && role !== 'super_admin' && shouldShowCity) {
+    return [[F.city]];
+  }
+
+  if (role === 'trainee' && traineeType === 'stp') {
+    return [[{ ...F.batch, required: true }]];
+  }
+
+  return [];
+};
+
 const getRoleContext = (role, traineeType, isCityLocked) => {
   if (role === 'trainee') { return traineeType === 'stp' ? 'STP trainee account' : 'DST / IST trainee account'; }
   if (role === 'instructor') { return 'Instructor account'; }
@@ -224,7 +236,39 @@ const toCreatePayload = (role, traineeType, values, shouldSendCity) => {
   return payload;
 };
 
-const toAssignPayload = role => ({ role });
+const toAssignPayload = ({
+  role,
+  traineeType,
+  values,
+  assignmentUser,
+  assignmentSource,
+  callerProfile,
+}) => {
+  if (assignmentSource !== 'hrms') {
+    return { role };
+  }
+
+  const payload = {
+    paypeople_employee_id: Number(assignmentUser.paypeopleEmployeeId ?? assignmentUser.id),
+    role,
+  };
+
+  if (['middle_admin', 'data_admin'].includes(role)) {
+    const cityId = values.city || callerProfile.city?.id;
+    if (cityId) {
+      payload.city = Number(cityId);
+    }
+  }
+
+  if (role === 'trainee') {
+    payload.trainee_type = traineeType === 'stp' ? 'STP' : 'DST_IST';
+    if (traineeType === 'stp' && values.batch) {
+      payload.batch = Number(values.batch);
+    }
+  }
+
+  return payload;
+};
 
 const getFieldInputValue = (field, value) => {
   if (field.id === 'mobile' || field.id === 'emergencyContactPhone') {
@@ -378,15 +422,17 @@ const AddUserModal = ({
   cities,
   batches,
   assignmentUser,
+  assignmentSource,
 }) => {
   const isAssignment = !!assignmentUser;
+  const isHrmsAssignment = isAssignment && assignmentSource === 'hrms';
   const visibleRoles = useMemo(() => ROLE_OPTIONS.filter(role => allowedRoles.includes(role.id)), [allowedRoles]);
   const defaultRole = visibleRoles[0]?.id || 'instructor';
   const initialTraineeType = 'stp';
   const [selectedRole, setSelectedRole] = useState(defaultRole);
   const [traineeType, setTraineeType] = useState(initialTraineeType);
   const getAssignmentValues = user => ({
-    fullName: [user?.first_name, user?.last_name].filter(Boolean).join(' ') || user?.username || '',
+    fullName: user?.fullName || [user?.first_name, user?.last_name].filter(Boolean).join(' ') || user?.username || '',
     email: user?.email || '',
   });
   const [values, setValues] = useState(() => (isAssignment ? getAssignmentValues(assignmentUser) : {}));
@@ -419,19 +465,29 @@ const AddUserModal = ({
   }, [isAssignment, selectedRole, traineeType]);
 
   const isMiddleAdminCaller = callerProfile.roles.includes('middle_admin') && !callerProfile.roles.includes('super_admin');
-  const shouldShowCity = ADMIN_ROLES.includes(selectedRole) && selectedRole !== 'super_admin' && !isMiddleAdminCaller;
+  const selectedRoleNeedsCity = ['middle_admin', 'data_admin'].includes(selectedRole);
+  const shouldShowCity = selectedRoleNeedsCity && !isMiddleAdminCaller;
   const createFields = getCreateFieldsForRole(selectedRole, traineeType, shouldShowCity);
+  const assignmentFields = getAssignmentFieldsForRole(selectedRole, traineeType, shouldShowCity);
+  const activeFields = isHrmsAssignment ? assignmentFields : createFields;
   const contextText = getRoleContext(selectedRole, traineeType, isMiddleAdminCaller);
   const assignmentEmail = assignmentUser?.email || assignmentUser?.username;
+  const shouldRequireCityOptions = ((!isAssignment && shouldShowCity)
+    || (isHrmsAssignment && selectedRoleNeedsCity && shouldShowCity));
+  const shouldRequireBatchOptions = ((!isAssignment || isHrmsAssignment)
+    && selectedRole === 'trainee'
+    && traineeType === 'stp');
   let submitLabel = 'Create User';
   if (isSubmitting) {
     submitLabel = 'Saving...';
+  } else if (isHrmsAssignment) {
+    submitLabel = 'Assign Role';
   } else if (isAssignment) {
     submitLabel = 'Approve User';
   }
   const visibleFieldIds = useMemo(
-    () => createFields.flat().map(field => field.id),
-    [createFields],
+    () => activeFields.flat().map(field => field.id),
+    [activeFields],
   );
 
   useEffect(() => {
@@ -466,12 +522,12 @@ const AddUserModal = ({
   };
 
   const validate = () => {
-    if (isAssignment) {
+    if (isAssignment && !isHrmsAssignment) {
       return {};
     }
 
     const nextErrors = {};
-    const fields = createFields.flat();
+    const fields = activeFields.flat();
 
     fields.forEach((field) => {
       if (field.required && (field.id === 'mobile' || field.id === 'emergencyContactPhone') && !getPakistanMobileSubscriber(values[field.id])) {
@@ -493,11 +549,14 @@ const AddUserModal = ({
     ) {
       nextErrors.emergencyContactPhone = 'Emergency phone must start with 3 and contain 10 digits after +92';
     }
-    if (selectedRole === 'trainee' && values.bpsGrade && Number.isNaN(Number(values.bpsGrade))) {
+    if (!isHrmsAssignment && selectedRole === 'trainee' && values.bpsGrade && Number.isNaN(Number(values.bpsGrade))) {
       nextErrors.bpsGrade = 'Enter a numeric grade';
     }
     if (selectedRole === 'trainee' && traineeType === 'stp' && batches.length === 0) {
       nextErrors.batch = 'No batches are available yet';
+    }
+    if (isHrmsAssignment && selectedRoleNeedsCity && !values.city && !callerProfile.city?.id) {
+      nextErrors.city = 'City is required';
     }
     return nextErrors;
   };
@@ -517,12 +576,19 @@ const AddUserModal = ({
         assignmentUserId: assignmentUser?.id,
         role: selectedRole,
         payload: isAssignment
-          ? toAssignPayload(selectedRole)
+          ? toAssignPayload({
+            role: selectedRole,
+            traineeType,
+            values,
+            assignmentUser,
+            assignmentSource,
+            callerProfile,
+          })
           : toCreatePayload(selectedRole, traineeType, values, shouldShowCity),
       });
       onClose();
     } catch (error) {
-      const fallbackMessage = `Unable to ${isAssignment ? 'approve' : 'create'} user.`;
+      const fallbackMessage = `Unable to ${isAssignment ? 'assign role' : 'create'} user.`;
       const { fieldErrors, apiError: nextApiError } = getSubmissionErrorState(error, fallbackMessage);
 
       if (Object.keys(fieldErrors).length > 0) {
@@ -539,8 +605,26 @@ const AddUserModal = ({
     }
   };
 
-  const title = isAssignment ? 'Approve Sign-in' : 'Add User';
-  const subtitle = isAssignment ? 'Create an FBR profile and assign access' : 'Create a new account and send credentials by WhatsApp';
+  let title = 'Add User';
+  if (isHrmsAssignment) {
+    title = 'Assign HRMS Role';
+  } else if (isAssignment) {
+    title = 'Approve Sign-in';
+  }
+
+  let subtitle = 'Create a new account and send credentials by WhatsApp';
+  if (isHrmsAssignment) {
+    subtitle = 'Create an FBR profile from PayPeople employee information';
+  } else if (isAssignment) {
+    subtitle = 'Create an FBR profile and assign access';
+  }
+
+  let headerLabel = 'NEW RECORD';
+  if (isHrmsAssignment) {
+    headerLabel = 'HRMS ASSIGNMENT';
+  } else if (isAssignment) {
+    headerLabel = 'SIGN-IN APPROVAL';
+  }
 
   return (
     <div
@@ -575,7 +659,7 @@ const AddUserModal = ({
               margin: 0, fontSize: '10px', fontWeight: 700, color: 'rgba(255,255,255,0.6)', letterSpacing: '0.12em', textTransform: 'uppercase',
             }}
             >
-              {isAssignment ? 'SIGN-IN APPROVAL' : 'NEW RECORD'}
+              {headerLabel}
             </p>
             <h2 style={{
               margin: '2px 0 0', fontSize: '20px', fontWeight: 700, color: '#fff',
@@ -684,37 +768,62 @@ const AddUserModal = ({
             </div>
           )}
 
-          {!isAssignment && shouldShowCity && cities.length === 0 && (
+          {shouldRequireCityOptions && cities.length === 0 && (
             <div style={{
               background: '#FFF8E5', color: '#7A4D00', border: '1px solid #F0D28A', borderRadius: '6px', padding: '10px 12px', marginBottom: '14px', fontSize: '13.5px',
             }}
             >
-              No cities are available yet. Add cities before creating Middle Admin or Data Admin accounts.
+              No cities are available yet. Add cities before assigning Middle Admin or Data Admin roles.
             </div>
           )}
 
-          {!isAssignment && selectedRole === 'trainee' && traineeType === 'stp' && batches.length === 0 && (
+          {shouldRequireBatchOptions && batches.length === 0 && (
             <div style={{
               background: '#FFF8E5', color: '#7A4D00', border: '1px solid #F0D28A', borderRadius: '6px', padding: '10px 12px', marginBottom: '14px', fontSize: '13.5px',
             }}
             >
-              No batches are available yet. Add batches before creating STP trainee accounts.
+              No batches are available yet. Add batches before assigning STP trainee roles.
             </div>
           )}
 
           {isAssignment ? (
             <>
-              <SectionHeader title="SIGN-IN APPROVAL" note="Role only; profile details can be completed later." />
+              <SectionHeader
+                title={isHrmsAssignment ? 'HRMS EMPLOYEE' : 'SIGN-IN APPROVAL'}
+                note={isHrmsAssignment ? contextText : 'Role only; profile details can be completed later.'}
+              />
               <div style={{
                 background: 'var(--pgn-color-gray-100)', border: '1px solid var(--pgn-color-border)', borderRadius: '8px', padding: '14px 16px',
               }}
               >
                 <p style={{ margin: 0, fontSize: '13px', color: 'var(--pgn-color-gray-900)' }}>
-                  This approval will create an FBR profile for <strong>{assignmentEmail}</strong>
+                  {isHrmsAssignment ? 'This action' : 'This approval'} will create an FBR profile for <strong>{assignmentEmail}</strong>
                   {' '}
                   and assign the selected role.
                 </p>
+                {isHrmsAssignment && (
+                  <p style={{ margin: '6px 0 0', fontSize: '12.5px', color: 'var(--pgn-color-text-light)' }}>
+                    Employee code: <strong>{assignmentUser?.employeeCode || '-'}</strong>
+                    {' '}
+                    · CNIC: <strong>{assignmentUser?.cnic || '-'}</strong>
+                  </p>
+                )}
               </div>
+              {assignmentFields.length > 0 && (
+                <div style={{ marginTop: '18px' }}>
+                  {assignmentFields.map(row => (
+                    <FieldRow
+                      key={getRowKey(row)}
+                      fields={row}
+                      values={values}
+                      onChange={handleChange}
+                      errors={errors}
+                      cities={cities}
+                      batches={batches}
+                    />
+                  ))}
+                </div>
+              )}
             </>
           ) : (
             <>
@@ -733,7 +842,7 @@ const AddUserModal = ({
             </>
           )}
 
-          {!isAssignment && selectedRole === 'trainee' && (
+          {(!isAssignment || isHrmsAssignment) && selectedRole === 'trainee' && (
             <div style={{
               display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--pgn-color-text-light)', fontSize: '12px', marginTop: '6px',
             }}
@@ -755,8 +864,8 @@ const AddUserModal = ({
             disabled={
               isSubmitting
               || visibleRoles.length === 0
-              || (!isAssignment && shouldShowCity && cities.length === 0)
-              || (!isAssignment && selectedRole === 'trainee' && traineeType === 'stp' && batches.length === 0)
+              || (shouldRequireCityOptions && cities.length === 0)
+              || (shouldRequireBatchOptions && batches.length === 0)
             }
           >
             <FontAwesomeIcon icon={faCheck} style={{ fontSize: '12px', marginRight: '7px' }} />
@@ -785,12 +894,17 @@ AddUserModal.propTypes = {
     name: PropTypes.string.isRequired,
   })),
   assignmentUser: PropTypes.shape({
-    id: PropTypes.number,
+    id: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+    paypeopleEmployeeId: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
     username: PropTypes.string,
     email: PropTypes.string,
     first_name: PropTypes.string,
     last_name: PropTypes.string,
+    fullName: PropTypes.string,
+    employeeCode: PropTypes.string,
+    cnic: PropTypes.string,
   }),
+  assignmentSource: PropTypes.oneOf(['signup', 'hrms']),
 };
 
 AddUserModal.defaultProps = {
@@ -799,6 +913,7 @@ AddUserModal.defaultProps = {
   cities: [],
   batches: [],
   assignmentUser: null,
+  assignmentSource: 'signup',
 };
 
 export default AddUserModal;
