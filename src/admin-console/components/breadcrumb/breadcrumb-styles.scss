@@ -1,0 +1,13 @@
+.admin-breadcrumb {
+  font-size: 13px;
+  color: var(--pgn-color-text-light);
+
+  .admin-breadcrumb__divider {
+    opacity: 0.4;
+  }
+
+  .admin-breadcrumb__leaf {
+    color: var(--pgn-color-gray-800);
+    font-weight: 500;
+  }
+}

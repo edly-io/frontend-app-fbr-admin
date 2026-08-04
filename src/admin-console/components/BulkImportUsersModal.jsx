@@ -5,16 +5,15 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faCheck, faDownload, faFileCsv, faTimes, faUpload,
 } from '@fortawesome/free-solid-svg-icons';
+import { useIntl } from '@edx/frontend-platform/i18n';
+import { downloadBulkImportSample } from '../data/api';
+import { useAdminConsoleBootstrap, useBulkImportUsersMutation } from '../data/apiHooks';
+import messages from './messages';
 
 const ROLE_OPTIONS = [
-  { id: 'trainee', label: 'Trainees' },
-  { id: 'instructor', label: 'Instructors' },
+  { id: 'trainee', labelMessage: messages.bulkImportRoleTrainees, hintMessage: messages.bulkImportHintTrainee },
+  { id: 'instructor', labelMessage: messages.bulkImportRoleInstructors, hintMessage: messages.bulkImportHintInstructor },
 ];
-
-const ROLE_HINTS = {
-  trainee: 'CSV columns include city, trainee_type, batch, date_of_birth, designation, and BPS grade.',
-  instructor: 'CSV columns include city, field_of_expertise, and languages/awards/publications.',
-};
 
 const getApiErrorMessage = (error, fallback) => {
   const data = error?.response?.data;
@@ -42,12 +41,13 @@ const downloadBlob = (blob, fallbackName) => {
 };
 
 const ResultStatus = ({ status }) => {
+  const intl = useIntl();
   const isError = status === 'error';
-  let label = 'Error';
+  let labelMessage = messages.resultStatusError;
   if (status === 'valid') {
-    label = 'Valid';
+    labelMessage = messages.resultStatusValid;
   } else if (status === 'created') {
-    label = 'Created';
+    labelMessage = messages.resultStatusCreated;
   }
   return (
     <span style={{
@@ -60,7 +60,7 @@ const ResultStatus = ({ status }) => {
       display: 'inline-flex',
     }}
     >
-      {label}
+      {intl.formatMessage(labelMessage)}
     </span>
   );
 };
@@ -76,12 +76,21 @@ const formatErrors = errors => {
     .join(' | ');
 };
 
-const BulkImportUsersModal = ({
-  onClose,
-  onImport,
-  onDownloadSample,
-  allowedRoles,
-}) => {
+/**
+ * Bulk Import Users modal, self-contained: loads `allowedRoles` (creatable
+ * roles) via `useAdminConsoleBootstrap`, imports via
+ * `useBulkImportUsersMutation`, and downloads the sample CSV directly via
+ * `downloadBulkImportSample`, rather than receiving these as props.
+ */
+const BulkImportUsersModal = ({ onClose }) => {
+  const intl = useIntl();
+  const { data: bootstrapData } = useAdminConsoleBootstrap();
+  const importMutation = useBulkImportUsersMutation();
+
+  const allowedRoles = useMemo(
+    () => bootstrapData?.callerProfile?.creatable_roles || ['instructor', 'trainee'],
+    [bootstrapData],
+  );
   const importableRoles = useMemo(
     () => ROLE_OPTIONS.filter(role => allowedRoles.includes(role.id)),
     [allowedRoles],
@@ -91,25 +100,26 @@ const BulkImportUsersModal = ({
   const [dryRun, setDryRun] = useState(true);
   const [result, setResult] = useState(null);
   const [error, setError] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
 
+  const isSubmitting = importMutation.isPending;
+  const activeRoleOption = ROLE_OPTIONS.find(option => option.id === role);
   const canSubmit = importableRoles.length > 0 && file && !isSubmitting;
-  let submitLabel = 'Import Users';
+  let submitLabel = intl.formatMessage(messages.importUsersButton);
   if (isSubmitting) {
-    submitLabel = 'Processing...';
+    submitLabel = intl.formatMessage(messages.processingButton);
   } else if (dryRun) {
-    submitLabel = 'Run Validation';
+    submitLabel = intl.formatMessage(messages.runValidationButton);
   }
 
   const handleDownloadSample = async () => {
     setIsDownloading(true);
     setError('');
     try {
-      const blob = await onDownloadSample(role);
+      const blob = await downloadBulkImportSample(role);
       downloadBlob(blob, `sample_${role}_import.csv`);
     } catch (downloadError) {
-      setError(getApiErrorMessage(downloadError, 'Unable to download sample CSV.'));
+      setError(getApiErrorMessage(downloadError, intl.formatMessage(messages.unableToDownloadSampleError)));
     } finally {
       setIsDownloading(false);
     }
@@ -117,24 +127,35 @@ const BulkImportUsersModal = ({
 
   const handleSubmit = async () => {
     if (!file) {
-      setError('Please choose a CSV file.');
+      setError(intl.formatMessage(messages.chooseFileError));
       return;
     }
 
-    setIsSubmitting(true);
     setError('');
     try {
-      const nextResult = await onImport({ role, file, dryRun });
+      const nextResult = await importMutation.mutateAsync({ role, file, dryRun });
       setResult(nextResult);
     } catch (submitError) {
       setResult(null);
-      setError(getApiErrorMessage(submitError, 'Unable to import users.'));
-    } finally {
-      setIsSubmitting(false);
+      setError(getApiErrorMessage(submitError, intl.formatMessage(messages.unableToImportUsersError)));
     }
   };
 
   const closeDisabled = isSubmitting || isDownloading;
+  const resultRows = [
+    [
+      messages.resultModeLabel,
+      result?.dry_run
+        ? intl.formatMessage(messages.resultModeDryRun)
+        : intl.formatMessage(messages.resultModeImport),
+    ],
+    [messages.resultTotalRows, result?.total],
+    [
+      result?.dry_run ? messages.resultValidRows : messages.resultCreated,
+      result?.dry_run ? result?.valid : result?.created,
+    ],
+    [messages.resultFailed, result?.failed],
+  ];
 
   return (
     <div
@@ -168,14 +189,14 @@ const BulkImportUsersModal = ({
             <p style={{
               margin: 0, fontSize: '10px', fontWeight: 700, color: 'rgba(255,255,255,0.6)', letterSpacing: '0.12em', textTransform: 'uppercase',
             }}
-            >BULK IMPORT
+            >{intl.formatMessage(messages.bulkImportEyebrow)}
             </p>
             <h2 style={{
               margin: '2px 0 0', fontSize: '20px', fontWeight: 700, color: '#fff',
             }}
-            >Import Users
+            >{intl.formatMessage(messages.bulkImportTitle)}
             </h2>
-            <p style={{ margin: '2px 0 0', fontSize: '13px', color: 'rgba(255,255,255,0.65)' }}>Upload a CSV to validate or create trainees and instructors.</p>
+            <p style={{ margin: '2px 0 0', fontSize: '13px', color: 'rgba(255,255,255,0.65)' }}>{intl.formatMessage(messages.bulkImportSubtitle)}</p>
           </div>
           <button
             type="button"
@@ -195,12 +216,12 @@ const BulkImportUsersModal = ({
               background: '#FFF8E5', color: '#7A4D00', border: '1px solid #F0D28A', borderRadius: '6px', padding: '10px 12px', marginBottom: '14px', fontSize: '13.5px',
             }}
             >
-              You do not have permission to import trainees or instructors.
+              {intl.formatMessage(messages.bulkImportNoPermission)}
             </div>
           ) : (
             <>
               <Form.Group>
-                <Form.Label>Import Type</Form.Label>
+                <Form.Label>{intl.formatMessage(messages.bulkImportTypeLabel)}</Form.Label>
                 <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                   {importableRoles.map(option => {
                     const active = option.id === role;
@@ -225,12 +246,12 @@ const BulkImportUsersModal = ({
                           textAlign: 'center',
                         }}
                       >
-                        {option.label}
+                        {intl.formatMessage(option.labelMessage)}
                       </button>
                     );
                   })}
                 </div>
-                <div className="small text-muted mt-2">{ROLE_HINTS[role]}</div>
+                <div className="small text-muted mt-2">{activeRoleOption && intl.formatMessage(activeRoleOption.hintMessage)}</div>
               </Form.Group>
 
               <div style={{
@@ -239,7 +260,9 @@ const BulkImportUsersModal = ({
               >
                 <Button variant="outline-primary" size="sm" onClick={handleDownloadSample} disabled={isDownloading}>
                   <FontAwesomeIcon icon={faDownload} style={{ marginRight: '6px' }} />
-                  {isDownloading ? 'Downloading...' : 'Download Sample CSV'}
+                  {isDownloading
+                    ? intl.formatMessage(messages.downloadingButton)
+                    : intl.formatMessage(messages.downloadSampleButton)}
                 </Button>
                 <Form.Checkbox
                   checked={dryRun}
@@ -248,12 +271,12 @@ const BulkImportUsersModal = ({
                     setResult(null);
                   }}
                 >
-                  Dry run only
+                  {intl.formatMessage(messages.dryRunCheckboxLabel)}
                 </Form.Checkbox>
               </div>
 
               <Form.Group>
-                <Form.Label>CSV File</Form.Label>
+                <Form.Label>{intl.formatMessage(messages.csvFileLabel)}</Form.Label>
                 <Form.Control
                   type="file"
                   accept=".csv,text/csv"
@@ -282,14 +305,9 @@ const BulkImportUsersModal = ({
                 display: 'flex', flexWrap: 'wrap', gap: '10px', marginBottom: '14px',
               }}
               >
-                {[
-                  ['Mode', result.dry_run ? 'Dry run' : 'Import'],
-                  ['Total rows', result.total],
-                  [result.dry_run ? 'Valid rows' : 'Created', result.dry_run ? result.valid : result.created],
-                  ['Failed', result.failed],
-                ].map(([label, value]) => (
+                {resultRows.map(([labelMessage, value]) => (
                   <div
-                    key={label}
+                    key={labelMessage.id}
                     style={{
                       border: '1px solid var(--pgn-color-border)', borderRadius: '8px', padding: '10px 12px', minWidth: '130px',
                     }}
@@ -297,7 +315,7 @@ const BulkImportUsersModal = ({
                     <div style={{
                       fontSize: '11px', color: 'var(--pgn-color-text-light)', textTransform: 'uppercase', fontWeight: 700,
                     }}
-                    >{label}
+                    >{intl.formatMessage(labelMessage)}
                     </div>
                     <div style={{ fontSize: '18px', color: 'var(--pgn-color-gray-900)', fontWeight: 700 }}>{value ?? 0}</div>
                   </div>
@@ -309,13 +327,18 @@ const BulkImportUsersModal = ({
                   <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
                     <thead>
                       <tr style={{ background: 'var(--pgn-color-gray-100)' }}>
-                        {['ROW', 'EMAIL', 'STATUS', 'ERRORS'].map(label => (
+                        {[
+                          messages.resultColumnRow,
+                          messages.resultColumnEmail,
+                          messages.resultColumnStatus,
+                          messages.resultColumnErrors,
+                        ].map(labelMessage => (
                           <th
-                            key={label}
+                            key={labelMessage.id}
                             style={{
                               padding: '9px 12px', textAlign: 'left', fontSize: '11px', color: 'var(--pgn-color-gray-500)', fontWeight: 700,
                             }}
-                          >{label}
+                          >{intl.formatMessage(labelMessage)}
                           </th>
                         ))}
                       </tr>
@@ -324,10 +347,10 @@ const BulkImportUsersModal = ({
                       {(result.rows || []).map(row => (
                         <tr key={`${row.row}-${row.email}`} style={{ borderTop: '1px solid var(--pgn-color-gray-100)' }}>
                           <td style={{ padding: '9px 12px', fontWeight: 600 }}>{row.row}</td>
-                          <td style={{ padding: '9px 12px', color: 'var(--pgn-color-primary-base)' }}>{row.email || '—'}</td>
+                          <td style={{ padding: '9px 12px', color: 'var(--pgn-color-primary-base)' }}>{row.email || intl.formatMessage(messages.emptyValue)}</td>
                           <td style={{ padding: '9px 12px' }}><ResultStatus status={row.status} /></td>
                           <td style={{ padding: '9px 12px', color: row.status === 'error' ? '#9B1C1C' : 'var(--pgn-color-text-light)' }}>
-                            {formatErrors(row.errors) || '—'}
+                            {formatErrors(row.errors) || intl.formatMessage(messages.emptyValue)}
                           </td>
                         </tr>
                       ))}
@@ -343,7 +366,7 @@ const BulkImportUsersModal = ({
           padding: '14px 28px', borderTop: '1px solid var(--pgn-color-border)', display: 'flex', justifyContent: 'flex-end', gap: '10px', background: '#fff', flexShrink: 0,
         }}
         >
-          <Button variant="tertiary" onClick={onClose} disabled={closeDisabled}>Close</Button>
+          <Button variant="tertiary" onClick={onClose} disabled={closeDisabled}>{intl.formatMessage(messages.closeButton)}</Button>
           <Button variant="primary" onClick={handleSubmit} disabled={!canSubmit}>
             <FontAwesomeIcon icon={dryRun ? faCheck : faUpload} style={{ fontSize: '12px', marginRight: '7px' }} />
             {submitLabel}
@@ -356,13 +379,6 @@ const BulkImportUsersModal = ({
 
 BulkImportUsersModal.propTypes = {
   onClose: PropTypes.func.isRequired,
-  onImport: PropTypes.func.isRequired,
-  onDownloadSample: PropTypes.func.isRequired,
-  allowedRoles: PropTypes.arrayOf(PropTypes.string),
-};
-
-BulkImportUsersModal.defaultProps = {
-  allowedRoles: ['trainee', 'instructor'],
 };
 
 export default BulkImportUsersModal;
