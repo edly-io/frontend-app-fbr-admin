@@ -185,7 +185,7 @@
   margin-bottom: 0.5rem;
 }
 
-@media (max-width: 767.98px) {
+@media (--pgn-size-breakpoint-max-width-md) {
   .hrms-page {
     .hrms-page__controls {
       align-items: stretch;

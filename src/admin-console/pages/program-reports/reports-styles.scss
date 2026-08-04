@@ -84,7 +84,7 @@
   }
 }
 
-@media (max-width: 575.98px) {
+@media (--pgn-size-breakpoint-max-width-sm) {
   .people-sheet {
     max-width: 100%;
   }
