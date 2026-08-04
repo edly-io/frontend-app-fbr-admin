@@ -28,9 +28,8 @@
     color: var(--pgn-color-text-base);
   }
 
-  .report-count-btn {
-    font-weight: 600;
-    text-decoration: underline;
+  .report-people-count__value {
+    color: var(--pgn-color-text-light);
   }
 
   .report-text-cell--strong {
@@ -46,6 +45,10 @@
     &:focus {
       color: var(--pgn-color-text-base);
     }
+  }
+
+  .report-download-pdf-btn--loading {
+    opacity: 0.5;
   }
 }
 
@@ -74,11 +77,6 @@
     &:last-child {
       border-bottom: none;
     }
-  }
-
-  .people-sheet__email {
-    font-size: 13px;
-    color: var(--pgn-color-text-light);
   }
 
   .people-sheet__empty {

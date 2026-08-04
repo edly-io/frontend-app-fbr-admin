@@ -1,43 +1,64 @@
-import React, { useMemo, useState } from 'react';
-import { Button, Toast } from '@openedx/paragon';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faFileExport } from '@fortawesome/free-solid-svg-icons';
+import React, { useState } from 'react';
+import { Alert } from '@openedx/paragon';
 import { useIntl } from '@edx/frontend-platform/i18n';
 import Breadcrumb from '../../components/breadcrumb/Breadcrumb';
 import FilterBar from '../../components/filter-bar/FilterBar';
 import ReportDataTable from './ReportDataTable';
 import ReportStatCards from './ReportStatCards';
-import { buildProgramReportData, getFilterOptionLists } from './data/mockData';
+import { useProgramReports, useReportFilters } from './data/apiHooks';
+import { REPORT_PAGE_SIZE } from './constants';
 import messages from './messages';
 import './reports-styles.scss';
 
 const DEFAULT_FILTERS = { program: 'all', instructor: 'all', city: 'all' };
+const EMPTY_FILTER_OPTIONS = { programs: [], instructors: [], cities: [] };
+const EMPTY_KPIS = { programCount: 0, certificatesAwarded: 0 };
 
 /**
- * Program Report page: a Program/Instructor/City filter row driving a data
- * table. Data range and any backend integration are intentionally out of
- * scope for this iteration (UI-only, static mock data).
+ * Program Report page: a Program/Instructor/City filter row driving a
+ * server-paginated data table backed by `GET /fbr/api/reports/program/`.
+ * The dropdown filters themselves come from `GET /fbr/api/reports/filters/`
+ * and are sent to the report endpoint as query params; changing any filter
+ * resets the listing back to page 1. PDF export happens per-row (see
+ * `ReportDataTable`'s Action column) rather than for the whole page.
  */
 const ProgramReportsPage = () => {
   const intl = useIntl();
 
   const [filters, setFilters] = useState(DEFAULT_FILTERS);
-  const [showToast, setShowToast] = useState(false);
+  const [page, setPage] = useState(1);
 
-  const filterOptions = useMemo(() => getFilterOptionLists(), []);
-  const { rows, stats } = useMemo(
-    () => buildProgramReportData(filters),
-    [filters],
-  );
+  const { data: filterOptionsData, isError: isFilterError } = useReportFilters();
+  const filterOptions = filterOptionsData || EMPTY_FILTER_OPTIONS;
+
+  const {
+    data, isError, error, isFetching,
+  } = useProgramReports({ ...filters, page, pageSize: REPORT_PAGE_SIZE });
+
+  const rows = data?.rows || [];
+  const count = data?.count || 0;
+  const kpis = data?.kpis || EMPTY_KPIS;
+  const stats = [
+    ['programCount', kpis.programCount],
+    ['certificatesAwarded', kpis.certificatesAwarded],
+  ];
+
+  const errorMessage = (isError || isFilterError)
+    ? (error?.response?.data?.detail || intl.formatMessage(messages.loadError))
+    : '';
 
   const handleFilterChange = (key) => (value) => {
     setFilters(previous => ({ ...previous, [key]: value }));
+    setPage(1);
   };
 
-  const handleExport = () => {
-    setShowToast(true);
-    setTimeout(() => window.print(), 150);
+  const handleClearAll = () => {
+    setFilters(DEFAULT_FILTERS);
+    setPage(1);
   };
+
+  const isClearAllDisabled = Object.keys(DEFAULT_FILTERS)
+    .every(key => filters[key] === DEFAULT_FILTERS[key]);
 
   const filterConfig = [
     {
@@ -47,7 +68,7 @@ const ProgramReportsPage = () => {
       onChange: handleFilterChange('program'),
       options: [
         { value: 'all', label: intl.formatMessage(messages.filterAllPrograms) },
-        ...filterOptions.programs.map(name => ({ value: name, label: name })),
+        ...filterOptions.programs,
       ],
     },
     {
@@ -57,7 +78,7 @@ const ProgramReportsPage = () => {
       onChange: handleFilterChange('instructor'),
       options: [
         { value: 'all', label: intl.formatMessage(messages.filterAllInstructors) },
-        ...filterOptions.instructors.map(name => ({ value: name, label: name })),
+        ...filterOptions.instructors,
       ],
     },
     {
@@ -67,7 +88,7 @@ const ProgramReportsPage = () => {
       onChange: handleFilterChange('city'),
       options: [
         { value: 'all', label: intl.formatMessage(messages.filterAllCities) },
-        ...filterOptions.cities.map(name => ({ value: name, label: name })),
+        ...filterOptions.cities,
       ],
     },
   ];
@@ -76,28 +97,32 @@ const ProgramReportsPage = () => {
     <div className="reports-page">
       <Breadcrumb leaf={intl.formatMessage(messages.breadcrumbLeaf)} />
 
-      <div className="d-flex justify-content-between align-items-start mb-1">
-        <h1 className="h3 fw-bold mb-0">
-          {intl.formatMessage(messages.pageTitle)}
-        </h1>
-        <Button variant="outline-primary" size="sm" onClick={handleExport}>
-          <FontAwesomeIcon icon={faFileExport} className="mr-2" />
-          {intl.formatMessage(messages.exportButton)}
-        </Button>
-      </div>
+      <h1 className="h3 fw-bold mb-1">
+        {intl.formatMessage(messages.pageTitle)}
+      </h1>
       <p className="reports-page__subtitle small mb-3">
         {intl.formatMessage(messages.pageSubtitle)}
       </p>
 
-      <FilterBar filters={filterConfig} />
-
       <ReportStatCards stats={stats} />
 
-      <ReportDataTable rows={rows} />
+      {errorMessage && <Alert variant="danger" className="mb-3">{errorMessage}</Alert>}
 
-      <Toast show={showToast} onClose={() => setShowToast(false)}>
-        {intl.formatMessage(messages.exportToast)}
-      </Toast>
+      <FilterBar
+        filters={filterConfig}
+        onClearAll={handleClearAll}
+        clearAllLabel={intl.formatMessage(messages.clearAllFilters)}
+        isClearAllDisabled={isClearAllDisabled}
+      />
+
+      <ReportDataTable
+        rows={rows}
+        count={count}
+        pageSize={REPORT_PAGE_SIZE}
+        page={page}
+        onPageChange={setPage}
+        isLoading={isFetching}
+      />
     </div>
   );
 };

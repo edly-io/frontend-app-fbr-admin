@@ -12,8 +12,7 @@ import { UserIdentity } from '@edly-io/frontend-component-fbr';
  * fully driven by props so the same Sheet backs every "count of people"
  * column (see `PEOPLE_SHEET_CONFIG` in `constants.js`). Each person is
  * rendered with the shared `UserIdentity` component (name, avatar and role
- * badge); email is shown alongside it since `UserIdentity` itself has no
- * notion of email.
+ * badge).
  */
 const PeopleSheet = ({
   show, program, people, badgeLabel, eyebrow, emptyText, closeLabel, onClose,
@@ -47,7 +46,6 @@ const PeopleSheet = ({
               showAvatar
               enableHoverCard={false}
             />
-            <span className="people-sheet__email">{person.email}</span>
           </li>
         ))}
       </ul>
@@ -61,7 +59,6 @@ PeopleSheet.propTypes = {
   people: PropTypes.arrayOf(PropTypes.shape({
     id: PropTypes.string.isRequired,
     name: PropTypes.string.isRequired,
-    email: PropTypes.string.isRequired,
     avatarValue: PropTypes.string,
   })).isRequired,
   badgeLabel: PropTypes.string.isRequired,

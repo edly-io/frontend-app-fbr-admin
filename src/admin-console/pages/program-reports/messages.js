@@ -8,18 +8,13 @@ const messages = defineMessages({
   },
   pageTitle: {
     id: 'fbrAdmin.reports.title',
-    defaultMessage: 'Program Report',
-    description: 'Page title for the Program Report page.',
+    defaultMessage: 'Program Reports',
+    description: 'Page title for the Program Reports page.',
   },
   pageSubtitle: {
     id: 'fbrAdmin.reports.subtitle',
     defaultMessage: 'Generate and export a detailed performance report across programs.',
     description: 'Subtitle shown below the Program Report page title.',
-  },
-  exportButton: {
-    id: 'fbrAdmin.reports.export',
-    defaultMessage: 'Export PDF',
-    description: 'Button label to export the current report view as a PDF.',
   },
   filterProgram: {
     id: 'fbrAdmin.reports.filter.program',
@@ -50,6 +45,11 @@ const messages = defineMessages({
     id: 'fbrAdmin.reports.filter.allCities',
     defaultMessage: 'All Cities',
     description: 'Option to clear the City filter.',
+  },
+  clearAllFilters: {
+    id: 'fbrAdmin.reports.filter.clearAll',
+    defaultMessage: 'Clear all filters',
+    description: 'Button label to reset the Program/Instructor/City filters back to their defaults.',
   },
   colProgram: {
     id: 'fbrAdmin.reports.col.program',
@@ -101,21 +101,6 @@ const messages = defineMessages({
     defaultMessage: 'More information about the Avg. Score column',
     description: 'Accessible label for the info icon next to the Avg. Score column header.',
   },
-  colAvgAttendance: {
-    id: 'fbrAdmin.reports.col.avgAttendance',
-    defaultMessage: 'Avg. Attendance %',
-    description: 'Report table column header for average session attendance percentage.',
-  },
-  colAvgAttendanceTooltip: {
-    id: 'fbrAdmin.reports.col.avgAttendance.tooltip',
-    defaultMessage: "The average share of sessions that enrolled trainees actually attended, across all of the program's held sessions.",
-    description: 'Tooltip explaining what the Avg. Attendance % column represents.',
-  },
-  colAvgAttendanceTooltipAlt: {
-    id: 'fbrAdmin.reports.col.avgAttendance.tooltipAlt',
-    defaultMessage: 'More information about the Avg. Attendance % column',
-    description: 'Accessible label for the info icon next to the Avg. Attendance % column header.',
-  },
   colCertificate: {
     id: 'fbrAdmin.reports.col.certificate',
     defaultMessage: 'Certificate',
@@ -125,6 +110,16 @@ const messages = defineMessages({
     id: 'fbrAdmin.reports.col.status',
     defaultMessage: 'Status',
     description: 'Report table column header for the program status.',
+  },
+  colAction: {
+    id: 'fbrAdmin.reports.col.action',
+    defaultMessage: 'Action',
+    description: 'Report table column header for the program action.',
+  },
+  downloadPdfAria: {
+    id: 'fbrAdmin.reports.action.downloadPdf.aria',
+    defaultMessage: 'Download PDF report for {program}',
+    description: 'Accessible label for the Download PDF button in the Program Report table.',
   },
   statusActive: {
     id: 'fbrAdmin.reports.status.active',
@@ -196,20 +191,25 @@ const messages = defineMessages({
     defaultMessage: 'Certificates Awarded',
     description: 'Stat card label for the total number of certificates awarded across programs.',
   },
-  statAvgAttendance: {
-    id: 'fbrAdmin.reports.stat.avgAttendance',
-    defaultMessage: 'Avg. Attendance %',
-    description: 'Stat card label for the overall average attendance percentage across programs.',
-  },
   emptyState: {
     id: 'fbrAdmin.reports.table.empty',
     defaultMessage: 'No records match the selected filters.',
     description: 'Empty state shown when the report table has no matching rows.',
   },
-  exportToast: {
-    id: 'fbrAdmin.reports.export.toast',
-    defaultMessage: 'Preparing PDF export...',
-    description: 'Toast notification shown when the Export PDF button is clicked.',
+  rowStatus: {
+    id: 'fbrAdmin.reports.table.rowStatus',
+    defaultMessage: 'Showing {firstRow} - {lastRow} of {itemCount}.',
+    description: 'Status text showing which rows of the report table are currently displayed.',
+  },
+  paginationLabel: {
+    id: 'fbrAdmin.reports.table.paginationLabel',
+    defaultMessage: 'Program Report pagination navigation',
+    description: 'Accessible label for the Program Report table pagination controls.',
+  },
+  loadError: {
+    id: 'fbrAdmin.reports.loadError',
+    defaultMessage: 'Something went wrong while loading the report. Please try again.',
+    description: 'Fallback error message shown when the Program Report fails to load.',
   },
 });
 

@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Form } from '@openedx/paragon';
+import { Button, Form } from '@openedx/paragon';
 import './filter-bar-styles.scss';
 
 /**
@@ -11,8 +11,15 @@ import './filter-bar-styles.scss';
  * every label/option must already be intl-resolved by the caller. New
  * filters (e.g. date range, category, department) can be added later by
  * simply appending another entry to the `filters` array.
+ *
+ * The optional "clear all" control is opt-in: pass `onClearAll` (and a
+ * `clearAllLabel`) to show it. Whether it should be disabled (e.g. because
+ * every filter already sits at its default value) is left to the caller via
+ * `isClearAllDisabled`, since only the caller knows what "default" means.
  */
-const FilterBar = ({ filters }) => (
+const FilterBar = ({
+  filters, onClearAll, clearAllLabel, isClearAllDisabled,
+}) => (
   <div className="filter-bar d-flex flex-wrap align-items-end gap-3 py-3">
     {filters.map(filter => (
       <Form.Group key={filter.id} className="filter-bar__group mb-0">
@@ -30,6 +37,18 @@ const FilterBar = ({ filters }) => (
         </Form.Control>
       </Form.Group>
     ))}
+
+    {onClearAll && (
+      <Button
+        variant="tertiary"
+        size="sm"
+        className="filter-bar__clear-all"
+        onClick={onClearAll}
+        disabled={isClearAllDisabled}
+      >
+        {clearAllLabel}
+      </Button>
+    )}
   </div>
 );
 
@@ -44,6 +63,15 @@ FilterBar.propTypes = {
     })).isRequired,
     onChange: PropTypes.func.isRequired,
   })).isRequired,
+  onClearAll: PropTypes.func,
+  clearAllLabel: PropTypes.string,
+  isClearAllDisabled: PropTypes.bool,
+};
+
+FilterBar.defaultProps = {
+  onClearAll: undefined,
+  clearAllLabel: undefined,
+  isClearAllDisabled: false,
 };
 
 export default FilterBar;
