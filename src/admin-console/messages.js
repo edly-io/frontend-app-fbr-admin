@@ -71,6 +71,11 @@ const messages = defineMessages({
     defaultMessage: 'Reports',
     description: 'Sidebar nav item label for the placeholder Reports page.',
   },
+  navSessionsInstructor: {
+    id: 'fbrAdmin.shell.nav.navSessionsInstructor',
+    defaultMessage: 'Sessions',
+    description: 'Sidebar nav item label for the Sessions Reports page.',
+  },
   placeholderBody: {
     id: 'fbrAdmin.shell.placeholder.body',
     defaultMessage: 'This section is under construction.',
@@ -100,6 +105,11 @@ const messages = defineMessages({
     id: 'fbrAdmin.shell.pagination.rowsPerPage',
     defaultMessage: 'Rows per page',
     description: 'Label preceding the rows-per-page selector in a pagination footer.',
+  },
+  permissionDenied: {
+    id: 'fbrAdmin.shell.permissionDenied',
+    defaultMessage: 'You are not authorized to view this page. If you feel you should have access, please reach out to your administrator.',
+    description: 'Alert shown when a caller without the required role navigates to a restricted page.',
   },
 });
 

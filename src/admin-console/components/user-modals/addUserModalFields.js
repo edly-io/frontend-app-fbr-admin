@@ -1,4 +1,4 @@
-import messages from './messages';
+import messages from '../messages';
 
 // ─── Add User modal field / role / trainee-type definitions ────────────────
 //

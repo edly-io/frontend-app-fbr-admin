@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { Form } from '@openedx/paragon';
 import { useIntl } from '@edx/frontend-platform/i18n';
 import messages from './messages';
+import './debounced-search-input-styles.scss';
 
 const DebouncedSearchInput = ({
   value,
@@ -27,41 +28,20 @@ const DebouncedSearchInput = ({
   }, [delay, localValue, onChange]);
 
   return (
-    <div style={{ position: 'relative' }}>
+    <div className="debounced-search-input">
       <span
         aria-hidden="true"
-        style={{
-          position: 'absolute',
-          left: '11px',
-          top: '50%',
-          width: '11px',
-          height: '11px',
-          border: '1.7px solid #ADB5BD',
-          borderRadius: '50%',
-          transform: 'translateY(-55%)',
-          pointerEvents: 'none',
-          zIndex: 1,
-        }}
+        className="debounced-search-input__icon"
       >
-        <span
-          style={{
-            position: 'absolute',
-            width: '6px',
-            height: '1.7px',
-            background: '#ADB5BD',
-            right: '-5px',
-            bottom: '-3px',
-            transform: 'rotate(45deg)',
-            transformOrigin: 'left center',
-          }}
-        />
+        <span className="debounced-search-input__icon-handle" />
       </span>
       <Form.Control
         type="text"
         placeholder={placeholder ?? intl.formatMessage(messages.defaultSearchPlaceholder)}
         value={localValue}
         onChange={event => setLocalValue(event.target.value)}
-        style={{ paddingLeft: '34px', width }}
+        className="debounced-search-input__control"
+        style={{ width }}
       />
     </div>
   );

@@ -36,16 +36,20 @@ export const mapPerson = (person) => ({
  * Fetches one page of Program Report rows + KPIs for the given
  * Program/Instructor/City filter selection. `program`/`city`/`instructor`
  * map directly onto the backend's exact-match query params (program_key,
- * city name, instructor id). `count` is the total row count across all
- * pages, used by the caller to derive the DataTable's page count.
+ * city name, instructor id). `startDate`/`endDate` are sent as
+ * `start_date`/`end_date` for the backend to range-filter on once it adds
+ * support. `count` is the total row count across all pages, used by the
+ * caller to derive the DataTable's page count.
  */
 export const getProgramReports = async ({
-  program, city, instructor, page = 1, pageSize,
+  program, city, instructor, startDate, endDate, page = 1, pageSize,
 } = {}) => {
   const params = new URLSearchParams({ page: String(page), page_size: String(pageSize) });
   if (program && program !== 'all') { params.set('program', program); }
   if (city && city !== 'all') { params.set('city', city); }
   if (instructor && instructor !== 'all') { params.set('instructor', instructor); }
+  if (startDate) { params.set('start_date', startDate); }
+  if (endDate) { params.set('end_date', endDate); }
 
   const { data } = await getAuthenticatedHttpClient().get(`${getProgramReportsUrl()}?${params.toString()}`);
   const results = getPaginatedResults(data);

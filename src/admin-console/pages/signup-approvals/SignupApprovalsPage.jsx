@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
-import { Toast } from '@openedx/paragon';
+import { Alert, Toast } from '@openedx/paragon';
 import { useIntl } from '@edx/frontend-platform/i18n';
 import { useSignupApprovals } from './data/apiHooks';
 import SignupApprovalsToolbar from './SignupApprovalsToolbar';
 import SignupApprovalsList from './SignupApprovalsList';
-import AddUserModal from '../../components/AddUserModal';
-import DebouncedSearchInput from '../../shared/DebouncedSearchInput';
+import AddUserModal from '../../components/user-modals/AddUserModal';
+import DebouncedSearchInput from '../../components/debounced-search-input/DebouncedSearchInput';
 import messages from './messages';
+import './signup-approvals-styles.scss';
 
 const ROWS_PER_PAGE = 10;
 
@@ -59,33 +60,23 @@ const SignupApprovalsPage = () => {
   const handleModalClose = () => { setAssignmentUser(null); };
 
   return (
-    <>
+    <div className="signup-approvals-page">
       <SignupApprovalsToolbar onRefresh={handleRefresh} />
 
-      <div style={{
-        display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px',
-      }}
-      >
-        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+      <div className="signup-approvals-page__filter-row">
+        <div className="signup-approvals-page__search-wrap">
           <DebouncedSearchInput
             value={search}
             onChange={handleSearchChange}
             placeholder={intl.formatMessage(messages.searchPlaceholder)}
           />
         </div>
-        <span style={{ fontSize: '13px', color: 'var(--pgn-color-text-light)', fontWeight: 500 }}>
+        <span className="signup-approvals-page__count">
           {intl.formatMessage(messages.pendingCount, { count: totalApprovals })}
         </span>
       </div>
 
-      {errorMessage && (
-        <div style={{
-          background: '#FDE8E8', color: '#9B1C1C', border: '1px solid #F8B4B4', borderRadius: '6px', padding: '10px 12px', marginBottom: '14px', fontSize: '13.5px',
-        }}
-        >
-          {errorMessage}
-        </div>
-      )}
+      {errorMessage && <Alert variant="danger" className="mb-3">{errorMessage}</Alert>}
 
       <SignupApprovalsList
         isLoading={isLoading}
@@ -111,7 +102,7 @@ const SignupApprovalsPage = () => {
           assignmentUser={assignmentUser}
         />
       )}
-    </>
+    </div>
   );
 };
 

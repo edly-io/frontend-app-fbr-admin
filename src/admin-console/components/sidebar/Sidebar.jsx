@@ -3,11 +3,13 @@ import { NavLink } from 'react-router-dom';
 import { Badge } from '@openedx/paragon';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useIntl } from '@edx/frontend-platform/i18n';
-import { NAV_SECTIONS } from '../constants';
-import messages from '../messages';
-import { useAdminConsoleBootstrap } from '../data/apiHooks';
-import { useSignupApprovals } from '../pages/signup-approvals/data/apiHooks';
-import { useBiodataEditRequests } from '../pages/biodata-edit-requests/data/apiHooks';
+import { NAV_SECTIONS } from '../../constants';
+import messages from '../../messages';
+import { useAdminConsoleBootstrap } from '../../data/apiHooks';
+import { getReportsCapabilities } from '../../data/permissions';
+import { useSignupApprovals } from '../../pages/signup-approvals/data/apiHooks';
+import { useBiodataEditRequests } from '../../pages/biodata-edit-requests/data/apiHooks';
+import './sidebar-styles.scss';
 
 const NAV_ITEM_LABEL_MESSAGES = {
   users: messages.navUsers,
@@ -21,11 +23,16 @@ const NAV_ITEM_LABEL_MESSAGES = {
   overview: messages.navOverView,
   reports: messages.navReports,
   program: messages.navProgram,
+  'sessions-instructor': messages.navSessionsInstructor,
 };
 
 const normalizeRole = role => String(role || '').toLowerCase();
 
-const canAccessNavItem = (item, roles) => {
+const canAccessNavItem = (item, roles, capabilities) => {
+  if (item.capabilityKey) {
+    return Boolean(capabilities[item.capabilityKey]);
+  }
+
   if (!item.allowedRoles) {
     return true;
   }
@@ -54,37 +61,30 @@ const Sidebar = () => {
   const { data: editRequestsData } = useBiodataEditRequests({ page: 1, pageSize: 1, statusFilter: 'pending' });
   const { data: bootstrapData } = useAdminConsoleBootstrap();
   const callerRoles = bootstrapData?.callerProfile?.roles || [];
+  const capabilities = getReportsCapabilities(callerRoles);
   const visibleSections = NAV_SECTIONS.map(section => ({
     ...section,
-    items: section.items.filter(item => canAccessNavItem(item, callerRoles)),
+    items: section.items.filter(item => canAccessNavItem(item, callerRoles, capabilities)),
   })).filter(section => section.items.length > 0);
 
   const pendingApprovalsCount = approvalsData?.total ?? 0;
   const pendingEditRequestsCount = editRequestsData?.total ?? 0;
 
   return (
-    <aside style={{
-      width: '240px', flexShrink: 0, background: '#fff', borderRight: '1px solid var(--pgn-color-border)', padding: '24px 12px',
-    }}
-    >
+    <aside className="admin-sidebar">
       {visibleSections.map(section => (
         <div key={section.id}>
-          <p style={{
-            fontSize: '10.5px', fontWeight: 700, color: 'var(--pgn-color-gray-400)', letterSpacing: '0.1em', textTransform: 'uppercase', padding: '0 8px', margin: '16px 0 6px',
-          }}
-          >
+          <p className="admin-sidebar__section-title">
             {intl.formatMessage(SECTION_TITLE_MESSAGES[section.id])}
           </p>
           {section.items.map(item => (
             <NavLink
               key={item.id}
               to={item.path}
-              style={({ isActive }) => ({
-                display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 10px', width: '100%', border: 'none', borderRadius: '7px', cursor: 'pointer', fontSize: '13.5px', fontWeight: isActive ? 600 : 400, background: isActive ? 'var(--pgn-color-primary-light)' : 'transparent', color: isActive ? 'var(--pgn-color-primary-base)' : 'var(--pgn-color-gray-700)', textAlign: 'left', marginBottom: '2px', textDecoration: 'none',
-              })}
+              className={({ isActive }) => `admin-sidebar__nav-link d-flex align-items-center text-decoration-none${isActive ? ' admin-sidebar__nav-link--active' : ''}`}
             >
-              <FontAwesomeIcon icon={item.icon} style={{ width: '15px', opacity: 0.8, flexShrink: 0 }} />
-              <span style={{ flex: 1 }}>{intl.formatMessage(NAV_ITEM_LABEL_MESSAGES[item.id])}</span>
+              <FontAwesomeIcon icon={item.icon} className="admin-sidebar__nav-icon" />
+              <span className="admin-sidebar__nav-label">{intl.formatMessage(NAV_ITEM_LABEL_MESSAGES[item.id])}</span>
               {item.id === 'signup-approvals' && pendingApprovalsCount > 0 && (
                 <Badge variant="danger">{pendingApprovalsCount}</Badge>
               )}

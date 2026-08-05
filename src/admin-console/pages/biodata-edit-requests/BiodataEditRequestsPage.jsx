@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { Dropdown, Toast } from '@openedx/paragon';
+import { Alert, Dropdown, Toast } from '@openedx/paragon';
 import { useIntl } from '@edx/frontend-platform/i18n';
 import { useBiodataEditRequests, useResolveEditRequest } from './data/apiHooks';
 import BiodataEditRequestsToolbar from './BiodataEditRequestsToolbar';
 import BiodataEditRequestsTable from './BiodataEditRequestsTable';
 import messages from './messages';
+import './biodata-edit-requests-styles.scss';
 
 const ROWS_PER_PAGE = 10;
 
@@ -73,15 +74,16 @@ const BiodataEditRequestsPage = () => {
   };
 
   return (
-    <>
+    <div className="biodata-edit-requests-page">
       <BiodataEditRequestsToolbar onRefresh={() => refetch()} />
 
-      <div style={{
-        display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px',
-      }}
-      >
+      <div className="biodata-edit-requests-page__filter-row">
         <Dropdown>
-          <Dropdown.Toggle variant="outline-secondary" id="edit-request-status-filter" style={{ fontSize: '13.5px' }}>
+          <Dropdown.Toggle
+            variant="outline-secondary"
+            id="edit-request-status-filter"
+            className="biodata-edit-requests-page__filter-toggle"
+          >
             {intl.formatMessage(messages.statusFilterLabel, {
               status: intl.formatMessage(STATUS_FILTER_MESSAGES[statusFilter]),
             })}
@@ -94,19 +96,12 @@ const BiodataEditRequestsPage = () => {
             ))}
           </Dropdown.Menu>
         </Dropdown>
-        <span style={{ fontSize: '13px', color: 'var(--pgn-color-text-light)', fontWeight: 500 }}>
+        <span className="biodata-edit-requests-page__count">
           {intl.formatMessage(messages.requestsCount, { count: totalRequests })}
         </span>
       </div>
 
-      {errorMessage && (
-        <div style={{
-          background: '#FDE8E8', color: '#9B1C1C', border: '1px solid #F8B4B4', borderRadius: '6px', padding: '10px 12px', marginBottom: '14px', fontSize: '13.5px',
-        }}
-        >
-          {errorMessage}
-        </div>
-      )}
+      {errorMessage && <Alert variant="danger" className="mb-3">{errorMessage}</Alert>}
 
       <BiodataEditRequestsTable
         isLoading={isLoading}
@@ -128,7 +123,7 @@ const BiodataEditRequestsPage = () => {
       <Toast show={showToast} onClose={() => setShowToast(false)}>
         {toastMessage}
       </Toast>
-    </>
+    </div>
   );
 };
 

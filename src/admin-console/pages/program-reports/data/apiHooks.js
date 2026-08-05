@@ -11,21 +11,23 @@ export const programReportQueryKeys = {
 };
 
 export const useProgramReports = ({
-  program, city, instructor, page, pageSize,
-}) => useQuery({
+  program, city, instructor, startDate, endDate, page, pageSize,
+}, { enabled = true } = {}) => useQuery({
   queryKey: programReportQueryKeys.list({
-    program, city, instructor, page, pageSize,
+    program, city, instructor, startDate, endDate, page, pageSize,
   }),
   queryFn: () => getProgramReports({
-    program, city, instructor, page, pageSize,
+    program, city, instructor, startDate, endDate, page, pageSize,
   }),
   placeholderData: previousData => previousData,
+  enabled,
 });
 
-export const useReportFilters = () => useQuery({
+export const useReportFilters = ({ enabled = true } = {}) => useQuery({
   queryKey: programReportQueryKeys.filters,
   queryFn: getReportFilters,
   staleTime: FILTER_OPTIONS_STALE_TIME,
+  enabled,
 });
 
 export const useProgramPeople = (programKey, { enabled = true } = {}) => useQuery({

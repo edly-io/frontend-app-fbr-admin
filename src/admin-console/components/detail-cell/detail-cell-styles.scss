@@ -1,0 +1,19 @@
+.detail-cell {
+  min-width: 0;
+
+  .detail-cell__label {
+    margin: 0 0 4px;
+    font-size: 10.5px;
+    font-weight: 700;
+    color: var(--pgn-color-gray-400);
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+  }
+
+  .detail-cell__value {
+    margin: 0;
+    font-size: 14px;
+    color: var(--pgn-color-gray-900);
+    word-break: break-word;
+  }
+}

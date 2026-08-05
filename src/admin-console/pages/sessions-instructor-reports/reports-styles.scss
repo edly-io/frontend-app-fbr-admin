@@ -1,0 +1,246 @@
+.reports-page {
+  .reports-page__subtitle {
+    color: var(--pgn-color-text-light);
+  }
+
+  .report-stat-card {
+    border-left: 4px solid var(--pgn-color-primary-base);
+  }
+
+  .report-stat-card--accent-1 {
+    border-left-color: var(--pgn-color-green);
+  }
+
+  .report-stat-card--accent-2 {
+    border-left-color: #b45309;
+  }
+
+  .report-stat-card__label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--pgn-color-text-light);
+  }
+
+  .report-stat-card__value {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--pgn-color-text-base);
+  }
+
+  .report-text-cell--strong {
+    font-weight: 600;
+    color: var(--pgn-color-text-base);
+  }
+
+  .report-people-count__value {
+    color: var(--pgn-color-text-light);
+  }
+
+  .report-column-header {
+    // Paragon's Bootstrap 4 base has no .gap-* utilities (added in Bootstrap 5).
+    gap: 0.25rem;
+  }
+
+  .report-column-header__info-icon {
+    color: var(--pgn-color-text-light);
+    cursor: help;
+
+    &:hover,
+    &:focus {
+      color: var(--pgn-color-text-base);
+    }
+  }
+
+  .report-hours-legend {
+    // Paragon's Bootstrap 4 base has no .gap-* utilities (added in Bootstrap 5).
+    gap: 1rem;
+
+    .report-hours-legend__item {
+      gap: 0.25rem;
+      font-size: 12.5px;
+      color: var(--pgn-color-text-light);
+    }
+
+    .report-hours-legend__swatch {
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+      display: inline-block;
+    }
+  }
+
+  .report-hours-bar {
+    min-width: 120px;
+    cursor: help;
+
+    &:focus {
+      outline: 2px solid var(--pgn-color-primary-base);
+      outline-offset: 2px;
+    }
+
+    .report-hours-bar__track {
+      height: 8px;
+      width: 100%;
+      border-radius: 99px;
+      overflow: hidden;
+      background: var(--pgn-color-light-400);
+    }
+
+    .report-hours-bar__segment {
+      height: 100%;
+
+      &:not(:last-child) {
+        border-right: 1px solid #fff;
+      }
+    }
+
+    .report-hours-bar__segment--session {
+      background: var(--pgn-color-primary-base);
+    }
+
+    .report-hours-bar__segment--ceremony {
+      background: #b45309;
+    }
+
+    .report-hours-bar__segment--milestone {
+      background: var(--pgn-color-green);
+    }
+
+    .report-hours-bar__segment--external-event {
+      background: #0f766e;
+    }
+
+    .report-hours-bar__segment--seminar {
+      background: #7c3aed;
+    }
+
+    .report-hours-bar__segment--conference {
+      background: #db2777;
+    }
+
+    .report-hours-bar__segment--workshop {
+      background: #64748b;
+    }
+
+    .report-hours-bar__segment--other {
+      background: var(--pgn-color-text-light);
+    }
+  }
+
+  .report-hours-legend__swatch.report-hours-bar__segment--session {
+    background: var(--pgn-color-primary-base);
+  }
+
+  .report-hours-legend__swatch.report-hours-bar__segment--ceremony {
+    background: #b45309;
+  }
+
+  .report-hours-legend__swatch.report-hours-bar__segment--milestone {
+    background: var(--pgn-color-green);
+  }
+
+  .report-hours-legend__swatch.report-hours-bar__segment--external-event {
+    background: #0f766e;
+  }
+
+  .report-hours-legend__swatch.report-hours-bar__segment--seminar {
+    background: #7c3aed;
+  }
+
+  .report-hours-legend__swatch.report-hours-bar__segment--conference {
+    background: #db2777;
+  }
+
+  .report-hours-legend__swatch.report-hours-bar__segment--workshop {
+    background: #64748b;
+  }
+
+  .report-hours-legend__swatch.report-hours-bar__segment--other {
+    background: var(--pgn-color-text-light);
+  }
+
+  .report-data-table__footer {
+    // Paragon's Bootstrap 4 base has no .gap-* utilities (added in Bootstrap 5).
+    gap: 0.5rem;
+  }
+}
+
+.session-details-sheet {
+  width: 100%;
+  max-width: 480px;
+
+  .session-details-sheet__eyebrow {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--pgn-color-text-light);
+  }
+
+  .session-details-sheet__subtitle {
+    font-size: 13px;
+  }
+
+  .session-details-sheet__course {
+    margin-top: 1.5rem;
+
+    &:first-of-type {
+      margin-top: 1.5rem;
+    }
+  }
+
+  .session-details-sheet__course-header {
+    margin-bottom: 0.5rem;
+  }
+
+  .session-details-sheet__course-name {
+    color: var(--pgn-color-text-base);
+  }
+
+  .session-details-sheet__session {
+    padding: 0.65rem 0;
+    border-bottom: 1px solid var(--pgn-color-border);
+
+    &:first-child {
+      padding-top: 0;
+    }
+
+    &:last-child {
+      padding-bottom: 0;
+      border-bottom: none;
+    }
+  }
+
+  .session-details-sheet__session-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--pgn-color-text-base);
+  }
+
+  .session-details-sheet__session-meta {
+    // Paragon's Bootstrap 4 base has no .gap-* utilities (added in Bootstrap 5).
+    gap: 0.75rem;
+    font-size: 12.5px;
+    color: var(--pgn-color-text-light);
+  }
+
+  .session-details-sheet__session-meta-item {
+    // Paragon's Bootstrap 4 base has no .gap-* utilities (added in Bootstrap 5).
+    gap: 0.25rem;
+  }
+
+  .session-details-sheet__meta-icon {
+    width: 16px;
+    height: 16px;
+  }
+
+  .session-details-sheet__empty {
+    margin-top: 1.5rem;
+  }
+}
+
+@media (--pgn-size-breakpoint-max-width-sm) {
+  .session-details-sheet {
+    max-width: 100%;
+  }
+}

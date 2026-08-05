@@ -1,0 +1,11 @@
+.admin-console-page {
+  display: flex;
+  background: var(--pgn-color-theme-bg-gray);
+  min-height: 100vh;
+
+  .admin-console-page__content {
+    flex: 1;
+    padding: 28px 36px;
+    min-width: 0;
+  }
+}

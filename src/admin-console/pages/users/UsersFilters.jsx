@@ -2,9 +2,10 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { Dropdown } from '@openedx/paragon';
 import { useIntl } from '@edx/frontend-platform/i18n';
-import DebouncedSearchInput from '../../shared/DebouncedSearchInput';
+import DebouncedSearchInput from '../../components/debounced-search-input/DebouncedSearchInput';
 import { STATUS_FILTER_OPTIONS } from './constants';
 import messages from './messages';
+import './users-styles.scss';
 
 const TAB_LABEL_MESSAGES = {
   all: messages.tabAll,
@@ -36,7 +37,7 @@ const UsersFilters = ({
 
   return (
     <>
-      <div style={{ borderBottom: '2px solid var(--pgn-color-border)', marginBottom: '20px', display: 'flex' }}>
+      <div className="users-filters__tabs">
         {visibleTabs.map(tab => {
           const active = activeTab === tab.id;
           return (
@@ -44,15 +45,10 @@ const UsersFilters = ({
               key={tab.id}
               type="button"
               onClick={() => onTabChange(tab.id)}
-              style={{
-                padding: '8px 14px', border: 'none', cursor: 'pointer', fontSize: '13.5px', fontWeight: active ? 600 : 400, color: active ? 'var(--pgn-color-primary-base)' : 'var(--pgn-color-text-light)', background: 'transparent', borderBottom: active ? '2px solid var(--pgn-color-primary-base)' : '2px solid transparent', marginBottom: '-2px', display: 'flex', alignItems: 'center', gap: '6px', whiteSpace: 'nowrap',
-              }}
+              className={`users-filters__tab ${active ? 'users-filters__tab--active' : ''}`}
             >
               {intl.formatMessage(TAB_LABEL_MESSAGES[tab.id])}
-              <span style={{
-                background: active ? 'var(--pgn-color-primary-base)' : 'var(--pgn-color-border)', color: active ? '#fff' : 'var(--pgn-color-text-light)', borderRadius: '9px', padding: '1px 6px', fontSize: '11px', fontWeight: 600,
-              }}
-              >
+              <span className={`users-filters__tab-badge ${active ? 'users-filters__tab-badge--active' : ''}`}>
                 {tabCounts[tab.id] ?? intl.formatMessage(messages.emptyValue)}
               </span>
             </button>
@@ -60,18 +56,15 @@ const UsersFilters = ({
         })}
       </div>
 
-      <div style={{
-        display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px',
-      }}
-      >
-        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+      <div className="users-filters__row">
+        <div className="users-filters__search-wrap">
           <DebouncedSearchInput
             value={search}
             onChange={onSearchChange}
             placeholder={intl.formatMessage(messages.searchPlaceholder)}
           />
           <Dropdown>
-            <Dropdown.Toggle variant="outline-secondary" id="status-filter" style={{ fontSize: '13.5px' }}>
+            <Dropdown.Toggle variant="outline-secondary" id="status-filter" className="users-filters__status-toggle">
               {intl.formatMessage(messages.statusFilterLabel, { status: statusFilter })}
             </Dropdown.Toggle>
             <Dropdown.Menu>
@@ -81,7 +74,7 @@ const UsersFilters = ({
             </Dropdown.Menu>
           </Dropdown>
         </div>
-        <span style={{ fontSize: '13px', color: 'var(--pgn-color-text-light)', fontWeight: 500 }}>
+        <span className="users-filters__count">
           {countLabel}
         </span>
       </div>

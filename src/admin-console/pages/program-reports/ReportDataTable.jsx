@@ -15,6 +15,7 @@ import {
   COLUMN_LABEL_MESSAGE_KEYS, COLUMN_TOOLTIP_MESSAGE_KEYS, PEOPLE_SHEET_CONFIG, PROGRAM_COLUMNS,
   STATUS_LABEL_MESSAGE_KEYS, getStatusVariant,
 } from './constants';
+import { formatDate } from '../../utils/date';
 import messages from './messages';
 
 const ColumnHeaderWithTooltip = ({ label, tooltipText, tooltipAlt }) => (
@@ -111,12 +112,6 @@ PeopleCountCell.propTypes = {
   }).isRequired,
 };
 
-const formatGeneratedOnDate = () => new Date().toLocaleDateString('en-US', {
-  year: 'numeric',
-  month: 'long',
-  day: 'numeric',
-});
-
 const ActionCell = ({ row }) => {
   const intl = useIntl();
   const { program, city, programKey } = row.original;
@@ -137,7 +132,7 @@ const ActionCell = ({ row }) => {
         city={city}
         instructors={people.instructors}
         certificates={people.certified}
-        generatedOn={formatGeneratedOnDate()}
+        generatedOn={formatDate(new Date())}
         instructorsEmptyText={intl.formatMessage(messages.instructorsEmptyState)}
         certificatesEmptyText={intl.formatMessage(messages.certificatesEmptyState)}
       />

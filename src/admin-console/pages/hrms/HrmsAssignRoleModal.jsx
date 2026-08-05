@@ -7,7 +7,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCheck, faHome } from '@fortawesome/free-solid-svg-icons';
 import { useIntl } from '@edx/frontend-platform/i18n';
 import { ROLE_LABELS } from '../users/constants';
-import { ROLE_OPTIONS, TRAINEE_TYPES } from '../../components/addUserModalFields';
+import { ROLE_OPTIONS, TRAINEE_TYPES } from '../../components/user-modals/addUserModalFields';
 import { useAdminConsoleBootstrap } from '../../data/apiHooks';
 import { useAssignHrmsEmployeeRoleMutation } from './data/apiHooks';
 import messages from './messages';

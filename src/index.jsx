@@ -20,7 +20,13 @@ const root = createRoot(document.getElementById('root'));
 // Created once at module scope so the cache survives across route changes
 // (AppProvider already wraps the tree in a BrowserRouter, so no additional
 // router is needed here).
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 60 * 60_000, // If cache is up to one hour old, no need to re-fetch
+    },
+  },
+});
 
 subscribe(APP_READY, () => {
   root.render(
