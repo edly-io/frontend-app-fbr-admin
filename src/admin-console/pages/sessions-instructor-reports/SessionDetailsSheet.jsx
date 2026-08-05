@@ -33,7 +33,9 @@ const SessionDetailsSheet = ({
   const intl = useIntl();
 
   const { data, isLoading, isError } = useInstructorSessionDetails(
-    { instructorId, programKey, page: 1, pageSize: REPORT_PAGE_SIZE },
+    {
+      instructorId, programKey, page: 1, pageSize: REPORT_PAGE_SIZE,
+    },
     { enabled: show },
   );
   const courses = data?.courses || [];

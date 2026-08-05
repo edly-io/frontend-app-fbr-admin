@@ -94,7 +94,9 @@ export const getInstructorSessionDetails = async ({
   // const { data } = await getAuthenticatedHttpClient().get(
   //   `${getInstructorSessionsUrl(instructorId)}?${params.toString()}`,
   // );
-  const { data } = await getMockInstructorSessionDetails({ instructorId, programKey, page, pageSize });
+  const { data } = await getMockInstructorSessionDetails({
+    instructorId, programKey, page, pageSize,
+  });
   const results = getPaginatedResults(data);
 
   return {
