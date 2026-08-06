@@ -4,11 +4,13 @@ import { Button } from '@openedx/paragon';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPen, faTimes } from '@fortawesome/free-solid-svg-icons';
 import { useIntl } from '@edx/frontend-platform/i18n';
-import UserIdentity from '../shared/UserIdentity';
-import DetailCell from './DetailCell';
-import DetailSection from './DetailSection';
-import { ROLE_LABELS } from '../pages/users/constants';
-import messages from './messages';
+import UserIdentity from '../UserIdentity';
+import DetailCell from '../detail-cell/DetailCell';
+import DetailSection from '../detail-section/DetailSection';
+import { ROLE_LABELS } from '../../pages/users/constants';
+import { formatDate } from '../../utils/date';
+import messages from '../messages';
+import './user-modals-styles.scss';
 
 const userShape = PropTypes.shape({
   id: PropTypes.number,
@@ -62,11 +64,6 @@ const getRoleLabels = user => (
     ? user.roles.map(role => ROLE_LABELS[role] || role)
     : user.roleLabels || [user.role].filter(Boolean)
 );
-
-const formatDate = (value) => {
-  if (!value) { return ''; }
-  return value;
-};
 
 const getAvailableProfileTabs = (user, profileTabs) => {
   if (!user) { return []; }
@@ -125,9 +122,7 @@ const ViewUserModal = ({
     <div
       role="button"
       tabIndex={0}
-      style={{
-        position: 'fixed', inset: 0, zIndex: 1050, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-      }}
+      className="view-user-modal__overlay"
       onClick={e => { if (e.target === e.currentTarget) { onClose(); } }}
       onKeyDown={(e) => {
         if ((e.key === 'Enter' || e.key === ' ') && e.target === e.currentTarget) {
@@ -135,41 +130,31 @@ const ViewUserModal = ({
         }
       }}
     >
-      <div style={{
-        background: '#fff', borderRadius: '12px', width: '720px', maxWidth: '96vw', maxHeight: '92vh', overflow: 'hidden', display: 'flex', flexDirection: 'column', boxShadow: '0 24px 64px rgba(0,0,0,0.25)',
-      }}
-      >
-        <div style={{
-          background: 'linear-gradient(135deg, #1B3A5C 0%, #1E4976 100%)', height: '94px', position: 'relative', flexShrink: 0, borderRadius: '12px 12px 0 0',
-        }}
-        >
+      <div className="view-user-modal__panel">
+        <div className="view-user-modal__header">
           <button
             type="button"
             onClick={onClose}
-            style={{
-              position: 'absolute', top: '12px', right: '14px', background: 'rgba(255,255,255,0.18)', border: 'none', borderRadius: '6px', color: '#fff', width: '28px', height: '28px', cursor: 'pointer', fontSize: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}
+            className="view-user-modal__close-btn"
           >
             x
           </button>
-          <div style={{
-            position: 'absolute', bottom: '-38px', left: '32px', width: '76px', height: '76px', borderRadius: '50%', background: user.color || '#1B5E7A', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px', fontWeight: 700, border: '3px solid #fff', boxShadow: '0 4px 14px rgba(0,0,0,0.18)', letterSpacing: '0.03em', overflow: 'hidden',
-          }}
+          <div
+            className="view-user-modal__avatar"
+            style={{ background: user.color || '#1B5E7A' }}
           >
             {String(avatarValue).startsWith('http') || String(avatarValue).startsWith('/') ? (
               <img
                 src={avatarValue}
                 alt=""
-                style={{
-                  width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%',
-                }}
+                className="view-user-modal__avatar-image"
               />
             ) : avatarValue}
           </div>
         </div>
 
-        <div style={{ overflowY: 'auto', flex: 1 }}>
-          <div style={{ padding: '48px 28px 20px 128px', minHeight: '106px' }}>
+        <div className="view-user-modal__body">
+          <div className="view-user-modal__identity">
             <UserIdentity
               name={user.full_name || user.name}
               badges={roles}
@@ -179,7 +164,7 @@ const ViewUserModal = ({
           </div>
 
           {showProfileTabs && (
-            <div style={{ borderBottom: '2px solid var(--pgn-color-gray-100)', display: 'flex', padding: '0 28px' }}>
+            <div className="view-user-modal__tabs">
               {availableProfileTabs.map(tab => {
                 const isActive = activeProfileTab === tab.id;
                 return (
@@ -187,17 +172,7 @@ const ViewUserModal = ({
                     key={tab.id}
                     type="button"
                     onClick={() => setActiveProfileTab(tab.id)}
-                    style={{
-                      padding: '10px 16px',
-                      border: 'none',
-                      cursor: 'pointer',
-                      fontSize: '13.5px',
-                      fontWeight: isActive ? 600 : 400,
-                      color: isActive ? 'var(--pgn-color-primary-base)' : 'var(--pgn-color-text-light)',
-                      background: 'transparent',
-                      borderBottom: isActive ? '2px solid var(--pgn-color-primary-base)' : '2px solid transparent',
-                      marginBottom: '-2px',
-                    }}
+                    className={`view-user-modal__tab ${isActive ? 'view-user-modal__tab--active' : ''}`}
                   >
                     {tab.label}
                   </button>
@@ -283,16 +258,13 @@ const ViewUserModal = ({
           )}
         </div>
 
-        <div style={{
-          padding: '14px 28px', borderTop: '1px solid var(--pgn-color-border)', display: 'flex', justifyContent: 'flex-end', gap: '10px', flexShrink: 0,
-        }}
-        >
+        <div className="view-user-modal__footer">
           <Button variant="tertiary" onClick={onClose}>
-            <FontAwesomeIcon icon={faTimes} style={{ fontSize: '11px', marginRight: '6px' }} />
+            <FontAwesomeIcon icon={faTimes} className="view-user-modal__btn-icon" />
             {intl.formatMessage(messages.viewUserCloseButton)}
           </Button>
           <Button variant="primary" onClick={() => { onClose(); onEdit(user); }}>
-            <FontAwesomeIcon icon={faPen} style={{ fontSize: '11px', marginRight: '6px' }} />
+            <FontAwesomeIcon icon={faPen} className="view-user-modal__btn-icon" />
             {intl.formatMessage(messages.viewUserEditButton)}
           </Button>
         </div>

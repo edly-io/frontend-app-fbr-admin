@@ -1,6 +1,7 @@
 import React from 'react';
 import { Outlet } from 'react-router-dom';
-import Sidebar from './components/Sidebar';
+import Sidebar from './components/sidebar/Sidebar';
+import './admin-console-page-styles.scss';
 
 /**
  * Pure shell/orchestration component for the admin console: renders the
@@ -8,9 +9,9 @@ import Sidebar from './components/Sidebar';
  * routed page is currently active via `<Outlet />`.
  */
 const AdminConsolePage = () => (
-  <main style={{ display: 'flex', background: 'var(--pgn-color-theme-bg-gray)', minHeight: '100vh' }}>
+  <main className="admin-console-page">
     <Sidebar />
-    <div style={{ flex: 1, padding: '28px 36px', minWidth: 0 }}>
+    <div className="admin-console-page__content">
       <Outlet />
     </div>
   </main>

@@ -2,12 +2,12 @@ import React, {
   useEffect, useMemo, useRef, useState,
 } from 'react';
 import PropTypes from 'prop-types';
-import { Button, Form } from '@openedx/paragon';
+import { Alert, Button, Form } from '@openedx/paragon';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCheck, faHome, faUserCircle } from '@fortawesome/free-solid-svg-icons';
 import { useIntl } from '@edx/frontend-platform/i18n';
-import { useAdminConsoleBootstrap, useCreateUserMutation, useAssignUserRoleMutation } from '../data/apiHooks';
-import { ROLE_LABELS } from '../pages/users/constants';
+import { useAdminConsoleBootstrap, useCreateUserMutation, useAssignUserRoleMutation } from '../../data/apiHooks';
+import { ROLE_LABELS } from '../../pages/users/constants';
 import {
   ROLE_OPTIONS,
   TRAINEE_TYPES,
@@ -24,7 +24,8 @@ import {
   isValidPakistanMobile,
   getSubmissionErrorState,
 } from './addUserModalFields';
-import messages from './messages';
+import messages from '../messages';
+import './user-modals-styles.scss';
 
 const DEFAULT_BOOTSTRAP = {
   callerProfile: { roles: [], city: null, creatable_roles: ['instructor', 'trainee'] },
@@ -57,10 +58,7 @@ const FieldRow = ({
   const intl = useIntl();
 
   return (
-    <div style={{
-      display: 'flex', gap: '16px', marginBottom: '16px', flexWrap: 'wrap',
-    }}
-    >
+    <div className="add-user-modal__field-row">
       {fields.map((field) => {
         const err = errors[field.id];
         const label = intl.formatMessage(field.labelMessage);
@@ -91,7 +89,7 @@ const FieldRow = ({
               placeholder={placeholder}
               rows={3}
               isInvalid={!!err}
-              style={{ resize: 'vertical', minHeight: '80px' }}
+              className="add-user-modal__textarea"
             />
           );
         } else {
@@ -112,10 +110,14 @@ const FieldRow = ({
         }
 
         return (
-          <Form.Group key={field.id} data-field-id={field.id} style={{ flex: field.full ? '0 0 100%' : '1 1 260px', minWidth: 0, marginBottom: 0 }}>
-            <Form.Label className="x-small font-weight-bold text-uppercase" style={{ letterSpacing: '0.07em' }}>
+          <Form.Group
+            key={field.id}
+            data-field-id={field.id}
+            className={`add-user-modal__field-group ${field.full ? 'add-user-modal__field-group--full' : ''}`}
+          >
+            <Form.Label className="x-small font-weight-bold text-uppercase add-user-modal__field-label">
               {label}
-              {field.required && <span style={{ color: '#E53E3E', marginLeft: '3px' }}>*</span>}
+              {field.required && <span className="add-user-modal__required-mark">*</span>}
             </Form.Label>
             {input}
             {field.helperMessage && <Form.Text muted>{intl.formatMessage(field.helperMessage)}</Form.Text>}
@@ -153,18 +155,12 @@ FieldRow.propTypes = {
 };
 
 const SectionHeader = ({ title, note }) => (
-  <div style={{
-    display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '20px 0 16px', borderTop: '1px solid var(--pgn-color-border)', paddingTop: '18px',
-  }}
-  >
-    <span style={{
-      fontSize: '11.5px', fontWeight: 700, color: '#2A6496', letterSpacing: '0.08em', display: 'flex', alignItems: 'center', gap: '6px',
-    }}
-    >
-      <FontAwesomeIcon icon={faUserCircle} style={{ fontSize: '12px' }} />
+  <div className="add-user-modal__section-header">
+    <span className="add-user-modal__section-header-title">
+      <FontAwesomeIcon icon={faUserCircle} className="add-user-modal__section-header-icon" />
       {title}
     </span>
-    {note && <span style={{ fontSize: '12px', color: 'var(--pgn-color-text-light)' }}>{note}</span>}
+    {note && <span className="add-user-modal__section-header-note">{note}</span>}
   </div>
 );
 
@@ -371,9 +367,7 @@ const AddUserModal = ({ onClose, assignmentUser }) => {
     <div
       role="button"
       tabIndex={0}
-      style={{
-        position: 'fixed', inset: 0, zIndex: 1050, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-      }}
+      className="add-user-modal__overlay"
       onClick={e => { if (e.target === e.currentTarget && !isSubmitting) { onClose(); } }}
       onKeyDown={(e) => {
         if ((e.key === 'Enter' || e.key === ' ') && e.target === e.currentTarget && !isSubmitting) {
@@ -381,55 +375,34 @@ const AddUserModal = ({ onClose, assignmentUser }) => {
         }
       }}
     >
-      <div style={{
-        background: '#fff', borderRadius: '12px', width: '880px', maxWidth: '96vw', maxHeight: '92vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '0 24px 64px rgba(0,0,0,0.28)',
-      }}
-      >
-        <div style={{
-          background: 'linear-gradient(135deg, #1B3A5C 0%, #1E4976 100%)', padding: '22px 28px', borderBottom: '3px solid #C9922A', flexShrink: 0, display: 'flex', alignItems: 'center', gap: '16px', position: 'relative',
-        }}
-        >
-          <div style={{
-            width: '44px', height: '44px', borderRadius: '50%', border: '2px solid rgba(255,255,255,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(255,255,255,0.6)', fontSize: '20px', flexShrink: 0,
-          }}
-          >
+      <div className="add-user-modal__panel">
+        <div className="add-user-modal__header">
+          <div className="add-user-modal__header-icon">
             +
           </div>
           <div>
-            <p style={{
-              margin: 0, fontSize: '10px', fontWeight: 700, color: 'rgba(255,255,255,0.6)', letterSpacing: '0.12em', textTransform: 'uppercase',
-            }}
-            >
+            <p className="add-user-modal__eyebrow">
               {eyebrow}
             </p>
-            <h2 style={{
-              margin: '2px 0 0', fontSize: '20px', fontWeight: 700, color: '#fff',
-            }}
-            >{title}
-            </h2>
-            <p style={{ margin: '2px 0 0', fontSize: '13px', color: 'rgba(255,255,255,0.65)' }}>{subtitle}</p>
+            <h2 className="add-user-modal__title">{title}</h2>
+            <p className="add-user-modal__subtitle">{subtitle}</p>
           </div>
           <button
             type="button"
             onClick={onClose}
             disabled={isSubmitting}
-            style={{
-              position: 'absolute', top: '18px', right: '20px', background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: '6px', color: '#fff', width: '28px', height: '28px', cursor: 'pointer', fontSize: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}
+            className="add-user-modal__close-btn"
           >
             x
           </button>
         </div>
 
-        <div ref={contentRef} style={{ overflowY: 'auto', flex: 1, padding: '24px 28px' }}>
-          <div style={{ marginBottom: '20px' }}>
-            <p style={{
-              fontSize: '10.5px', fontWeight: 700, color: 'var(--pgn-color-text-light)', letterSpacing: '0.07em', display: 'block', marginBottom: '8px',
-            }}
-            >
-              {intl.formatMessage(messages.roleSectionLabel)} <span style={{ color: '#E53E3E' }}>*</span>
+        <div ref={contentRef} className="add-user-modal__content">
+          <div className="add-user-modal__section">
+            <p className="add-user-modal__section-label">
+              {intl.formatMessage(messages.roleSectionLabel)} <span className="add-user-modal__required-mark">*</span>
             </p>
-            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+            <div className="add-user-modal__role-grid">
               {visibleRoles.map((role) => {
                 const active = selectedRole === role.id;
                 return (
@@ -437,22 +410,16 @@ const AddUserModal = ({ onClose, assignmentUser }) => {
                     key={role.id}
                     type="button"
                     onClick={() => setSelectedRole(role.id)}
-                    style={{
-                      flex: '1 1 130px',
-                      padding: '10px 8px',
-                      borderRadius: '8px',
-                      cursor: 'pointer',
-                      border: `1.5px solid ${active ? 'var(--pgn-color-primary-base)' : 'var(--pgn-color-border)'}`,
-                      background: active ? 'var(--pgn-color-primary-light)' : '#fff',
-                      textAlign: 'center',
-                    }}
+                    className={`add-user-modal__role-btn ${active ? 'add-user-modal__role-btn--active' : ''}`}
                   >
-                    <p style={{
-                      margin: 0, fontSize: '13px', fontWeight: 600, color: active ? 'var(--pgn-color-primary-base)' : 'var(--pgn-color-gray-900)',
-                    }}
+                    <p
+                      className={`add-user-modal__role-btn-title ${active ? 'add-user-modal__role-btn-title--active' : ''}`}
                     >{intl.formatMessage(role.labelMessage)}
                     </p>
-                    <p style={{ margin: '2px 0 0', fontSize: '11px', color: active ? 'var(--pgn-color-primary-base)' : 'var(--pgn-color-text-light)' }}>{intl.formatMessage(role.descMessage)}</p>
+                    <p
+                      className={`add-user-modal__role-btn-desc ${active ? 'add-user-modal__role-btn-desc--active' : ''}`}
+                    >{intl.formatMessage(role.descMessage)}
+                    </p>
                   </button>
                 );
               })}
@@ -460,14 +427,11 @@ const AddUserModal = ({ onClose, assignmentUser }) => {
           </div>
 
           {selectedRole === 'trainee' && (
-            <div style={{ marginBottom: '20px' }}>
-              <p style={{
-                fontSize: '10.5px', fontWeight: 700, color: 'var(--pgn-color-text-light)', letterSpacing: '0.07em', display: 'block', marginBottom: '8px',
-              }}
-              >
-                {intl.formatMessage(messages.traineeTypeSectionLabel)} <span style={{ color: '#E53E3E' }}>*</span>
+            <div className="add-user-modal__section">
+              <p className="add-user-modal__section-label">
+                {intl.formatMessage(messages.traineeTypeSectionLabel)} <span className="add-user-modal__required-mark">*</span>
               </p>
-              <div style={{ display: 'flex', gap: '10px' }}>
+              <div className="add-user-modal__trainee-grid">
                 {TRAINEE_TYPES.map((type) => {
                   const active = traineeType === type.id;
                   return (
@@ -475,22 +439,16 @@ const AddUserModal = ({ onClose, assignmentUser }) => {
                       key={type.id}
                       type="button"
                       onClick={() => setTraineeType(type.id)}
-                      style={{
-                        flex: 1,
-                        padding: '12px 16px',
-                        borderRadius: '8px',
-                        cursor: 'pointer',
-                        border: `1.5px solid ${active ? 'var(--pgn-color-primary-base)' : 'var(--pgn-color-border)'}`,
-                        background: active ? 'var(--pgn-color-primary-light)' : '#fff',
-                        textAlign: 'center',
-                      }}
+                      className={`add-user-modal__trainee-btn ${active ? 'add-user-modal__trainee-btn--active' : ''}`}
                     >
-                      <p style={{
-                        margin: 0, fontSize: '14px', fontWeight: 600, color: active ? 'var(--pgn-color-primary-base)' : 'var(--pgn-color-gray-900)',
-                      }}
+                      <p
+                        className={`add-user-modal__trainee-btn-title ${active ? 'add-user-modal__trainee-btn-title--active' : ''}`}
                       >{intl.formatMessage(type.labelMessage)}
                       </p>
-                      <p style={{ margin: '3px 0 0', fontSize: '12px', color: active ? 'var(--pgn-color-primary-base)' : 'var(--pgn-color-text-light)' }}>{intl.formatMessage(type.descMessage)}</p>
+                      <p
+                        className={`add-user-modal__trainee-btn-desc ${active ? 'add-user-modal__trainee-btn-desc--active' : ''}`}
+                      >{intl.formatMessage(type.descMessage)}
+                      </p>
                     </button>
                   );
                 })}
@@ -499,32 +457,21 @@ const AddUserModal = ({ onClose, assignmentUser }) => {
           )}
 
           {apiError && (
-            <div
-              ref={apiErrorRef}
-              style={{
-                background: '#FDE8E8', color: '#9B1C1C', border: '1px solid #F8B4B4', borderRadius: '6px', padding: '10px 12px', marginBottom: '14px', fontSize: '13.5px',
-              }}
-            >
+            <Alert ref={apiErrorRef} variant="danger" className="mb-3">
               {apiError}
-            </div>
+            </Alert>
           )}
 
           {!isAssignment && shouldShowCity && cities.length === 0 && (
-            <div style={{
-              background: '#FFF8E5', color: '#7A4D00', border: '1px solid #F0D28A', borderRadius: '6px', padding: '10px 12px', marginBottom: '14px', fontSize: '13.5px',
-            }}
-            >
+            <Alert variant="warning" className="mb-3">
               {intl.formatMessage(messages.noCitiesWarning)}
-            </div>
+            </Alert>
           )}
 
           {!isAssignment && selectedRole === 'trainee' && traineeType === 'stp' && batches.length === 0 && (
-            <div style={{
-              background: '#FFF8E5', color: '#7A4D00', border: '1px solid #F0D28A', borderRadius: '6px', padding: '10px 12px', marginBottom: '14px', fontSize: '13.5px',
-            }}
-            >
+            <Alert variant="warning" className="mb-3">
               {intl.formatMessage(messages.noBatchesWarning)}
-            </div>
+            </Alert>
           )}
 
           {isAssignment ? (
@@ -533,11 +480,8 @@ const AddUserModal = ({ onClose, assignmentUser }) => {
                 title={intl.formatMessage(messages.sectionSignInApproval)}
                 note={intl.formatMessage(messages.sectionSignInApprovalNote)}
               />
-              <div style={{
-                background: 'var(--pgn-color-gray-100)', border: '1px solid var(--pgn-color-border)', borderRadius: '8px', padding: '14px 16px',
-              }}
-              >
-                <p style={{ margin: 0, fontSize: '13px', color: 'var(--pgn-color-gray-900)' }}>
+              <div className="add-user-modal__summary-box">
+                <p className="add-user-modal__summary-text">
                   {intl.formatMessage(messages.assignmentSummary, { email: <strong key="email">{assignmentEmail}</strong> })}
                 </p>
               </div>
@@ -560,20 +504,14 @@ const AddUserModal = ({ onClose, assignmentUser }) => {
           )}
 
           {!isAssignment && selectedRole === 'trainee' && (
-            <div style={{
-              display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--pgn-color-text-light)', fontSize: '12px', marginTop: '6px',
-            }}
-            >
+            <div className="add-user-modal__hint">
               <FontAwesomeIcon icon={faHome} />
               <span>{intl.formatMessage(messages.batchHintStpOnly)}</span>
             </div>
           )}
         </div>
 
-        <div style={{
-          padding: '14px 28px', borderTop: '1px solid var(--pgn-color-border)', display: 'flex', justifyContent: 'flex-end', gap: '10px', background: '#fff', flexShrink: 0,
-        }}
-        >
+        <div className="add-user-modal__footer">
           <Button variant="tertiary" onClick={onClose} disabled={isSubmitting}>{intl.formatMessage(messages.cancelButton)}</Button>
           <Button
             variant="primary"
@@ -585,7 +523,7 @@ const AddUserModal = ({ onClose, assignmentUser }) => {
               || (!isAssignment && selectedRole === 'trainee' && traineeType === 'stp' && batches.length === 0)
             }
           >
-            <FontAwesomeIcon icon={faCheck} style={{ fontSize: '12px', marginRight: '7px' }} />
+            <FontAwesomeIcon icon={faCheck} className="add-user-modal__submit-icon" />
             {submitLabel}
           </Button>
         </div>

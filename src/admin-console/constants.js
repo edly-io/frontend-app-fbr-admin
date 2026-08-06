@@ -38,7 +38,10 @@ export const NAV_SECTIONS = [
     id: 'reports',
     items: [
       {
-        id: 'program', path: 'program-reports', icon: faChartLine,
+        id: 'program', path: 'program-reports', icon: faChartLine, capabilityKey: 'canAccessPrograms',
+      },
+      {
+        id: 'sessions-instructor', path: 'sessions-reports', icon: faChartLine, capabilityKey: 'canAccessSessions',
       },
     ],
   },

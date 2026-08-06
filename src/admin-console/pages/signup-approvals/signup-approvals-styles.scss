@@ -1,0 +1,93 @@
+.signup-approvals-page {
+  .signup-approvals-page__subtitle {
+    color: var(--pgn-color-text-light);
+  }
+
+  .signup-approvals-page__filter-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+  }
+
+  .signup-approvals-page__search-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .signup-approvals-page__count {
+    flex-shrink: 0;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--pgn-color-text-light);
+  }
+}
+
+.signup-approvals-list {
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid var(--pgn-color-border);
+  border-radius: 10px;
+
+  .signup-approvals-list__state {
+    padding: 56px 32px;
+    text-align: center;
+  }
+
+  .signup-approvals-list__state-text {
+    margin: 0;
+    color: var(--pgn-color-text-light);
+    font-size: 15px;
+  }
+
+  .signup-approvals-list__row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 18px 24px;
+    border-bottom: 1px solid var(--pgn-color-gray-100);
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    &:hover {
+      background: var(--pgn-color-primary-light);
+    }
+  }
+
+  .signup-approvals-list__info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .signup-approvals-list__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    margin: 3px 0 0;
+    color: var(--pgn-color-text-light);
+    font-size: 13px;
+  }
+
+  .signup-approvals-list__meta-email {
+    color: var(--pgn-color-primary-base);
+  }
+
+  .signup-approvals-list__meta-dot {
+    opacity: 0.4;
+  }
+
+  .signup-approvals-list__actions {
+    display: flex;
+    flex-shrink: 0;
+    gap: 8px;
+  }
+
+  .signup-approvals-list__assign-icon {
+    margin-right: 6px;
+    font-size: 12px;
+  }
+}

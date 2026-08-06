@@ -1,14 +1,16 @@
 import React, { useMemo, useState } from 'react';
 import PropTypes from 'prop-types';
-import { Button, Form } from '@openedx/paragon';
+import { Alert, Button, Form } from '@openedx/paragon';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faCheck, faDownload, faFileCsv, faTimes, faUpload,
 } from '@fortawesome/free-solid-svg-icons';
 import { useIntl } from '@edx/frontend-platform/i18n';
-import { downloadBulkImportSample } from '../data/api';
-import { useAdminConsoleBootstrap, useBulkImportUsersMutation } from '../data/apiHooks';
-import messages from './messages';
+import { downloadBulkImportSample } from '../../data/api';
+import { useAdminConsoleBootstrap, useBulkImportUsersMutation } from '../../data/apiHooks';
+import { downloadBlob } from '../../utils/download';
+import messages from '../messages';
+import './user-modals-styles.scss';
 
 const ROLE_OPTIONS = [
   { id: 'trainee', labelMessage: messages.bulkImportRoleTrainees, hintMessage: messages.bulkImportHintTrainee },
@@ -29,17 +31,6 @@ const getApiErrorMessage = (error, fallback) => {
   return fallback;
 };
 
-const downloadBlob = (blob, fallbackName) => {
-  const url = window.URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = fallbackName;
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-  window.URL.revokeObjectURL(url);
-};
-
 const ResultStatus = ({ status }) => {
   const intl = useIntl();
   const isError = status === 'error';
@@ -50,15 +41,8 @@ const ResultStatus = ({ status }) => {
     labelMessage = messages.resultStatusCreated;
   }
   return (
-    <span style={{
-      background: isError ? '#FDE8E8' : '#EDFAF1',
-      color: isError ? '#9B1C1C' : 'var(--pgn-color-green)',
-      padding: '3px 9px',
-      borderRadius: '12px',
-      fontSize: '12px',
-      fontWeight: 600,
-      display: 'inline-flex',
-    }}
+    <span
+      className={`bulk-import-modal__result-status ${isError ? 'bulk-import-modal__result-status--error' : 'bulk-import-modal__result-status--success'}`}
     >
       {intl.formatMessage(labelMessage)}
     </span>
@@ -161,9 +145,7 @@ const BulkImportUsersModal = ({ onClose }) => {
     <div
       role="button"
       tabIndex={0}
-      style={{
-        position: 'fixed', inset: 0, zIndex: 1050, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-      }}
+      className="bulk-import-modal__overlay"
       onClick={event => { if (event.target === event.currentTarget && !closeDisabled) { onClose(); } }}
       onKeyDown={(event) => {
         if ((event.key === 'Enter' || event.key === ' ') && event.target === event.currentTarget && !closeDisabled) {
@@ -171,58 +153,36 @@ const BulkImportUsersModal = ({ onClose }) => {
         }
       }}
     >
-      <div style={{
-        background: '#fff', borderRadius: '12px', width: '900px', maxWidth: '96vw', maxHeight: '92vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '0 24px 64px rgba(0,0,0,0.28)',
-      }}
-      >
-        <div style={{
-          background: 'linear-gradient(135deg, #1B3A5C 0%, #1E4976 100%)', padding: '22px 28px', borderBottom: '3px solid #C9922A', flexShrink: 0, display: 'flex', alignItems: 'center', gap: '16px', position: 'relative',
-        }}
-        >
-          <div style={{
-            width: '44px', height: '44px', borderRadius: '50%', border: '2px solid rgba(255,255,255,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(255,255,255,0.7)', fontSize: '18px', flexShrink: 0,
-          }}
-          >
+      <div className="bulk-import-modal__panel">
+        <div className="bulk-import-modal__header">
+          <div className="bulk-import-modal__header-icon">
             <FontAwesomeIcon icon={faFileCsv} />
           </div>
           <div>
-            <p style={{
-              margin: 0, fontSize: '10px', fontWeight: 700, color: 'rgba(255,255,255,0.6)', letterSpacing: '0.12em', textTransform: 'uppercase',
-            }}
-            >{intl.formatMessage(messages.bulkImportEyebrow)}
-            </p>
-            <h2 style={{
-              margin: '2px 0 0', fontSize: '20px', fontWeight: 700, color: '#fff',
-            }}
-            >{intl.formatMessage(messages.bulkImportTitle)}
-            </h2>
-            <p style={{ margin: '2px 0 0', fontSize: '13px', color: 'rgba(255,255,255,0.65)' }}>{intl.formatMessage(messages.bulkImportSubtitle)}</p>
+            <p className="bulk-import-modal__eyebrow">{intl.formatMessage(messages.bulkImportEyebrow)}</p>
+            <h2 className="bulk-import-modal__title">{intl.formatMessage(messages.bulkImportTitle)}</h2>
+            <p className="bulk-import-modal__subtitle">{intl.formatMessage(messages.bulkImportSubtitle)}</p>
           </div>
           <button
             type="button"
             onClick={onClose}
             disabled={closeDisabled}
-            style={{
-              position: 'absolute', top: '18px', right: '20px', background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: '6px', color: '#fff', width: '28px', height: '28px', cursor: closeDisabled ? 'not-allowed' : 'pointer', fontSize: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}
+            className="bulk-import-modal__close-btn"
           >
             <FontAwesomeIcon icon={faTimes} />
           </button>
         </div>
 
-        <div style={{ overflowY: 'auto', flex: 1, padding: '24px 28px' }}>
+        <div className="bulk-import-modal__content">
           {importableRoles.length === 0 ? (
-            <div style={{
-              background: '#FFF8E5', color: '#7A4D00', border: '1px solid #F0D28A', borderRadius: '6px', padding: '10px 12px', marginBottom: '14px', fontSize: '13.5px',
-            }}
-            >
+            <Alert variant="warning" className="mb-3">
               {intl.formatMessage(messages.bulkImportNoPermission)}
-            </div>
+            </Alert>
           ) : (
             <>
               <Form.Group>
                 <Form.Label>{intl.formatMessage(messages.bulkImportTypeLabel)}</Form.Label>
-                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                <div className="bulk-import-modal__role-grid">
                   {importableRoles.map(option => {
                     const active = option.id === role;
                     return (
@@ -234,17 +194,7 @@ const BulkImportUsersModal = ({ onClose }) => {
                           setResult(null);
                           setError('');
                         }}
-                        style={{
-                          flex: '1 1 180px',
-                          padding: '11px 14px',
-                          borderRadius: '8px',
-                          cursor: 'pointer',
-                          border: `1.5px solid ${active ? 'var(--pgn-color-primary-base)' : 'var(--pgn-color-border)'}`,
-                          background: active ? 'var(--pgn-color-primary-light)' : '#fff',
-                          color: active ? 'var(--pgn-color-primary-base)' : 'var(--pgn-color-gray-900)',
-                          fontWeight: 600,
-                          textAlign: 'center',
-                        }}
+                        className={`bulk-import-modal__role-btn ${active ? 'bulk-import-modal__role-btn--active' : ''}`}
                       >
                         {intl.formatMessage(option.labelMessage)}
                       </button>
@@ -254,12 +204,9 @@ const BulkImportUsersModal = ({ onClose }) => {
                 <div className="small text-muted mt-2">{activeRoleOption && intl.formatMessage(activeRoleOption.hintMessage)}</div>
               </Form.Group>
 
-              <div style={{
-                display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', margin: '18px 0',
-              }}
-              >
+              <div className="bulk-import-modal__actions-row">
                 <Button variant="outline-primary" size="sm" onClick={handleDownloadSample} disabled={isDownloading}>
-                  <FontAwesomeIcon icon={faDownload} style={{ marginRight: '6px' }} />
+                  <FontAwesomeIcon icon={faDownload} className="bulk-import-modal__download-icon" />
                   {isDownloading
                     ? intl.formatMessage(messages.downloadingButton)
                     : intl.formatMessage(messages.downloadSampleButton)}
@@ -290,66 +237,47 @@ const BulkImportUsersModal = ({ onClose }) => {
             </>
           )}
 
-          {error && (
-            <div style={{
-              background: '#FDE8E8', color: '#9B1C1C', border: '1px solid #F8B4B4', borderRadius: '6px', padding: '10px 12px', marginBottom: '14px', fontSize: '13.5px',
-            }}
-            >
-              {error}
-            </div>
-          )}
+          {error && <Alert variant="danger" className="mb-3">{error}</Alert>}
 
           {result && (
-            <div style={{ marginTop: '22px' }}>
-              <div style={{
-                display: 'flex', flexWrap: 'wrap', gap: '10px', marginBottom: '14px',
-              }}
-              >
+            <div className="bulk-import-modal__result">
+              <div className="bulk-import-modal__result-stats">
                 {resultRows.map(([labelMessage, value]) => (
-                  <div
-                    key={labelMessage.id}
-                    style={{
-                      border: '1px solid var(--pgn-color-border)', borderRadius: '8px', padding: '10px 12px', minWidth: '130px',
-                    }}
-                  >
-                    <div style={{
-                      fontSize: '11px', color: 'var(--pgn-color-text-light)', textTransform: 'uppercase', fontWeight: 700,
-                    }}
-                    >{intl.formatMessage(labelMessage)}
-                    </div>
-                    <div style={{ fontSize: '18px', color: 'var(--pgn-color-gray-900)', fontWeight: 700 }}>{value ?? 0}</div>
+                  <div key={labelMessage.id} className="bulk-import-modal__stat-card">
+                    <div className="bulk-import-modal__stat-label">{intl.formatMessage(labelMessage)}</div>
+                    <div className="bulk-import-modal__stat-value">{value ?? 0}</div>
                   </div>
                 ))}
               </div>
 
-              <div style={{ border: '1px solid var(--pgn-color-border)', borderRadius: '8px', overflow: 'hidden' }}>
-                <div style={{ maxHeight: '260px', overflow: 'auto' }}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+              <div className="bulk-import-modal__table-wrap">
+                <div className="bulk-import-modal__table-scroll">
+                  <table className="bulk-import-modal__table">
                     <thead>
-                      <tr style={{ background: 'var(--pgn-color-gray-100)' }}>
+                      <tr className="bulk-import-modal__table-header-row">
                         {[
                           messages.resultColumnRow,
                           messages.resultColumnEmail,
                           messages.resultColumnStatus,
                           messages.resultColumnErrors,
                         ].map(labelMessage => (
-                          <th
-                            key={labelMessage.id}
-                            style={{
-                              padding: '9px 12px', textAlign: 'left', fontSize: '11px', color: 'var(--pgn-color-gray-500)', fontWeight: 700,
-                            }}
-                          >{intl.formatMessage(labelMessage)}
+                          <th key={labelMessage.id} className="bulk-import-modal__table-header-cell">
+                            {intl.formatMessage(labelMessage)}
                           </th>
                         ))}
                       </tr>
                     </thead>
                     <tbody>
                       {(result.rows || []).map(row => (
-                        <tr key={`${row.row}-${row.email}`} style={{ borderTop: '1px solid var(--pgn-color-gray-100)' }}>
-                          <td style={{ padding: '9px 12px', fontWeight: 600 }}>{row.row}</td>
-                          <td style={{ padding: '9px 12px', color: 'var(--pgn-color-primary-base)' }}>{row.email || intl.formatMessage(messages.emptyValue)}</td>
-                          <td style={{ padding: '9px 12px' }}><ResultStatus status={row.status} /></td>
-                          <td style={{ padding: '9px 12px', color: row.status === 'error' ? '#9B1C1C' : 'var(--pgn-color-text-light)' }}>
+                        <tr key={`${row.row}-${row.email}`} className="bulk-import-modal__table-row">
+                          <td className="bulk-import-modal__table-cell bulk-import-modal__table-cell--strong">{row.row}</td>
+                          <td className="bulk-import-modal__table-cell bulk-import-modal__table-cell--email">
+                            {row.email || intl.formatMessage(messages.emptyValue)}
+                          </td>
+                          <td className="bulk-import-modal__table-cell"><ResultStatus status={row.status} /></td>
+                          <td
+                            className={`bulk-import-modal__table-cell ${row.status === 'error' ? 'bulk-import-modal__table-cell--error-text' : 'bulk-import-modal__table-cell--muted'}`}
+                          >
                             {formatErrors(row.errors) || intl.formatMessage(messages.emptyValue)}
                           </td>
                         </tr>
@@ -362,13 +290,10 @@ const BulkImportUsersModal = ({ onClose }) => {
           )}
         </div>
 
-        <div style={{
-          padding: '14px 28px', borderTop: '1px solid var(--pgn-color-border)', display: 'flex', justifyContent: 'flex-end', gap: '10px', background: '#fff', flexShrink: 0,
-        }}
-        >
+        <div className="bulk-import-modal__footer">
           <Button variant="tertiary" onClick={onClose} disabled={closeDisabled}>{intl.formatMessage(messages.closeButton)}</Button>
           <Button variant="primary" onClick={handleSubmit} disabled={!canSubmit}>
-            <FontAwesomeIcon icon={dryRun ? faCheck : faUpload} style={{ fontSize: '12px', marginRight: '7px' }} />
+            <FontAwesomeIcon icon={dryRun ? faCheck : faUpload} className="bulk-import-modal__submit-icon" />
             {submitLabel}
           </Button>
         </div>

@@ -3,7 +3,7 @@ import {
   Alert, Card, Spinner, Toast,
 } from '@openedx/paragon';
 import { useIntl } from '@edx/frontend-platform/i18n';
-import DebouncedSearchInput from '../../shared/DebouncedSearchInput';
+import DebouncedSearchInput from '../../components/debounced-search-input/DebouncedSearchInput';
 import HrmsAssignRoleModal from './HrmsAssignRoleModal';
 import HrmsEmployeesTable from './HrmsEmployeesTable';
 import HrmsToolbar from './HrmsToolbar';

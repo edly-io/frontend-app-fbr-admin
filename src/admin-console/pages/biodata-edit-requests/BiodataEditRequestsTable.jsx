@@ -4,13 +4,14 @@ import { Button, Form } from '@openedx/paragon';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCheck } from '@fortawesome/free-solid-svg-icons';
 import { useIntl } from '@edx/frontend-platform/i18n';
-import UserIdentity from '../../shared/UserIdentity';
-import RequestStatusBadge from '../../components/RequestStatusBadge';
-import PaginationFooter from '../../components/PaginationFooter';
+import UserIdentity from '../../components/UserIdentity';
+import RequestStatusBadge from '../../components/request-status-badge/RequestStatusBadge';
+import PaginationFooter from '../../components/pagination-footer/PaginationFooter';
 import { getInitials } from '../../data/api';
+import { formatDateTime } from '../../utils/date';
 import messages from './messages';
-
-const formatDateTime = value => (value ? new Date(value).toLocaleString() : null);
+import '../../../assets/scss/admin-table-styles.scss';
+import './biodata-edit-requests-styles.scss';
 
 const BiodataEditRequestsTable = ({
   isLoading,
@@ -41,19 +42,14 @@ const BiodataEditRequestsTable = ({
   ];
 
   return (
-    <div style={{
-      background: '#fff', borderRadius: '10px', border: '1px solid var(--pgn-color-border)', overflow: 'hidden',
-    }}
-    >
-      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13.5px' }}>
+    <div className="admin-table__wrapper admin-table__wrapper--clip biodata-edit-requests-table">
+      <table className="admin-table">
         <thead>
-          <tr style={{ background: 'var(--pgn-color-gray-100)', borderBottom: '1px solid var(--pgn-color-border)' }}>
+          <tr className="admin-table__head-row">
             {columns.map(label => (
               <th
                 key={label}
-                style={{
-                  padding: '11px 16px', textAlign: label === intl.formatMessage(messages.columnAction) ? 'center' : 'left', fontSize: '11px', fontWeight: 700, color: 'var(--pgn-color-gray-400)', letterSpacing: '0.06em',
-                }}
+                className={`admin-table__head-cell ${label === intl.formatMessage(messages.columnAction) ? 'admin-table__head-cell--center' : ''}`}
               >
                 {label}
               </th>
@@ -62,14 +58,14 @@ const BiodataEditRequestsTable = ({
         </thead>
         <tbody>
           {isLoading && (
-            <tr><td colSpan={7} style={{ padding: '48px 16px', textAlign: 'center', color: 'var(--pgn-color-text-light)' }}>{intl.formatMessage(messages.loading)}</td></tr>
+            <tr><td colSpan={7} className="admin-table__empty-cell">{intl.formatMessage(messages.loading)}</td></tr>
           )}
           {!isLoading && requests.length === 0 && (
-            <tr><td colSpan={7} style={{ padding: '48px 16px', textAlign: 'center', color: 'var(--pgn-color-text-light)' }}>{intl.formatMessage(messages.emptyState)}</td></tr>
+            <tr><td colSpan={7} className="admin-table__empty-cell">{intl.formatMessage(messages.emptyState)}</td></tr>
           )}
-          {!isLoading && requests.map((request, idx) => (
-            <tr key={request.id} style={{ borderBottom: idx < requests.length - 1 ? '1px solid var(--pgn-color-gray-100)' : 'none', verticalAlign: 'top' }}>
-              <td style={{ padding: '14px 16px', minWidth: '150px' }}>
+          {!isLoading && requests.map((request) => (
+            <tr key={request.id} className="admin-table__body-row admin-table__body-row--top">
+              <td className="admin-table__cell admin-table__cell--tight biodata-edit-requests-table__profile-cell">
                 <UserIdentity
                   name={
                     request.profile_name
@@ -80,17 +76,14 @@ const BiodataEditRequestsTable = ({
                   avatarValue={getInitials(request.profile_name || `Profile ${request.profile_id}`)}
                 />
               </td>
-              <td style={{
-                padding: '14px 16px', color: 'var(--pgn-color-gray-700)', maxWidth: '320px', whiteSpace: 'pre-wrap',
-              }}
-              >
+              <td className="admin-table__cell admin-table__cell--tight admin-table__cell--muted admin-table__cell--wrap biodata-edit-requests-table__message-cell">
                 {request.message}
               </td>
-              <td style={{ padding: '14px 16px' }}><RequestStatusBadge status={request.status} /></td>
-              <td style={{ padding: '14px 16px', color: 'var(--pgn-color-gray-700)', minWidth: '130px' }}>
+              <td className="admin-table__cell admin-table__cell--tight"><RequestStatusBadge status={request.status} /></td>
+              <td className="admin-table__cell admin-table__cell--tight admin-table__cell--muted biodata-edit-requests-table__date-cell">
                 {formatDateTime(request.created_at) || intl.formatMessage(messages.unknownDate)}
               </td>
-              <td style={{ padding: '14px 16px', color: 'var(--pgn-color-gray-700)' }}>
+              <td className="admin-table__cell admin-table__cell--tight admin-table__cell--muted">
                 {request.resolved_by_name ? (
                   <UserIdentity
                     name={request.resolved_by_name}
@@ -100,7 +93,7 @@ const BiodataEditRequestsTable = ({
                   />
                 ) : intl.formatMessage(messages.unknownDate)}
               </td>
-              <td style={{ padding: '14px 16px', minWidth: '220px' }}>
+              <td className="admin-table__cell admin-table__cell--tight biodata-edit-requests-table__note-cell">
                 {request.status === 'pending' ? (
                   <Form.Control
                     as="textarea"
@@ -110,12 +103,12 @@ const BiodataEditRequestsTable = ({
                     onChange={event => onAdminNoteChange(request.id, event.target.value)}
                   />
                 ) : (
-                  <span style={{ color: 'var(--pgn-color-gray-700)', whiteSpace: 'pre-wrap' }}>
+                  <span className="admin-table__cell--muted admin-table__cell--wrap">
                     {request.admin_note || intl.formatMessage(messages.unknownDate)}
                   </span>
                 )}
               </td>
-              <td style={{ padding: '14px 16px', textAlign: 'center', minWidth: '120px' }}>
+              <td className="admin-table__cell admin-table__cell--tight admin-table__cell--center biodata-edit-requests-table__action-cell">
                 {request.status === 'pending' ? (
                   <Button
                     variant="success"
@@ -123,13 +116,13 @@ const BiodataEditRequestsTable = ({
                     onClick={() => onResolve(request.id)}
                     disabled={resolvingId === request.id}
                   >
-                    <FontAwesomeIcon icon={faCheck} style={{ fontSize: '12px', marginRight: '6px' }} />
+                    <FontAwesomeIcon icon={faCheck} className="biodata-edit-requests-table__resolve-icon" />
                     {resolvingId === request.id
                       ? intl.formatMessage(messages.resolving)
                       : intl.formatMessage(messages.resolveButton)}
                   </Button>
                 ) : (
-                  <span style={{ fontSize: '12px', color: 'var(--pgn-color-text-light)' }}>
+                  <span className="admin-table__resolved-note">
                     {intl.formatMessage(messages.resolvedAt, {
                       date: formatDateTime(request.resolved_at) || intl.formatMessage(messages.unknownDate),
                     })}

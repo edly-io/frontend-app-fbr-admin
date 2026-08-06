@@ -6,6 +6,7 @@ import { faUpload, faPlus } from '@fortawesome/free-solid-svg-icons';
 import { useIntl } from '@edx/frontend-platform/i18n';
 import Breadcrumb from '../../components/breadcrumb/Breadcrumb';
 import messages from './messages';
+import './users-styles.scss';
 
 /**
  * Breadcrumb + title + subtitle + Import/Add User buttons for the Users page.
@@ -16,28 +17,22 @@ const UsersToolbar = ({ onImport, onAdd }) => {
   return (
     <>
       <Breadcrumb leaf={intl.formatMessage(messages.breadcrumbLeaf)} />
-      <div style={{
-        display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '6px',
-      }}
-      >
-        <h1 style={{
-          fontSize: '22px', fontWeight: 700, color: 'var(--pgn-color-text-base)', margin: 0,
-        }}
-        >
+      <div className="d-flex justify-content-between align-items-start mb-1">
+        <h1 className="h3 fw-bold mb-0">
           {intl.formatMessage(messages.pageTitle)}
         </h1>
-        <div style={{ display: 'flex', gap: '10px', marginTop: '2px' }}>
+        <div className="users-page__header-actions">
           <Button variant="outline-primary" size="sm" onClick={onImport}>
-            <FontAwesomeIcon icon={faUpload} style={{ marginRight: '6px' }} />
+            <FontAwesomeIcon icon={faUpload} className="mr-2" />
             {intl.formatMessage(messages.importButton)}
           </Button>
           <Button variant="primary" size="sm" onClick={onAdd}>
-            <FontAwesomeIcon icon={faPlus} style={{ marginRight: '6px' }} />
+            <FontAwesomeIcon icon={faPlus} className="mr-2" />
             {intl.formatMessage(messages.addUserButton)}
           </Button>
         </div>
       </div>
-      <p style={{ color: 'var(--pgn-color-text-light)', fontSize: '13.5px', marginBottom: '22px' }}>
+      <p className="users-page__subtitle small mb-4">
         {intl.formatMessage(messages.pageSubtitle)}
       </p>
     </>

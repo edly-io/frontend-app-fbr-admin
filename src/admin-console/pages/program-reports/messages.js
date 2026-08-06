@@ -46,6 +46,26 @@ const messages = defineMessages({
     defaultMessage: 'All Cities',
     description: 'Option to clear the City filter.',
   },
+  filterDateRange: {
+    id: 'fbrAdmin.reports.filter.dateRange',
+    defaultMessage: 'Date Range',
+    description: 'Label for the Date Range filter.',
+  },
+  filterDateRangeStart: {
+    id: 'fbrAdmin.reports.filter.dateRange.start',
+    defaultMessage: 'Start date',
+    description: 'Accessible label for the Date Range filter\'s start date input.',
+  },
+  filterDateRangeEnd: {
+    id: 'fbrAdmin.reports.filter.dateRange.end',
+    defaultMessage: 'End date',
+    description: 'Accessible label for the Date Range filter\'s end date input.',
+  },
+  applyFilters: {
+    id: 'fbrAdmin.reports.filter.apply',
+    defaultMessage: 'Apply Filters',
+    description: 'Button label to apply the selected filters and refresh the report.',
+  },
   clearAllFilters: {
     id: 'fbrAdmin.reports.filter.clearAll',
     defaultMessage: 'Clear all filters',

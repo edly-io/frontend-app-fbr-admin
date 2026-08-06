@@ -6,6 +6,7 @@ import {
   assignUserRole,
   bulkImportUsers,
 } from './api';
+import { getReportsCapabilities } from './permissions';
 import { usersQueryKeys } from '../pages/users/data/apiHooks';
 import { signupApprovalsQueryKeys } from '../pages/signup-approvals/data/apiHooks';
 
@@ -33,6 +34,20 @@ export const useAdminConsoleBootstrap = () => useQuery({
   queryFn: getAdminConsoleBootstrap,
   retry: retryExceptClientErrors,
 });
+
+/**
+ * Derives the caller's Reports capabilities from the shared bootstrap query,
+ * so page-level gating and sidebar visibility both read from the same
+ * capability computation instead of duplicating role checks.
+ */
+export const useReportsAccess = () => {
+  const query = useAdminConsoleBootstrap();
+
+  return {
+    ...query,
+    capabilities: getReportsCapabilities(query.data?.callerProfile?.roles),
+  };
+};
 
 export const useCreateUserMutation = () => {
   const queryClient = useQueryClient();

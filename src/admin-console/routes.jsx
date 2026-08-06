@@ -9,6 +9,7 @@ import RegionalOfficesPage from './pages/regional-offices/RegionalOfficesPage';
 import AccessPoliciesPage from './pages/access-policies/AccessPoliciesPage';
 import AuditLogPage from './pages/audit-log/AuditLogPage';
 import ProgramReportsPage from './pages/program-reports/ProgramReportsPage';
+import SessionsInstructorReportsPage from './pages/sessions-instructor-reports/SessionsInstructorReportsPage';
 import HrmsPage from './pages/hrms/HrmsPage';
 
 /**
@@ -26,6 +27,7 @@ const AdminConsoleRoutes = () => (
       <Route path="biodata-edit-requests" element={<BiodataEditRequestsPage />} />
       <Route path="hrms" element={<HrmsPage />} />
       <Route path="program-reports" element={<ProgramReportsPage />} />
+      <Route path="sessions-reports" element={<SessionsInstructorReportsPage />} />
       <Route path="courses" element={<CoursesPage />} />
       <Route path="regional-offices" element={<RegionalOfficesPage />} />
       <Route path="access-policies" element={<AccessPoliciesPage />} />

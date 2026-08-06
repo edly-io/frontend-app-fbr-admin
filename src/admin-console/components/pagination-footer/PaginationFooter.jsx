@@ -4,8 +4,9 @@ import { Button, Form } from '@openedx/paragon';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons';
 import { useIntl } from '@edx/frontend-platform/i18n';
-import messages from '../messages';
-import { ROWS_PER_PAGE_OPTIONS } from '../constants';
+import messages from '../../messages';
+import { ROWS_PER_PAGE_OPTIONS } from '../../constants';
+import './pagination-footer-styles.scss';
 
 const renderStrong = chunks => <strong>{chunks}</strong>;
 
@@ -32,11 +33,8 @@ const PaginationFooter = ({
   const intl = useIntl();
 
   return (
-    <div style={{
-      display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', borderTop: '1px solid var(--pgn-color-gray-100)', background: 'var(--pgn-color-gray-100)',
-    }}
-    >
-      <span style={{ fontSize: '13px', color: 'var(--pgn-color-text-light)' }}>
+    <div className="pagination-footer">
+      <span className="pagination-footer__summary">
         {intl.formatMessage(messages.paginationShowing, {
           start,
           end,
@@ -44,7 +42,7 @@ const PaginationFooter = ({
           strong: renderStrong,
         })}
       </span>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+      <div className="pagination-footer__controls">
         <Button
           variant="outline-secondary"
           size="sm"
@@ -52,7 +50,7 @@ const PaginationFooter = ({
           disabled={page <= 1}
           aria-label={intl.formatMessage(messages.paginationPrevious)}
         >
-          <FontAwesomeIcon icon={faChevronLeft} style={{ fontSize: '10px' }} />
+          <FontAwesomeIcon icon={faChevronLeft} className="pagination-footer__nav-icon" />
         </Button>
         {showPageNumbers && Array.from({ length: totalPages }, (_, i) => i + 1).map(n => (
           <Button key={n} size="sm" variant={n === page ? 'primary' : 'outline-secondary'} onClick={() => onPageChange(n)}>
@@ -66,20 +64,17 @@ const PaginationFooter = ({
           disabled={page >= totalPages}
           aria-label={intl.formatMessage(messages.paginationNext)}
         >
-          <FontAwesomeIcon icon={faChevronRight} style={{ fontSize: '10px' }} />
+          <FontAwesomeIcon icon={faChevronRight} className="pagination-footer__nav-icon" />
         </Button>
       </div>
-      <div style={{
-        display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: 'var(--pgn-color-text-light)',
-      }}
-      >
+      <div className="pagination-footer__rows-per-page">
         {intl.formatMessage(messages.paginationRowsPerPage)}
         <Form.Control
           as="select"
           size="sm"
           value={rowsPerPage}
           onChange={e => onRowsPerPageChange(Number(e.target.value))}
-          style={{ width: 'auto' }}
+          className="pagination-footer__rows-select"
         >
           {ROWS_PER_PAGE_OPTIONS.map(n => <option key={n} value={n}>{n}</option>)}
         </Form.Control>

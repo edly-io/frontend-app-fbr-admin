@@ -1,0 +1,28 @@
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  background: var(--pgn-color-gray-100);
+  color: var(--pgn-color-gray-base);
+
+  .status-badge__dot {
+    flex-shrink: 0;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--pgn-color-gray-400);
+  }
+}
+
+.status-badge--active {
+  background: #EDFAF1;
+  color: var(--pgn-color-green);
+
+  .status-badge__dot {
+    background: var(--pgn-color-green);
+  }
+}

@@ -1,4 +1,8 @@
 .filter-bar {
+  .filter-bar__row {
+    row-gap: 1rem;
+  }
+
   .filter-bar__group {
     min-width: 160px;
   }
@@ -12,5 +16,19 @@
 
   .filter-bar__clear-all {
     margin-bottom: 1px;
+  }
+
+  .filter-bar__date-range {
+    // Paragon's Bootstrap 4 base has no .gap-* utilities (added in Bootstrap 5).
+    gap: 0.5rem;
+  }
+
+  .filter-bar__date-range-separator {
+    color: var(--pgn-color-text-light);
+  }
+
+  .filter-bar__caption {
+    font-size: 12px;
+    color: var(--pgn-color-text-light);
   }
 }

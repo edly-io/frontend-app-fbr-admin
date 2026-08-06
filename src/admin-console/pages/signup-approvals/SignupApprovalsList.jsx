@@ -4,10 +4,12 @@ import { Button } from '@openedx/paragon';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCheck } from '@fortawesome/free-solid-svg-icons';
 import { useIntl } from '@edx/frontend-platform/i18n';
-import UserIdentity from '../../shared/UserIdentity';
-import PaginationFooter from '../../components/PaginationFooter';
+import UserIdentity from '../../components/UserIdentity';
+import PaginationFooter from '../../components/pagination-footer/PaginationFooter';
 import { getInitials } from '../../data/api';
+import { formatDate } from '../../utils/date';
 import messages from './messages';
+import './signup-approvals-styles.scss';
 
 const SignupApprovalsList = ({
   isLoading,
@@ -26,71 +28,56 @@ const SignupApprovalsList = ({
 
   if (isLoading) {
     return (
-      <div style={{
-        background: '#fff', borderRadius: '10px', border: '1px solid var(--pgn-color-border)', padding: '56px 32px', textAlign: 'center',
-      }}
-      >
-        <p style={{ color: 'var(--pgn-color-text-light)', fontSize: '15px', margin: 0 }}>
-          {intl.formatMessage(messages.loading)}
-        </p>
+      <div className="signup-approvals-list">
+        <div className="signup-approvals-list__state">
+          <p className="signup-approvals-list__state-text">
+            {intl.formatMessage(messages.loading)}
+          </p>
+        </div>
       </div>
     );
   }
 
   if (approvals.length === 0) {
     return (
-      <div style={{
-        background: '#fff', borderRadius: '10px', border: '1px solid var(--pgn-color-border)', padding: '56px 32px', textAlign: 'center',
-      }}
-      >
-        <p style={{ color: 'var(--pgn-color-text-light)', fontSize: '15px', margin: 0 }}>
-          {intl.formatMessage(messages.emptyState)}
-        </p>
+      <div className="signup-approvals-list">
+        <div className="signup-approvals-list__state">
+          <p className="signup-approvals-list__state-text">
+            {intl.formatMessage(messages.emptyState)}
+          </p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div style={{
-      background: '#fff', borderRadius: '10px', border: '1px solid var(--pgn-color-border)', overflow: 'hidden',
-    }}
-    >
-      {approvals.map((req, idx) => {
+    <div className="signup-approvals-list">
+      {approvals.map((req) => {
         const name = [req.first_name, req.last_name].filter(Boolean).join(' ') || req.username;
         return (
-          <div
-            key={req.id}
-            style={{
-              display: 'flex', alignItems: 'center', gap: '16px', padding: '18px 24px', borderBottom: idx < approvals.length - 1 ? '1px solid var(--pgn-color-gray-100)' : 'none',
-            }}
-            onMouseEnter={e => { e.currentTarget.style.background = 'var(--pgn-color-primary-light)'; }}
-            onMouseLeave={e => { e.currentTarget.style.background = ''; }}
-          >
-            <div style={{ flex: 1, minWidth: 0 }}>
+          <div key={req.id} className="signup-approvals-list__row">
+            <div className="signup-approvals-list__info">
               <UserIdentity
                 name={name}
                 badges={[intl.formatMessage(messages.pendingApprovalBadge)]}
                 size="compact"
                 avatarValue={getInitials(name)}
               />
-              <p style={{
-                margin: '3px 0 0', fontSize: '13px', color: 'var(--pgn-color-text-light)', display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap',
-              }}
-              >
-                <span style={{ color: 'var(--pgn-color-primary-base)' }}>{req.email}</span>
-                <span style={{ opacity: 0.4 }}>·</span>
+              <p className="signup-approvals-list__meta">
+                <span className="signup-approvals-list__meta-email">{req.email}</span>
+                <span className="signup-approvals-list__meta-dot">·</span>
                 <span>{req.username}</span>
-                <span style={{ opacity: 0.4 }}>·</span>
+                <span className="signup-approvals-list__meta-dot">·</span>
                 <span>
                   {req.date_joined
-                    ? intl.formatMessage(messages.joinedOn, { date: new Date(req.date_joined).toLocaleDateString() })
+                    ? intl.formatMessage(messages.joinedOn, { date: formatDate(req.date_joined) })
                     : intl.formatMessage(messages.unknownDate)}
                 </span>
               </p>
             </div>
-            <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
+            <div className="signup-approvals-list__actions">
               <Button variant="success" size="sm" onClick={() => onAssign(req)}>
-                <FontAwesomeIcon icon={faCheck} style={{ fontSize: '12px', marginRight: '6px' }} />
+                <FontAwesomeIcon icon={faCheck} className="signup-approvals-list__assign-icon" />
                 {intl.formatMessage(messages.assignRoleButton)}
               </Button>
             </div>

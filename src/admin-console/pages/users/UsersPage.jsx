@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { Alert } from '@openedx/paragon';
 import { useIntl } from '@edx/frontend-platform/i18n';
 import { getProfileMfeUserUrl } from '../../data/api';
 import { useUsers, useSuperAdminAccessProbe, useUserDetailMutation } from './data/apiHooks';
@@ -6,9 +7,9 @@ import { TABS, DEFAULT_USERS_ROWS_PER_PAGE } from './constants';
 import UsersToolbar from './UsersToolbar';
 import UsersFilters from './UsersFilters';
 import UsersTable from './UsersTable';
-import AddUserModal from '../../components/AddUserModal';
-import BulkImportUsersModal from '../../components/BulkImportUsersModal';
-import ViewUserModal from '../../components/ViewUserModal';
+import AddUserModal from '../../components/user-modals/AddUserModal';
+import BulkImportUsersModal from '../../components/user-modals/BulkImportUsersModal';
+import ViewUserModal from '../../components/user-modals/ViewUserModal';
 import messages from './messages';
 
 const TAB_LABEL_MESSAGES = {
@@ -150,14 +151,7 @@ const UsersPage = () => {
         countLabel={countLabel}
       />
 
-      {errorMessage && (
-        <div style={{
-          background: '#FDE8E8', color: '#9B1C1C', border: '1px solid #F8B4B4', borderRadius: '6px', padding: '10px 12px', marginBottom: '14px', fontSize: '13.5px',
-        }}
-        >
-          {errorMessage}
-        </div>
-      )}
+      {errorMessage && <Alert variant="danger" className="mb-3">{errorMessage}</Alert>}
 
       <UsersTable
         isLoading={isLoading}

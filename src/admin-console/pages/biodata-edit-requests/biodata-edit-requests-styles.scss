@@ -1,0 +1,50 @@
+.biodata-edit-requests-page {
+  .biodata-edit-requests-page__subtitle {
+    color: var(--pgn-color-text-light);
+  }
+
+  .biodata-edit-requests-page__filter-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+  }
+
+  .biodata-edit-requests-page__filter-toggle {
+    font-size: 13.5px;
+  }
+
+  .biodata-edit-requests-page__count {
+    flex-shrink: 0;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--pgn-color-text-light);
+  }
+}
+
+.biodata-edit-requests-table {
+  .biodata-edit-requests-table__profile-cell {
+    min-width: 150px;
+  }
+
+  .biodata-edit-requests-table__message-cell {
+    max-width: 320px;
+  }
+
+  .biodata-edit-requests-table__date-cell {
+    min-width: 130px;
+  }
+
+  .biodata-edit-requests-table__note-cell {
+    min-width: 220px;
+  }
+
+  .biodata-edit-requests-table__action-cell {
+    min-width: 120px;
+  }
+
+  .biodata-edit-requests-table__resolve-icon {
+    margin-right: 6px;
+    font-size: 12px;
+  }
+}
