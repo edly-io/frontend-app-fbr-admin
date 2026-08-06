@@ -32,14 +32,9 @@ export const useReportFilters = ({ enabled = true } = {}) => useQuery({
 });
 
 export const useInstructorSessionDetails = ({
-  instructorId, programKey, page = 1, pageSize,
+  instructorId, programKey,
 }, { enabled = true } = {}) => useQuery({
-  queryKey: sessionsReportQueryKeys.sessionDetails({
-    instructorId, programKey, page, pageSize,
-  }),
-  queryFn: () => getInstructorSessionDetails({
-    instructorId, programKey, page, pageSize,
-  }),
-  placeholderData: previousData => previousData,
+  queryKey: sessionsReportQueryKeys.sessionDetails({ instructorId, programKey }),
+  queryFn: () => getInstructorSessionDetails({ instructorId, programKey }),
   enabled: enabled && !!instructorId,
 });

@@ -61,10 +61,25 @@ const messages = defineMessages({
     defaultMessage: 'End date',
     description: 'Accessible label for the Date Range filter\'s end date input.',
   },
+  filterDateRangeMaxRangeCaption: {
+    id: 'fbrAdmin.sessionsInstructorReports.filter.dateRange.maxRangeCaption',
+    defaultMessage: 'You can select a maximum date range of 6 months.',
+    description: 'Helper caption below the Date Range filter explaining the maximum selectable range.',
+  },
   downloadCsv: {
     id: 'fbrAdmin.sessionsInstructorReports.downloadCsv',
     defaultMessage: 'Download CSV',
     description: 'Button label for exporting the Sessions Report table as a CSV file.',
+  },
+  downloadingCsv: {
+    id: 'fbrAdmin.sessionsInstructorReports.downloadingCsv',
+    defaultMessage: 'Downloading…',
+    description: 'Button label shown while the Sessions Report CSV export is in progress.',
+  },
+  exportError: {
+    id: 'fbrAdmin.sessionsInstructorReports.exportError',
+    defaultMessage: 'Something went wrong while exporting the report. Please try again.',
+    description: 'Error message shown when the Sessions Report CSV export request fails.',
   },
   applyFilters: {
     id: 'fbrAdmin.sessionsInstructorReports.filter.apply',

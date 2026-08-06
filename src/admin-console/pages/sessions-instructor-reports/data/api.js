@@ -1,16 +1,16 @@
 import { getConfig } from '@edx/frontend-platform';
 import { getAuthenticatedHttpClient } from '@edx/frontend-platform/auth';
 import { getPaginatedResults } from '../../../data/api';
-import { getMockInstructorSessionDetails } from './mockSessionDetails';
 
 export const INSTRUCTOR_REPORT_PATH = '/fbr/api/reports/instructors/';
 export const REPORT_FILTERS_PATH = '/fbr/api/reports/filters/';
+export const INSTRUCTOR_REPORT_DETAIL_PATH = '/fbr/api/reports/instructors/detail/';
+export const INSTRUCTOR_REPORT_EXPORT_PATH = '/fbr/api/reports/instructors/export/';
 
 export const getInstructorReportsUrl = () => `${getConfig().LMS_BASE_URL}${INSTRUCTOR_REPORT_PATH}`;
 export const getReportFiltersUrl = () => `${getConfig().LMS_BASE_URL}${REPORT_FILTERS_PATH}`;
-export const getInstructorSessionsUrl = instructorId => (
-  `${getConfig().LMS_BASE_URL}${INSTRUCTOR_REPORT_PATH}${instructorId}/sessions/`
-);
+export const getInstructorReportDetailUrl = () => `${getConfig().LMS_BASE_URL}${INSTRUCTOR_REPORT_DETAIL_PATH}`;
+export const getInstructorReportExportUrl = () => `${getConfig().LMS_BASE_URL}${INSTRUCTOR_REPORT_EXPORT_PATH}`;
 
 const toHours = (durations) => (
   Math.round((durations.reduce((sum, minutes) => sum + minutes, 0) / 60) * 100) / 100
@@ -76,35 +76,45 @@ export const mapCourseDetail = (course) => ({
 /**
  * Fetches the courses (and each course's sessions) behind one instructor's
  * session count for a given program row. Backs the right-side
- * `SessionDetailsSheet`. `results` is a page of courses so the Sheet can
- * grow into real pagination later without an API-shape change; only
- * `page`/`pageSize` need to start getting passed through from the caller.
- *
- * TODO(sessions-api): the backend endpoint doesn't exist yet, so this reads
- * from `mockSessionDetails.js` instead. Once it ships, delete the mock call
- * below and uncomment the real request - `mapCourseDetail`/`mapSessionDetail`
- * and everything downstream already expect this exact response shape.
+ * `SessionDetailsSheet`.
  */
-export const getInstructorSessionDetails = async ({
-  instructorId, programKey, page = 1, pageSize,
-} = {}) => {
-  // const params = new URLSearchParams({ page: String(page) });
-  // if (programKey) { params.set('program', programKey); }
-  // if (pageSize) { params.set('page_size', String(pageSize)); }
-  // const { data } = await getAuthenticatedHttpClient().get(
-  //   `${getInstructorSessionsUrl(instructorId)}?${params.toString()}`,
-  // );
-  const { data } = await getMockInstructorSessionDetails({
-    instructorId, programKey, page, pageSize,
-  });
-  const results = getPaginatedResults(data);
+export const getInstructorSessionDetails = async ({ instructorId, programKey } = {}) => {
+  const params = new URLSearchParams();
+  if (programKey) { params.set('program', programKey); }
+  if (instructorId) { params.set('instructor', instructorId); }
+
+  const { data } = await getAuthenticatedHttpClient().get(
+    `${getInstructorReportDetailUrl()}?${params.toString()}`,
+  );
+  const results = Array.isArray(data?.courses) ? data.courses : getPaginatedResults(data);
 
   return {
     instructor: data?.instructor_name || '',
     program: data?.program_title || '',
     courses: results.map(mapCourseDetail),
-    count: data?.count || results.length,
   };
+};
+
+/**
+ * Downloads the Sessions Report as a CSV using the currently applied
+ * filters. Returns the raw blob so the caller can trigger the browser's
+ * save dialog.
+ */
+export const exportSessionsInstructorReports = async ({
+  program, instructor, city, startDate, endDate,
+} = {}) => {
+  const params = new URLSearchParams();
+  if (program && program !== 'all') { params.set('program', program); }
+  if (instructor && instructor !== 'all') { params.set('instructor', instructor); }
+  if (city && city !== 'all') { params.set('city', city); }
+  if (startDate) { params.set('from', startDate); }
+  if (endDate) { params.set('to', endDate); }
+
+  const { data } = await getAuthenticatedHttpClient().get(
+    `${getInstructorReportExportUrl()}?${params.toString()}`,
+    { responseType: 'blob' },
+  );
+  return data;
 };
 
 export const getReportFilters = async () => {

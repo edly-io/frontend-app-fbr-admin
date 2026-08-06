@@ -37,7 +37,7 @@ ReportStatCard.propTypes = {
  * rather than hardcoded per report type.
  */
 const ReportStatCards = ({ stats }) => (
-  <div className="row g-3 mb-4">
+  <div className="row g-3 mb-3">
     {stats.map(([statKey, value], index) => (
       <div className="col-12 col-sm-6 col-lg-4" key={statKey}>
         <ReportStatCard statKey={statKey} value={value} accentIndex={index % ACCENT_COUNT} />

@@ -8,6 +8,7 @@ import {
 import { useIntl } from '@edx/frontend-platform/i18n';
 import { downloadBulkImportSample } from '../../data/api';
 import { useAdminConsoleBootstrap, useBulkImportUsersMutation } from '../../data/apiHooks';
+import { downloadBlob } from '../../utils/download';
 import messages from '../messages';
 import './user-modals-styles.scss';
 
@@ -28,17 +29,6 @@ const getApiErrorMessage = (error, fallback) => {
   if (Array.isArray(firstError)) { return firstError.join(' '); }
   if (typeof firstError === 'string') { return firstError; }
   return fallback;
-};
-
-const downloadBlob = (blob, fallbackName) => {
-  const url = window.URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = fallbackName;
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-  window.URL.revokeObjectURL(url);
 };
 
 const ResultStatus = ({ status }) => {

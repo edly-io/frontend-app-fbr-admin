@@ -14,6 +14,16 @@ import './filter-bar-styles.scss';
  * the caller. New filter types (e.g. category, department) can be added
  * later by extending the per-entry rendering below.
  *
+ * Any filter entry may pass a `caption`. Captions never render inline (that
+ * would grow just that filter's Form.Group and break the row's alignment) -
+ * they're collected and rendered as muted helper text on their own line
+ * below the whole row instead.
+ *
+ * `trailingActions` renders extra controls (e.g. a Download button) at the
+ * end of the same row as the filters/Apply/Clear, so they stay vertically
+ * aligned with everything else instead of living in a separate flex
+ * container next to `FilterBar`.
+ *
  * The optional "clear all" control is opt-in: pass `onClearAll` (and a
  * `clearAllLabel`) to show it. Whether it should be disabled (e.g. because
  * every filter already sits at its default value) is left to the caller via
@@ -27,73 +37,96 @@ import './filter-bar-styles.scss';
  */
 const FilterBar = ({
   filters, onClearAll, clearAllLabel, isClearAllDisabled, onApply, applyLabel, isApplyDisabled,
-}) => (
-  <div className="filter-bar d-flex flex-wrap align-items-end gap-3 py-3">
-    {filters.map(filter => (
-      <Form.Group key={filter.id} className="filter-bar__group mb-0">
-        <Form.Label className="filter-bar__label text-uppercase mb-1">
-          {filter.label}
-        </Form.Label>
-        {filter.type === 'dateRange' ? (
-          <div className="filter-bar__date-range d-flex align-items-center">
-            <Form.Control
-              type="date"
-              lang="en-GB"
-              value={filter.startValue}
-              max={filter.startMax}
-              onChange={e => filter.onStartChange(e.target.value)}
-              aria-label={filter.startLabel}
-            />
-            <span className="filter-bar__date-range-separator" aria-hidden="true">–</span>
-            <Form.Control
-              type="date"
-              lang="en-GB"
-              value={filter.endValue}
-              min={filter.endMin}
-              max={filter.endMax}
-              onChange={e => filter.onEndChange(e.target.value)}
-              aria-label={filter.endLabel}
-            />
-          </div>
-        ) : (
-          <Form.Control
-            as="select"
-            value={filter.value}
-            onChange={e => filter.onChange(e.target.value)}
+  trailingActions,
+}) => {
+  const captions = filters.filter(filter => filter.caption);
+
+  return (
+    <div className="filter-bar">
+      <div className="filter-bar__row d-flex flex-wrap align-items-end py-3">
+        {filters.map(filter => (
+          <Form.Group key={filter.id} className="filter-bar__group mb-0">
+            <Form.Label className="filter-bar__label text-uppercase mb-1">
+              {filter.label}
+            </Form.Label>
+            {filter.type === 'dateRange' ? (
+              <div className="filter-bar__date-range d-flex align-items-center">
+                <Form.Control
+                  type="date"
+                  lang="en-GB"
+                  value={filter.startValue}
+                  max={filter.startMax}
+                  onChange={e => filter.onStartChange(e.target.value)}
+                  aria-label={filter.startLabel}
+                />
+                <span className="filter-bar__date-range-separator" aria-hidden="true">–</span>
+                <Form.Control
+                  type="date"
+                  lang="en-GB"
+                  value={filter.endValue}
+                  min={filter.endMin}
+                  max={filter.endMax}
+                  onChange={e => filter.onEndChange(e.target.value)}
+                  aria-label={filter.endLabel}
+                />
+              </div>
+            ) : (
+              <Form.Control
+                as="select"
+                value={filter.value}
+                onChange={e => filter.onChange(e.target.value)}
+              >
+                {filter.options.map(option => (
+                  <option key={option.value} value={option.value}>{option.label}</option>
+                ))}
+              </Form.Control>
+            )}
+          </Form.Group>
+        ))}
+
+        {onApply && (
+          <Button
+            variant="primary"
+            size="sm"
+            className="filter-bar__apply"
+            onClick={onApply}
+            disabled={isApplyDisabled}
           >
-            {filter.options.map(option => (
-              <option key={option.value} value={option.value}>{option.label}</option>
-            ))}
-          </Form.Control>
+            {applyLabel}
+          </Button>
         )}
-      </Form.Group>
-    ))}
 
-    {onApply && (
-      <Button
-        variant="primary"
-        size="sm"
-        className="filter-bar__apply"
-        onClick={onApply}
-        disabled={isApplyDisabled}
-      >
-        {applyLabel}
-      </Button>
-    )}
+        {onClearAll && (
+          <Button
+            variant="tertiary"
+            size="sm"
+            className="filter-bar__clear-all"
+            onClick={onClearAll}
+            disabled={isClearAllDisabled}
+          >
+            {clearAllLabel}
+          </Button>
+        )}
 
-    {onClearAll && (
-      <Button
-        variant="tertiary"
-        size="sm"
-        className="filter-bar__clear-all"
-        onClick={onClearAll}
-        disabled={isClearAllDisabled}
-      >
-        {clearAllLabel}
-      </Button>
-    )}
-  </div>
-);
+        {trailingActions && (
+          <div className="filter-bar__trailing-actions ml-auto">
+            {trailingActions}
+          </div>
+        )}
+      </div>
+
+      {captions.length > 0 && (
+        <div className="filter-bar__captions pb-2">
+          {captions.map(filter => (
+            <Form.Text key={filter.id} className="filter-bar__caption">
+              * {filter.caption}
+            </Form.Text>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
 
 FilterBar.propTypes = {
   filters: PropTypes.arrayOf(PropTypes.shape({
@@ -115,6 +148,7 @@ FilterBar.propTypes = {
     startMax: PropTypes.string,
     endMin: PropTypes.string,
     endMax: PropTypes.string,
+    caption: PropTypes.string,
   })).isRequired,
   onClearAll: PropTypes.func,
   clearAllLabel: PropTypes.string,
@@ -122,6 +156,7 @@ FilterBar.propTypes = {
   onApply: PropTypes.func,
   applyLabel: PropTypes.string,
   isApplyDisabled: PropTypes.bool,
+  trailingActions: PropTypes.node,
 };
 
 FilterBar.defaultProps = {
@@ -131,6 +166,7 @@ FilterBar.defaultProps = {
   onApply: undefined,
   applyLabel: undefined,
   isApplyDisabled: false,
+  trailingActions: undefined,
 };
 
 export default FilterBar;

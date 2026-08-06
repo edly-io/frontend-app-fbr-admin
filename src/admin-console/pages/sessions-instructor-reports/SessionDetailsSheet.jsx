@@ -8,7 +8,6 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTimes } from '@fortawesome/free-solid-svg-icons';
 import { useIntl } from '@edx/frontend-platform/i18n';
 import { useInstructorSessionDetails } from './data/apiHooks';
-import { REPORT_PAGE_SIZE } from './constants';
 import { formatDate } from '../../utils/date';
 import messages from './messages';
 
@@ -18,14 +17,11 @@ import messages from './messages';
  * program row. Opened from the clickable session count cell in
  * `ReportDataTable`. `instructor`/`program` (the row's own display labels)
  * render immediately in the header; `instructorId`/`programKey` drive a
- * fetch of the real per-row Detail/Expansion API (Program Key + Instructor
- * ID in, all courses and each course's sessions - Session Title, Duration,
- * Session Start Date - out) for the body. Each course renders as a static
- * heading followed by its sessions as a plain, separator-divided list -
- * the Sheet is too narrow for a table or the extra interaction of
- * expand/collapse. `page`/`pageSize` are threaded through to the query
- * today at `REPORT_PAGE_SIZE`/page 1 so this can grow into real pagination
- * later without changing the data flow.
+ * fetch of the Detail API (Program Key + Instructor ID in, all courses and
+ * each course's sessions - Session Title, Duration, Session Start Date -
+ * out) for the body. Each course renders as a static heading followed by
+ * its sessions as a plain, separator-divided list - the Sheet is too
+ * narrow for a table or the extra interaction of expand/collapse.
  */
 const SessionDetailsSheet = ({
   show, instructor, program, instructorId, programKey, onClose,
@@ -33,9 +29,7 @@ const SessionDetailsSheet = ({
   const intl = useIntl();
 
   const { data, isLoading, isError } = useInstructorSessionDetails(
-    {
-      instructorId, programKey, page: 1, pageSize: REPORT_PAGE_SIZE,
-    },
+    { instructorId, programKey },
     { enabled: show },
   );
   const courses = data?.courses || [];

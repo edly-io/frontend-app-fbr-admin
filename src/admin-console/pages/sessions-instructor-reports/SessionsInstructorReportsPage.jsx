@@ -8,7 +8,9 @@ import PermissionDeniedAlert from '../../components/PermissionDeniedAlert';
 import ReportDataTable from './ReportDataTable';
 import ReportStatCards from './ReportStatCards';
 import { useSessionsInstructorReports, useReportFilters } from './data/apiHooks';
+import { exportSessionsInstructorReports } from './data/api';
 import { useReportsAccess } from '../../data/apiHooks';
+import { downloadBlob } from '../../utils/download';
 import { REPORT_PAGE_SIZE } from './constants';
 import messages from './messages';
 import './reports-styles.scss';
@@ -19,9 +21,24 @@ const DEFAULT_FILTERS = {
 const EMPTY_FILTER_OPTIONS = { programs: [], instructors: [], cities: [] };
 const EMPTY_KPIS = { instructors: 0, sessions: 0, hours: 0 };
 
-// Date range filter can't select the future, and its end date can't precede
-// its start date - see the matching handlers below for the input-level bounds.
+// Date range filter can't select the future, its end date can't precede its
+// start date, and the two dates can't be more than MAX_DATE_RANGE_MONTHS
+// apart - see the matching handlers below for the input-level bounds.
 const getTodayIsoDate = () => new Date().toISOString().slice(0, 10);
+
+const MAX_DATE_RANGE_MONTHS = 6;
+
+const addMonthsIso = (isoDate, months) => {
+  const date = new Date(`${isoDate}T00:00:00`);
+  date.setMonth(date.getMonth() + months);
+  return date.toISOString().slice(0, 10);
+};
+
+const getEndDateMax = (startDate, today) => {
+  if (!startDate) { return today; }
+  const rangeMax = addMonthsIso(startDate, MAX_DATE_RANGE_MONTHS);
+  return rangeMax < today ? rangeMax : today;
+};
 
 const SessionsInstructorReportsPage = () => {
   const intl = useIntl();
@@ -34,6 +51,8 @@ const SessionsInstructorReportsPage = () => {
   const [draftFilters, setDraftFilters] = useState(DEFAULT_FILTERS);
   const [appliedFilters, setAppliedFilters] = useState(DEFAULT_FILTERS);
   const [page, setPage] = useState(1);
+  const [isExporting, setIsExporting] = useState(false);
+  const [exportError, setExportError] = useState('');
   const today = getTodayIsoDate();
 
   const isAccessReady = !isAccessLoading && capabilities.canAccessSessions;
@@ -63,26 +82,46 @@ const SessionsInstructorReportsPage = () => {
     ? (error?.response?.data?.detail || intl.formatMessage(messages.loadError))
     : '';
 
+  const handleDownloadCsv = async () => {
+    if (isExporting) { return; }
+    setIsExporting(true);
+    setExportError('');
+    try {
+      const blob = await exportSessionsInstructorReports(appliedFilters);
+      downloadBlob(blob, 'sessions-report.csv');
+    } catch (exportRequestError) {
+      setExportError(exportRequestError?.response?.data?.detail || intl.formatMessage(messages.exportError));
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   const handleFilterChange = (key) => (value) => {
     setDraftFilters(previous => ({ ...previous, [key]: value }));
   };
 
   const handleStartDateChange = (value) => {
     const startDate = value > today ? today : value;
-    setDraftFilters(previous => ({
-      ...previous,
-      startDate,
-      endDate: previous.endDate && previous.endDate < startDate ? startDate : previous.endDate,
-    }));
+    setDraftFilters(previous => {
+      const endDateMax = getEndDateMax(startDate, today);
+      let { endDate } = previous;
+      if (endDate && endDate < startDate) {
+        endDate = startDate;
+      } else if (endDate && endDate > endDateMax) {
+        endDate = endDateMax;
+      }
+      return { ...previous, startDate, endDate };
+    });
   };
 
   const handleEndDateChange = (value) => {
     setDraftFilters(previous => {
-      const endDate = value > today ? today : value;
-      return {
-        ...previous,
-        endDate: previous.startDate && endDate < previous.startDate ? previous.startDate : endDate,
-      };
+      const endDateMax = getEndDateMax(previous.startDate, today);
+      let endDate = value > endDateMax ? endDateMax : value;
+      if (previous.startDate && endDate < previous.startDate) {
+        endDate = previous.startDate;
+      }
+      return { ...previous, endDate };
     });
   };
 
@@ -146,7 +185,8 @@ const SessionsInstructorReportsPage = () => {
       onEndChange: handleEndDateChange,
       startMax: today,
       endMin: draftFilters.startDate || undefined,
-      endMax: today,
+      endMax: getEndDateMax(draftFilters.startDate, today),
+      caption: intl.formatMessage(messages.filterDateRangeMaxRangeCaption),
     },
   ];
 
@@ -181,21 +221,22 @@ const SessionsInstructorReportsPage = () => {
       <ReportStatCards stats={stats} />
 
       {errorMessage && <Alert variant="danger" className="mb-3">{errorMessage}</Alert>}
+      {exportError && <Alert variant="danger" className="mb-3">{exportError}</Alert>}
 
-      <div className="d-flex flex-wrap align-items-end justify-content-between gap-3">
-        <FilterBar
-          filters={filterConfig}
-          onApply={handleApplyFilters}
-          applyLabel={intl.formatMessage(messages.applyFilters)}
-          isApplyDisabled={isApplyDisabled}
-          onClearAll={handleClearAll}
-          clearAllLabel={intl.formatMessage(messages.clearAllFilters)}
-          isClearAllDisabled={isClearAllDisabled}
-        />
-        <Button variant="outline-primary" iconBefore={Download} className="mb-3">
-          {intl.formatMessage(messages.downloadCsv)}
-        </Button>
-      </div>
+      <FilterBar
+        filters={filterConfig}
+        onApply={handleApplyFilters}
+        applyLabel={intl.formatMessage(messages.applyFilters)}
+        isApplyDisabled={isApplyDisabled}
+        onClearAll={handleClearAll}
+        clearAllLabel={intl.formatMessage(messages.clearAllFilters)}
+        isClearAllDisabled={isClearAllDisabled}
+        trailingActions={(
+          <Button variant="outline-primary" iconBefore={Download} onClick={handleDownloadCsv} disabled={isExporting}>
+            {isExporting ? intl.formatMessage(messages.downloadingCsv) : intl.formatMessage(messages.downloadCsv)}
+          </Button>
+        )}
+      />
 
       <ReportDataTable
         rows={rows}
