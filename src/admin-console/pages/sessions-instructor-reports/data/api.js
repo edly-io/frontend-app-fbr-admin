@@ -1,6 +1,9 @@
 import { getConfig } from '@edx/frontend-platform';
 import { getAuthenticatedHttpClient } from '@edx/frontend-platform/auth';
 import { getPaginatedResults } from '../../../data/api';
+import { getFilenameFromContentDisposition } from '../../../utils/download';
+
+const DEFAULT_EXPORT_FILENAME = 'sessions-report.csv';
 
 export const INSTRUCTOR_REPORT_PATH = '/fbr/api/reports/instructors/';
 export const REPORT_FILTERS_PATH = '/fbr/api/reports/filters/';
@@ -64,7 +67,7 @@ export const mapSessionDetail = (session) => ({
   duration: session.duration_minutes != null
     ? Math.round((session.duration_minutes / 60) * 100) / 100
     : null,
-  startDate: session.start_date,
+  startDate: session.start_time,
 });
 
 export const mapCourseDetail = (course) => ({
@@ -97,8 +100,9 @@ export const getInstructorSessionDetails = async ({ instructorId, programKey } =
 
 /**
  * Downloads the Sessions Report as a CSV using the currently applied
- * filters. Returns the raw blob so the caller can trigger the browser's
- * save dialog.
+ * filters. Returns the raw blob and the filename the backend assigned it
+ * (via `Content-Disposition`), falling back to a default name if that
+ * header is missing or malformed.
  */
 export const exportSessionsInstructorReports = async ({
   program, instructor, city, startDate, endDate,
@@ -110,11 +114,15 @@ export const exportSessionsInstructorReports = async ({
   if (startDate) { params.set('from', startDate); }
   if (endDate) { params.set('to', endDate); }
 
-  const { data } = await getAuthenticatedHttpClient().get(
+  const { data, headers } = await getAuthenticatedHttpClient().get(
     `${getInstructorReportExportUrl()}?${params.toString()}`,
     { responseType: 'blob' },
   );
-  return data;
+
+  return {
+    blob: data,
+    filename: getFilenameFromContentDisposition(headers?.['content-disposition'], DEFAULT_EXPORT_FILENAME),
+  };
 };
 
 export const getReportFilters = async () => {

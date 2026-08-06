@@ -87,8 +87,8 @@ const SessionsInstructorReportsPage = () => {
     setIsExporting(true);
     setExportError('');
     try {
-      const blob = await exportSessionsInstructorReports(appliedFilters);
-      downloadBlob(blob, 'sessions-report.csv');
+      const { blob, filename } = await exportSessionsInstructorReports(appliedFilters);
+      downloadBlob(blob, filename);
     } catch (exportRequestError) {
       setExportError(exportRequestError?.response?.data?.detail || intl.formatMessage(messages.exportError));
     } finally {
