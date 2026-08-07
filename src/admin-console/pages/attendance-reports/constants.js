@@ -24,18 +24,6 @@ export const STAT_LABEL_MESSAGE_KEYS = {
   sessionsTracked: 'statSessionsTracked',
 };
 
-// Mirrors the thresholds `deriveStatus` in `data/api.js` applies over each
-// row's `attendance_rate` to sort learners into bands.
-export const STATUS_VARIANT = {
-  good: 'success',
-  at_risk: 'warning',
-  critical: 'danger',
-};
-
-export const getStatusVariant = (status) => STATUS_VARIANT[status] || 'secondary';
-
-// Per-session attendance badge shown in the Attendance Details Sheet - a
-// separate status domain from the row-level Good/At Risk/Critical badge.
 export const SESSION_STATUS_VARIANT = {
   present: 'success',
   absent: 'danger',

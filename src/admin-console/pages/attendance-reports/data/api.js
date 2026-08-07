@@ -15,15 +15,6 @@ export const getReportFiltersUrl = () => `${getConfig().LMS_BASE_URL}${REPORT_FI
 export const getAttendanceReportDetailUrl = () => `${getConfig().LMS_BASE_URL}${ATTENDANCE_REPORT_DETAIL_PATH}`;
 export const getAttendanceReportExportUrl = () => `${getConfig().LMS_BASE_URL}${ATTENDANCE_REPORT_EXPORT_PATH}`;
 
-// Mirrors the thresholds the backend has historically left to the client to
-// derive (see `STATUS_VARIANT` in `constants.js`) since `attendance_rate` is
-// the only signal the listing endpoint sends for a row's health.
-const deriveStatus = (attendancePercentage) => {
-  if (attendancePercentage >= 85) { return 'good'; }
-  if (attendancePercentage >= 60) { return 'at_risk'; }
-  return 'critical';
-};
-
 export const mapAttendanceRow = (row) => ({
   id: `${row.trainee?.id}-${row.program_key}`,
   learnerId: row.trainee?.id != null ? String(row.trainee.id) : '',
@@ -34,7 +25,6 @@ export const mapAttendanceRow = (row) => ({
   attended: row.attended,
   totalSessions: row.total_sessions,
   attendancePercentage: row.attendance_rate,
-  status: deriveStatus(row.attendance_rate),
   breakdown: {
     present: row.counts?.present || 0,
     absent: row.counts?.absent || 0,
