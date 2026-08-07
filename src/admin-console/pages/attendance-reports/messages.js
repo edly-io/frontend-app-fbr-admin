@@ -136,21 +136,6 @@ const messages = defineMessages({
     defaultMessage: 'Attendance',
     description: 'Small eyebrow label shown above the learner name in the attendance details sheet.',
   },
-  attendanceSummaryTitle: {
-    id: 'fbrAdmin.attendanceReports.sheet.summary.title',
-    defaultMessage: 'Attendance Summary',
-    description: 'Heading for the attendance summary section of the attendance details sheet.',
-  },
-  attendanceSummaryTotalSessions: {
-    id: 'fbrAdmin.attendanceReports.sheet.summary.totalSessions',
-    defaultMessage: 'Total Sessions',
-    description: 'Label for the total tracked session count in the attendance summary section.',
-  },
-  attendanceSummaryAttendanceRate: {
-    id: 'fbrAdmin.attendanceReports.sheet.summary.attendanceRate',
-    defaultMessage: 'Attendance Rate',
-    description: 'Label for the attendance rate percentage in the attendance summary section.',
-  },
   attendanceSessionsEmptyState: {
     id: 'fbrAdmin.attendanceReports.sheet.empty',
     defaultMessage: 'No sessions are recorded for this learner yet.',

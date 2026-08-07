@@ -11,18 +11,6 @@ import { SESSION_STATUS_LABEL_MESSAGE_KEYS, getSessionStatusVariant } from './co
 import { formatDate } from '../../utils/date';
 import messages from './messages';
 
-const AttendanceSummaryItem = ({ label, value }) => (
-  <div className="attendance-details-sheet__summary-item d-flex justify-content-between align-items-center">
-    <span className="attendance-details-sheet__summary-label text-muted small">{label}</span>
-    <span className="attendance-details-sheet__summary-value font-weight-bold">{value}</span>
-  </div>
-);
-
-AttendanceSummaryItem.propTypes = {
-  label: PropTypes.string.isRequired,
-  value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
-};
-
 /**
  * Right-side panel listing the courses - and, within each course, the
  * individual sessions with a Present/Absent badge - behind a learner's
@@ -44,7 +32,6 @@ const AttendanceDetailsSheet = ({
     { enabled: show },
   );
   const courses = data?.courses || [];
-  const summary = data?.summary;
 
   return (
     <Sheet position="right" show={show} onClose={onClose} className="attendance-details-sheet">
@@ -73,40 +60,6 @@ const AttendanceDetailsSheet = ({
 
       {!isLoading && isError && (
         <Alert variant="danger">{intl.formatMessage(messages.attendanceSheetLoadError)}</Alert>
-      )}
-
-      {!isLoading && !isError && summary && (
-        <div className="attendance-details-sheet__summary bg-light-200 rounded p-3">
-          <h3 className="attendance-details-sheet__summary-title h6 font-weight-bold mb-2">
-            {intl.formatMessage(messages.attendanceSummaryTitle)}
-          </h3>
-          <div className="no-gutters">
-            <AttendanceSummaryItem
-              label={intl.formatMessage(messages.attendanceSummaryTotalSessions)}
-              value={summary.total}
-            />
-            <AttendanceSummaryItem
-              label={intl.formatMessage(messages[SESSION_STATUS_LABEL_MESSAGE_KEYS.present])}
-              value={summary.present}
-            />
-            <AttendanceSummaryItem
-              label={intl.formatMessage(messages[SESSION_STATUS_LABEL_MESSAGE_KEYS.absent])}
-              value={summary.absent}
-            />
-            <AttendanceSummaryItem
-              label={intl.formatMessage(messages[SESSION_STATUS_LABEL_MESSAGE_KEYS.leave])}
-              value={summary.leave}
-            />
-            <AttendanceSummaryItem
-              label={intl.formatMessage(messages[SESSION_STATUS_LABEL_MESSAGE_KEYS.pending])}
-              value={summary.pending}
-            />
-            <AttendanceSummaryItem
-              label={intl.formatMessage(messages.attendanceSummaryAttendanceRate)}
-              value={`${Math.round(summary.attendanceRate || 0)}%`}
-            />
-          </div>
-        </div>
       )}
 
       {!isLoading && !isError && courses.length === 0 && (
