@@ -50,9 +50,9 @@ export const getAttendanceReports = async ({
     rows: results.map(mapAttendanceRow),
     count: data?.count || 0,
     kpis: {
-      learners: data?.kpis?.learners || 0,
-      avgAttendance: data?.kpis?.avg_attendance ?? data?.kpis?.avgAttendance ?? 0,
-      sessionsTracked: data?.kpis?.sessions_tracked ?? data?.kpis?.sessionsTracked ?? 0,
+      learners: data?.kpis?.trainees || 0,
+      avgAttendance: data?.kpis?.avg_attendance_rate || 0,
+      sessionsTracked: data?.kpis?.sessions || 0,
     },
   };
 };
