@@ -1,0 +1,129 @@
+// Styles specific to the Attendance report page - see
+// src/assets/scss/reports-styles.scss for the shared `.reports-page` chrome.
+
+.reports-page {
+  .report-stat-card {
+    margin-bottom: 1rem;
+  }
+
+  .report-attendance-breakdown-legend {
+    // Paragon's Bootstrap 4 base has no .gap-* utilities (added in Bootstrap 5).
+    gap: 1rem;
+
+    .report-attendance-breakdown-legend__item {
+      gap: 0.25rem;
+      font-size: 12.5px;
+      color: var(--pgn-color-text-light);
+    }
+
+    .report-attendance-breakdown-legend__swatch {
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+      display: inline-block;
+    }
+  }
+
+  .report-attendance-breakdown-bar {
+    min-width: 120px;
+    cursor: help;
+
+    &:focus {
+      outline: 2px solid var(--pgn-color-primary-base);
+      outline-offset: 2px;
+    }
+
+    .report-attendance-breakdown-bar__track {
+      height: 8px;
+      width: 100%;
+      border-radius: 99px;
+      overflow: hidden;
+      background: var(--pgn-color-light-400);
+    }
+
+    .report-attendance-breakdown-bar__segment {
+      height: 100%;
+
+      &:not(:last-child) {
+        border-right: 1px solid #fff;
+      }
+    }
+  }
+}
+
+.attendance-details-sheet {
+  width: 100%;
+  max-width: 480px;
+
+  .attendance-details-sheet__eyebrow {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--pgn-color-text-light);
+  }
+
+  .attendance-details-sheet__subtitle {
+    font-size: 13px;
+  }
+
+  .attendance-details-sheet__summary {
+    margin-top: 1.5rem;
+  }
+
+  .attendance-details-sheet__summary-item {
+    padding-bottom: 0.5rem;
+  }
+
+  .attendance-details-sheet__course {
+    margin-top: 1.5rem;
+
+    &:first-of-type {
+      margin-top: 1.5rem;
+    }
+  }
+
+  .attendance-details-sheet__course-header {
+    margin-bottom: 0.5rem;
+  }
+
+  .attendance-details-sheet__course-name {
+    color: var(--pgn-color-text-base);
+  }
+
+  .attendance-details-sheet__session {
+    padding: 0.65rem 0;
+    border-bottom: 1px solid var(--pgn-color-border);
+
+    &:first-child {
+      padding-top: 0;
+    }
+
+    &:last-child {
+      padding-bottom: 0;
+      border-bottom: none;
+    }
+  }
+
+  .attendance-details-sheet__session-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--pgn-color-text-base);
+  }
+
+  .attendance-details-sheet__session-meta {
+    // Paragon's Bootstrap 4 base has no .gap-* utilities (added in Bootstrap 5).
+    gap: 0.75rem;
+    font-size: 12.5px;
+    color: var(--pgn-color-text-light);
+  }
+
+  .attendance-details-sheet__empty {
+    margin-top: 1.5rem;
+  }
+}
+
+@media (--pgn-size-breakpoint-max-width-sm) {
+  .attendance-details-sheet {
+    max-width: 100%;
+  }
+}

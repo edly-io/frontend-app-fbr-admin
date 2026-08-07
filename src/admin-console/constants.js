@@ -43,6 +43,9 @@ export const NAV_SECTIONS = [
       {
         id: 'sessions-instructor', path: 'sessions-reports', icon: faChartLine, capabilityKey: 'canAccessSessions',
       },
+      {
+        id: 'attendance', path: 'attendance-reports', icon: faChartLine, capabilityKey: 'canAccessAttendance',
+      },
     ],
   },
 ];

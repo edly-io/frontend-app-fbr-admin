@@ -10,7 +10,8 @@ import { useProgramReports, useReportFilters } from './data/apiHooks';
 import { useReportsAccess } from '../../data/apiHooks';
 import { REPORT_PAGE_SIZE } from './constants';
 import messages from './messages';
-import './reports-styles.scss';
+import '../../../assets/scss/reports-styles.scss';
+import './styles.scss';
 
 const DEFAULT_FILTERS = {
   program: 'all', instructor: 'all', city: 'all', startDate: '', endDate: '',

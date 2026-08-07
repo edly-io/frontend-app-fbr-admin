@@ -10,6 +10,7 @@ export const REPORTS_ADMIN_ROLES = ['data_admin', 'middle_admin', 'super_admin']
 const NO_REPORTS_ACCESS = {
   canAccessPrograms: false,
   canAccessSessions: false,
+  canAccessAttendance: false,
 };
 
 export const getReportsCapabilities = (roles = []) => {
@@ -23,5 +24,6 @@ export const getReportsCapabilities = (roles = []) => {
   return {
     canAccessPrograms: true,
     canAccessSessions: true,
+    canAccessAttendance: true,
   };
 };

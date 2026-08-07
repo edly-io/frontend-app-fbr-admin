@@ -1,0 +1,46 @@
+// Styles specific to the Program report page - see
+// src/assets/scss/reports-styles.scss for the shared `.reports-page` chrome.
+
+.reports-page {
+  .report-download-pdf-btn--loading {
+    opacity: 0.5;
+  }
+}
+
+.people-sheet {
+  width: 100%;
+  max-width: 380px;
+
+  .people-sheet__eyebrow {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--pgn-color-text-light);
+  }
+
+  .people-sheet__list {
+    margin-top: 1.5rem;
+  }
+
+  .people-sheet__item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--pgn-color-border);
+
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+
+  .people-sheet__empty {
+    margin-top: 1.5rem;
+  }
+}
+
+@media (--pgn-size-breakpoint-max-width-sm) {
+  .people-sheet {
+    max-width: 100%;
+  }
+}

@@ -7,8 +7,8 @@ import FilterBar from '../../components/filter-bar/FilterBar';
 import PermissionDeniedAlert from '../../components/PermissionDeniedAlert';
 import ReportDataTable from './ReportDataTable';
 import ReportStatCards from './ReportStatCards';
-import { useSessionsInstructorReports, useReportFilters } from './data/apiHooks';
-import { exportSessionsInstructorReports } from './data/api';
+import { useAttendanceReports, useReportFilters } from './data/apiHooks';
+import { exportAttendanceReports } from './data/api';
 import { useReportsAccess } from '../../data/apiHooks';
 import { downloadBlob } from '../../utils/download';
 import { REPORT_PAGE_SIZE } from './constants';
@@ -20,7 +20,7 @@ const DEFAULT_FILTERS = {
   program: 'all', instructor: 'all', city: 'all', startDate: '', endDate: '',
 };
 const EMPTY_FILTER_OPTIONS = { programs: [], instructors: [], cities: [] };
-const EMPTY_KPIS = { instructors: 0, sessions: 0, hours: 0 };
+const EMPTY_KPIS = { learners: 0, avgAttendance: 0, sessionsTracked: 0 };
 
 // Date range filter can't select the future, its end date can't precede its
 // start date, and the two dates can't be more than MAX_DATE_RANGE_MONTHS
@@ -41,7 +41,15 @@ const getEndDateMax = (startDate, today) => {
   return rangeMax < today ? rangeMax : today;
 };
 
-const SessionsInstructorReportsPage = () => {
+/**
+ * Attendance Report page: a Program/Instructor/City/Date-Range filter row
+ * driving a server-paginated data table backed by `GET /fbr/api/reports/trainees/`.
+ * The dropdown filters come from `GET /fbr/api/reports/filters/` and are sent
+ * to the report endpoint as query params; changing any filter resets the
+ * listing back to page 1. Mirrors `SessionsInstructorReportsPage`'s
+ * draft/applied filter pattern, 6-month date range cap, and CSV export flow.
+ */
+const AttendanceReportsPage = () => {
   const intl = useIntl();
 
   const { capabilities, isLoading: isAccessLoading } = useReportsAccess();
@@ -56,7 +64,7 @@ const SessionsInstructorReportsPage = () => {
   const [exportError, setExportError] = useState('');
   const today = getTodayIsoDate();
 
-  const isAccessReady = !isAccessLoading && capabilities.canAccessSessions;
+  const isAccessReady = !isAccessLoading && capabilities.canAccessAttendance;
 
   const { data: filterOptionsData, isError: isFilterError } = useReportFilters({
     enabled: isAccessReady,
@@ -65,7 +73,7 @@ const SessionsInstructorReportsPage = () => {
 
   const {
     data, isError, error, isFetching,
-  } = useSessionsInstructorReports(
+  } = useAttendanceReports(
     { ...appliedFilters, page, pageSize: REPORT_PAGE_SIZE },
     { enabled: isAccessReady },
   );
@@ -74,28 +82,14 @@ const SessionsInstructorReportsPage = () => {
   const count = data?.count || 0;
   const kpis = data?.kpis || EMPTY_KPIS;
   const stats = [
-    ['instructors', kpis.instructors],
-    ['sessions', kpis.sessions],
-    ['hours', Number(kpis.hours).toFixed(1)],
+    ['learners', kpis.learners],
+    ['avgAttendance', `${kpis.avgAttendance}%`],
+    ['sessionsTracked', kpis.sessionsTracked],
   ];
 
   const errorMessage = (isError || isFilterError)
     ? (error?.response?.data?.detail || intl.formatMessage(messages.loadError))
     : '';
-
-  const handleDownloadCsv = async () => {
-    if (isExporting) { return; }
-    setIsExporting(true);
-    setExportError('');
-    try {
-      const { blob, filename } = await exportSessionsInstructorReports(appliedFilters);
-      downloadBlob(blob, filename);
-    } catch (exportRequestError) {
-      setExportError(exportRequestError?.response?.data?.detail || intl.formatMessage(messages.exportError));
-    } finally {
-      setIsExporting(false);
-    }
-  };
 
   const handleFilterChange = (key) => (value) => {
     setDraftFilters(previous => ({ ...previous, [key]: value }));
@@ -124,6 +118,20 @@ const SessionsInstructorReportsPage = () => {
       }
       return { ...previous, endDate };
     });
+  };
+
+  const handleDownloadCsv = async () => {
+    if (isExporting) { return; }
+    setIsExporting(true);
+    setExportError('');
+    try {
+      const { blob, filename } = await exportAttendanceReports(appliedFilters);
+      downloadBlob(blob, filename);
+    } catch (exportRequestError) {
+      setExportError(exportRequestError?.response?.data?.detail || intl.formatMessage(messages.exportError));
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   const handleApplyFilters = () => {
@@ -199,7 +207,7 @@ const SessionsInstructorReportsPage = () => {
     );
   }
 
-  if (!capabilities.canAccessSessions) {
+  if (!capabilities.canAccessAttendance) {
     return (
       <div className="reports-page">
         <Breadcrumb leaf={intl.formatMessage(messages.breadcrumbLeaf)} />
@@ -233,7 +241,12 @@ const SessionsInstructorReportsPage = () => {
         clearAllLabel={intl.formatMessage(messages.clearAllFilters)}
         isClearAllDisabled={isClearAllDisabled}
         trailingActions={(
-          <Button variant="outline-primary" iconBefore={Download} onClick={handleDownloadCsv} disabled={isExporting}>
+          <Button
+            variant="outline-primary"
+            iconBefore={Download}
+            onClick={handleDownloadCsv}
+            disabled={isExporting}
+          >
             {isExporting ? intl.formatMessage(messages.downloadingCsv) : intl.formatMessage(messages.downloadCsv)}
           </Button>
         )}
@@ -251,4 +264,4 @@ const SessionsInstructorReportsPage = () => {
   );
 };
 
-export default SessionsInstructorReportsPage;
+export default AttendanceReportsPage;
