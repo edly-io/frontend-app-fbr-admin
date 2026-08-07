@@ -6,6 +6,7 @@ import {
   DataTable, IconButton, IconButtonWithTooltip, OverlayTrigger, Pagination, Tooltip,
 } from '@openedx/paragon';
 import { InfoOutline, Visibility } from '@openedx/paragon/icons';
+import { UserIdentity } from '@edly-io/frontend-component-fbr';
 import { useIntl } from '@edx/frontend-platform/i18n';
 import SessionDetailsSheet from './SessionDetailsSheet';
 import {
@@ -59,6 +60,25 @@ TextCell.propTypes = {
 const NumCell = ({ value }) => <span>{value}</span>;
 
 NumCell.propTypes = { value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired };
+
+const InstructorCell = ({ row }) => (
+  <UserIdentity
+    name={row.original.instructor}
+    badges={['Instructor']}
+    size="compact"
+    avatarValue={row.original.avatarValue}
+    showAvatar
+  />
+);
+
+InstructorCell.propTypes = {
+  row: PropTypes.shape({
+    original: PropTypes.shape({
+      instructor: PropTypes.string,
+      avatarValue: PropTypes.string,
+    }).isRequired,
+  }).isRequired,
+};
 
 const SessionCountCell = ({ row, column }) => {
   const intl = useIntl();
@@ -148,6 +168,7 @@ HoursBreakdownCell.propTypes = {
 const CELL_RENDERERS = {
   text: TextCell,
   num: NumCell,
+  instructor: InstructorCell,
   sessionCount: SessionCountCell,
   hoursBar: HoursBreakdownCell,
 };

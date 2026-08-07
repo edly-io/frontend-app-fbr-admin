@@ -1,5 +1,5 @@
 export const SESSIONS_INSTRUCTOR_COLUMNS = [
-  { key: 'instructor', kind: 'text', strong: true },
+  { key: 'instructor', kind: 'instructor' },
   { key: 'program', kind: 'text' },
   { key: 'sessions', kind: 'sessionCount' },
   { key: 'hours', kind: 'num' },

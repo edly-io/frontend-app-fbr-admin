@@ -23,6 +23,7 @@ export const mapSessionsInstructorRow = (row) => ({
   id: `${row.instructor.id}-${row.program_key}`,
   instructorId: String(row.instructor.id),
   instructor: row.instructor.name,
+  avatarValue: row.instructor?.avatar || undefined,
   programKey: row.program_key,
   program: row.program_title,
   sessions: row.total_sessions,
