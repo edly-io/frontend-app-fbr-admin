@@ -91,6 +91,11 @@ const messages = defineMessages({
     defaultMessage: 'Administration',
     description: 'Breadcrumb root segment label shown above every admin console page.',
   },
+  breadcrumbReports: {
+    id: 'fbrAdmin.shell.breadcrumb.reports',
+    defaultMessage: 'Reports',
+    description: 'Breadcrumb root segment label shown above every reports page.',
+  },
   paginationShowing: {
     id: 'fbrAdmin.shell.pagination.showing',
     defaultMessage: 'Showing <strong>{start}–{end}</strong> of <strong>{total}</strong>',

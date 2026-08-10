@@ -3,7 +3,7 @@ import { defineMessages } from '@edx/frontend-platform/i18n';
 const messages = defineMessages({
   breadcrumbLeaf: {
     id: 'fbrAdmin.attendanceReports.breadcrumb',
-    defaultMessage: 'Reports',
+    defaultMessage: 'Attendance',
     description: 'Breadcrumb leaf label for the Attendance Report page.',
   },
   pageTitle: {

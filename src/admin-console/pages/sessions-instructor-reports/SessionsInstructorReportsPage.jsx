@@ -13,6 +13,7 @@ import { useReportsAccess, useReportFilters } from '../../data/apiHooks';
 import { downloadBlob } from '../../utils/download';
 import { REPORT_PAGE_SIZE } from './constants';
 import messages from './messages';
+import shellMessages from '../../messages';
 import '../../../assets/scss/reports-styles.scss';
 import './styles.scss';
 
@@ -202,7 +203,10 @@ const SessionsInstructorReportsPage = () => {
   if (!capabilities.canAccessSessions) {
     return (
       <div className="reports-page">
-        <Breadcrumb leaf={intl.formatMessage(messages.breadcrumbLeaf)} />
+        <Breadcrumb
+          root={intl.formatMessage(shellMessages.breadcrumbReports)}
+          leaf={intl.formatMessage(messages.breadcrumbLeaf)}
+        />
         <PermissionDeniedAlert />
       </div>
     );
@@ -210,7 +214,10 @@ const SessionsInstructorReportsPage = () => {
 
   return (
     <div className="reports-page">
-      <Breadcrumb leaf={intl.formatMessage(messages.breadcrumbLeaf)} />
+      <Breadcrumb
+        root={intl.formatMessage(shellMessages.breadcrumbReports)}
+        leaf={intl.formatMessage(messages.breadcrumbLeaf)}
+      />
 
       <h1 className="h3 fw-bold mb-1">
         {intl.formatMessage(messages.pageTitle)}

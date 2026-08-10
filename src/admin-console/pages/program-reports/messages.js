@@ -3,12 +3,12 @@ import { defineMessages } from '@edx/frontend-platform/i18n';
 const messages = defineMessages({
   breadcrumbLeaf: {
     id: 'fbrAdmin.reports.breadcrumb',
-    defaultMessage: 'Reports',
+    defaultMessage: 'Program',
     description: 'Breadcrumb leaf label for the Program Report page.',
   },
   pageTitle: {
     id: 'fbrAdmin.reports.title',
-    defaultMessage: 'Program Reports',
+    defaultMessage: 'Program',
     description: 'Page title for the Program Reports page.',
   },
   pageSubtitle: {
