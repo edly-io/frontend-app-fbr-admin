@@ -7,13 +7,14 @@ import FilterBar from '../../components/filter-bar/FilterBar';
 import PermissionDeniedAlert from '../../components/PermissionDeniedAlert';
 import ReportDataTable from './ReportDataTable';
 import ReportStatCards from './ReportStatCards';
-import { useSessionsInstructorReports, useReportFilters } from './data/apiHooks';
+import { useSessionsInstructorReports } from './data/apiHooks';
 import { exportSessionsInstructorReports } from './data/api';
-import { useReportsAccess } from '../../data/apiHooks';
+import { useReportsAccess, useReportFilters } from '../../data/apiHooks';
 import { downloadBlob } from '../../utils/download';
 import { REPORT_PAGE_SIZE } from './constants';
 import messages from './messages';
-import './reports-styles.scss';
+import '../../../assets/scss/reports-styles.scss';
+import './styles.scss';
 
 const DEFAULT_FILTERS = {
   program: 'all', instructor: 'all', city: 'all', startDate: '', endDate: '',

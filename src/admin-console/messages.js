@@ -76,6 +76,11 @@ const messages = defineMessages({
     defaultMessage: 'Sessions',
     description: 'Sidebar nav item label for the Sessions Reports page.',
   },
+  navAttendance: {
+    id: 'fbrAdmin.shell.nav.navAttendance',
+    defaultMessage: 'Attendance',
+    description: 'Sidebar nav item label for the Attendance Reports page.',
+  },
   placeholderBody: {
     id: 'fbrAdmin.shell.placeholder.body',
     defaultMessage: 'This section is under construction.',

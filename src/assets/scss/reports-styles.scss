@@ -1,0 +1,67 @@
+// Shared styling for the Attendance, Sessions and Program report pages'
+// `.reports-page` shell - subtitle, KPI stat cards, table cells/footer and
+// column header info icons. Styles specific to a single report (breakdown
+// bars, detail sheets, etc.) stay in that page's own local stylesheet.
+
+.reports-page {
+  .reports-page__subtitle {
+    color: var(--pgn-color-text-light);
+  }
+
+  // KPI cards
+  .report-stat-card {
+    border-left: 4px solid var(--pgn-color-primary-base);
+  }
+
+  .report-stat-card--accent-1 {
+    border-left-color: var(--pgn-color-green);
+  }
+
+  .report-stat-card--accent-2 {
+    border-left-color: #b45309;
+  }
+
+  .report-stat-card__label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--pgn-color-text-light);
+  }
+
+  .report-stat-card__value {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--pgn-color-text-base);
+  }
+
+  // Tables
+  .report-text-cell--strong {
+    font-weight: 600;
+    color: var(--pgn-color-text-base);
+  }
+
+  .report-people-count__value {
+    color: var(--pgn-color-text-light);
+  }
+
+  .report-data-table__footer {
+    // Paragon's Bootstrap 4 base has no .gap-* utilities (added in Bootstrap 5).
+    gap: 0.5rem;
+  }
+
+  // Column headers
+  .report-column-header {
+    // Paragon's Bootstrap 4 base has no .gap-* utilities (added in Bootstrap 5).
+    gap: 0.25rem;
+  }
+
+  .report-column-header__info-icon {
+    color: var(--pgn-color-text-light);
+    cursor: help;
+
+    &:hover,
+    &:focus {
+      color: var(--pgn-color-text-base);
+    }
+  }
+}

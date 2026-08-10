@@ -5,6 +5,7 @@ import {
   createUserProfile,
   assignUserRole,
   bulkImportUsers,
+  getReportFilters,
 } from './api';
 import { getReportsCapabilities } from './permissions';
 import { usersQueryKeys } from '../pages/users/data/apiHooks';
@@ -14,6 +15,10 @@ export const adminConsoleQueryKeys = {
   all: ['adminConsole'],
   bootstrap: ['adminConsole', 'bootstrap'],
 };
+
+const REPORT_FILTERS_STALE_TIME = 5 * 60 * 1000;
+
+export const reportFiltersQueryKey = ['reportFilters'];
 
 const retryExceptClientErrors = (failureCount, error) => {
   if ([403, 404].includes(error?.response?.status)) {
@@ -48,6 +53,13 @@ export const useReportsAccess = () => {
     capabilities: getReportsCapabilities(query.data?.callerProfile?.roles),
   };
 };
+
+export const useReportFilters = ({ enabled = true } = {}) => useQuery({
+  queryKey: reportFiltersQueryKey,
+  queryFn: getReportFilters,
+  staleTime: REPORT_FILTERS_STALE_TIME,
+  enabled,
+});
 
 export const useCreateUserMutation = () => {
   const queryClient = useQueryClient();

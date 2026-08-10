@@ -86,6 +86,31 @@ export const getProfileMfeUserUrl = (userId) => {
   return url.toString();
 };
 
+// ─── Report filters (shared across the report pages) ───────────────────────
+
+export const REPORT_FILTERS_PATH = '/fbr/api/reports/filters/';
+
+export const getReportFiltersUrl = () => `${getConfig().LMS_BASE_URL}${REPORT_FILTERS_PATH}`;
+
+export const getReportFilters = async () => {
+  const { data } = await getAuthenticatedHttpClient().get(getReportFiltersUrl());
+
+  return {
+    programs: (data?.programs || []).map(program => ({
+      value: program.program_key,
+      label: program.name,
+    })),
+    instructors: (data?.instructors || []).map(instructor => ({
+      value: String(instructor.id),
+      label: instructor.name,
+    })),
+    cities: (data?.cities || []).map(city => ({
+      value: city.name,
+      label: city.name,
+    })),
+  };
+};
+
 // ─── Bootstrap data (caller profile / cities / batches) ────────────────────
 
 export const getCallerProfile = async () => {

@@ -8,10 +8,10 @@ import {
 import { InfoOutline, Visibility } from '@openedx/paragon/icons';
 import { UserIdentity } from '@edly-io/frontend-component-fbr';
 import { useIntl } from '@edx/frontend-platform/i18n';
-import SessionDetailsSheet from './SessionDetailsSheet';
+import AttendanceDetailsSheet from './AttendanceDetailsSheet';
 import {
-  COLUMN_LABEL_MESSAGE_KEYS, COLUMN_TOOLTIP_MESSAGE_KEYS, DEFAULT_SEGMENT_CLASS,
-  SESSION_TYPE_SEGMENT_CLASSES, SESSIONS_INSTRUCTOR_COLUMNS,
+  ATTENDANCE_BREAKDOWN_SEGMENTS, ATTENDANCE_COLUMNS, COLUMN_LABEL_MESSAGE_KEYS,
+  COLUMN_TOOLTIP_MESSAGE_KEYS, getAttendanceBreakdownSegmentClass,
 } from './constants';
 import messages from './messages';
 
@@ -57,55 +57,50 @@ TextCell.propTypes = {
   column: PropTypes.shape({ strong: PropTypes.bool }).isRequired,
 };
 
-const NumCell = ({ value }) => <span>{value}</span>;
-
-NumCell.propTypes = { value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired };
-
-const InstructorCell = ({ row }) => (
+const LearnerCell = ({ row }) => (
   <UserIdentity
-    name={row.original.instructor}
-    badges={['Instructor']}
+    name={row.original.learner}
+    badges={['Trainee']}
     size="compact"
     avatarValue={row.original.avatarValue}
     showAvatar
   />
 );
 
-InstructorCell.propTypes = {
+LearnerCell.propTypes = {
   row: PropTypes.shape({
     original: PropTypes.shape({
-      instructor: PropTypes.string,
+      learner: PropTypes.string,
       avatarValue: PropTypes.string,
     }).isRequired,
   }).isRequired,
 };
 
-const SessionCountCell = ({ row, column }) => {
+const AttendanceRatioCell = ({ row, column }) => {
   const intl = useIntl();
-  const count = row.original.sessions || 0;
+  const { attended, totalSessions, learner } = row.original;
+  const count = attended || 0;
 
   return (
     <span className="report-people-count d-inline-flex align-items-center gap-2">
       <IconButton
         src={Visibility}
         size="inline"
-        alt={intl.formatMessage(messages.sessionCountAria, {
-          count,
-          instructor: row.original.instructor,
-        })}
+        alt={intl.formatMessage(messages.attendanceCountAria, { count, learner })}
         className="report-count-btn"
         onClick={() => column.onOpenSheet(row.original)}
       />
-      <span className="report-people-count__value">({count})</span>
+      <span className="report-people-count__value">{attended || 0} / {totalSessions || 0}</span>
     </span>
   );
 };
 
-SessionCountCell.propTypes = {
+AttendanceRatioCell.propTypes = {
   row: PropTypes.shape({
     original: PropTypes.shape({
-      instructor: PropTypes.string,
-      sessions: PropTypes.number,
+      learner: PropTypes.string,
+      attended: PropTypes.number,
+      totalSessions: PropTypes.number,
     }).isRequired,
   }).isRequired,
   column: PropTypes.shape({
@@ -113,11 +108,28 @@ SessionCountCell.propTypes = {
   }).isRequired,
 };
 
-const HoursBreakdownCell = ({ row }) => {
-  const { id, hoursByType, hours } = row.original;
-  const total = hours || 1;
-  const tooltipText = hoursByType
-    .map(segment => `${segment.label}: ${segment.hours}h`)
+const AttendanceRateCell = ({ row }) => {
+  const { attendancePercentage } = row.original;
+  const pct = Math.round(attendancePercentage || 0);
+
+  return <span className="report-attendance-rate__value">{pct}%</span>;
+};
+
+AttendanceRateCell.propTypes = {
+  row: PropTypes.shape({
+    original: PropTypes.shape({
+      attendancePercentage: PropTypes.number,
+    }).isRequired,
+  }).isRequired,
+};
+
+const AttendanceBreakdownCell = ({ row }) => {
+  const intl = useIntl();
+  const { id, breakdown } = row.original;
+  const total = ATTENDANCE_BREAKDOWN_SEGMENTS
+    .reduce((sum, segment) => sum + (breakdown[segment.key] || 0), 0) || 1;
+  const tooltipText = ATTENDANCE_BREAKDOWN_SEGMENTS
+    .map(segment => `${intl.formatMessage(messages[segment.labelKey])}: ${breakdown[segment.key] || 0}`)
     .join(' · ');
 
   return (
@@ -125,24 +137,24 @@ const HoursBreakdownCell = ({ row }) => {
       trigger={['hover', 'focus']}
       placement="top"
       overlay={(
-        <Tooltip id={`hours-breakdown-tooltip-${id}`}>
+        <Tooltip id={`attendance-breakdown-tooltip-${id}`}>
           {tooltipText}
         </Tooltip>
       )}
     >
       <div
-        className="report-hours-bar"
+        className="report-attendance-breakdown-bar"
         // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex
         tabIndex={0}
         role="img"
         aria-label={tooltipText}
       >
-        <div className="report-hours-bar__track d-flex">
-          {hoursByType.map(segment => (
+        <div className="report-attendance-breakdown-bar__track d-flex">
+          {ATTENDANCE_BREAKDOWN_SEGMENTS.map(segment => (
             <span
-              key={segment.sessionType}
-              className={`report-hours-bar__segment ${SESSION_TYPE_SEGMENT_CLASSES[segment.sessionType] || DEFAULT_SEGMENT_CLASS}`}
-              style={{ width: `${(segment.hours / total) * 100}%` }}
+              key={segment.key}
+              className={`report-attendance-breakdown-bar__segment ${getAttendanceBreakdownSegmentClass(segment.key)}`}
+              style={{ width: `${((breakdown[segment.key] || 0) / total) * 100}%` }}
             />
           ))}
         </div>
@@ -151,50 +163,41 @@ const HoursBreakdownCell = ({ row }) => {
   );
 };
 
-HoursBreakdownCell.propTypes = {
+AttendanceBreakdownCell.propTypes = {
   row: PropTypes.shape({
     original: PropTypes.shape({
       id: PropTypes.string,
-      hours: PropTypes.number,
-      hoursByType: PropTypes.arrayOf(PropTypes.shape({
-        sessionType: PropTypes.string,
-        label: PropTypes.string,
-        hours: PropTypes.number,
-      })),
+      breakdown: PropTypes.shape({
+        present: PropTypes.number,
+        absent: PropTypes.number,
+        leave: PropTypes.number,
+        pending: PropTypes.number,
+      }),
     }).isRequired,
   }).isRequired,
 };
 
 const CELL_RENDERERS = {
   text: TextCell,
-  num: NumCell,
-  instructor: InstructorCell,
-  sessionCount: SessionCountCell,
-  hoursBar: HoursBreakdownCell,
+  learner: LearnerCell,
+  attendanceRatio: AttendanceRatioCell,
+  attendanceRate: AttendanceRateCell,
+  attendanceBreakdownBar: AttendanceBreakdownCell,
 };
 
-const HoursBreakdownLegend = ({ segments }) => {
-  if (!segments.length) { return null; }
+const AttendanceBreakdownLegend = () => {
+  const intl = useIntl();
 
   return (
-    <div className="report-hours-legend d-flex flex-wrap gap-3 mb-2">
-      {segments.map(segment => (
-        <span key={segment.sessionType} className="report-hours-legend__item d-inline-flex align-items-center gap-1">
-          <span
-            className={`report-hours-legend__swatch ${SESSION_TYPE_SEGMENT_CLASSES[segment.sessionType] || DEFAULT_SEGMENT_CLASS}`}
-          />
-          {segment.label}
+    <div className="report-attendance-breakdown-legend d-flex flex-wrap gap-3 mb-2">
+      {ATTENDANCE_BREAKDOWN_SEGMENTS.map(segment => (
+        <span key={segment.key} className="report-attendance-breakdown-legend__item d-inline-flex align-items-center gap-1">
+          <span className={`report-attendance-breakdown-legend__swatch ${getAttendanceBreakdownSegmentClass(segment.key)}`} />
+          {intl.formatMessage(messages[segment.labelKey])}
         </span>
       ))}
     </div>
   );
-};
-
-HoursBreakdownLegend.propTypes = {
-  segments: PropTypes.arrayOf(PropTypes.shape({
-    sessionType: PropTypes.string,
-    label: PropTypes.string,
-  })).isRequired,
 };
 
 const ReportDataTable = ({
@@ -207,16 +210,6 @@ const ReportDataTable = ({
   const firstRow = rows.length ? (page - 1) * pageSize + 1 : 0;
   const lastRow = firstRow + rows.length - 1;
 
-  const legendSegments = useMemo(() => {
-    const seen = new Map();
-    rows.forEach(row => {
-      (row.hoursByType || []).forEach(segment => {
-        if (!seen.has(segment.sessionType)) { seen.set(segment.sessionType, segment); }
-      });
-    });
-    return Array.from(seen.values());
-  }, [rows]);
-
   const openSheet = useCallback((row) => {
     setSheet({ show: true, row });
   }, []);
@@ -225,7 +218,7 @@ const ReportDataTable = ({
     setSheet(previous => ({ ...previous, show: false }));
   }, []);
 
-  const columns = useMemo(() => SESSIONS_INSTRUCTOR_COLUMNS.map(column => {
+  const columns = useMemo(() => ATTENDANCE_COLUMNS.map(column => {
     const label = intl.formatMessage(messages[COLUMN_LABEL_MESSAGE_KEYS[column.key]]);
     const tooltipKey = COLUMN_TOOLTIP_MESSAGE_KEYS[column.key];
 
@@ -241,16 +234,16 @@ const ReportDataTable = ({
       id: column.key,
       accessor: column.key,
       strong: column.strong,
-      onOpenSheet: column.kind === 'sessionCount' ? openSheet : undefined,
+      onOpenSheet: column.kind === 'attendanceRatio' ? openSheet : undefined,
       Cell: CELL_RENDERERS[column.kind],
-      // The stepped hours bar has nothing meaningful to sort by.
-      disableSortBy: column.kind === 'hoursBar',
+      // The stepped breakdown bar has nothing meaningful to sort by.
+      disableSortBy: column.kind === 'attendanceBreakdownBar',
     };
   }), [intl, openSheet]);
 
   return (
     <div className="report-data-table">
-      <HoursBreakdownLegend segments={legendSegments} />
+      <AttendanceBreakdownLegend />
 
       <DataTable
         isSortable
@@ -282,11 +275,11 @@ const ReportDataTable = ({
       )}
 
       {sheet.row && (
-        <SessionDetailsSheet
+        <AttendanceDetailsSheet
           show={sheet.show}
-          instructor={sheet.row.instructor}
+          learner={sheet.row.learner}
           program={sheet.row.program}
-          instructorId={sheet.row.instructorId}
+          learnerId={sheet.row.learnerId}
           programKey={sheet.row.programKey}
           onClose={closeSheet}
         />
