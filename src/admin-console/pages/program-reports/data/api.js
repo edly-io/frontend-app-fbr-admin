@@ -4,11 +4,9 @@ import { getPaginatedResults } from '../../../data/api';
 
 export const PROGRAM_REPORT_PATH = '/fbr/api/reports/program/';
 export const PROGRAM_REPORT_USERS_PATH = '/fbr/api/reports/program/users/';
-export const REPORT_FILTERS_PATH = '/fbr/api/reports/filters/';
 
 export const getProgramReportsUrl = () => `${getConfig().LMS_BASE_URL}${PROGRAM_REPORT_PATH}`;
 export const getProgramPeopleUrl = () => `${getConfig().LMS_BASE_URL}${PROGRAM_REPORT_USERS_PATH}`;
-export const getReportFiltersUrl = () => `${getConfig().LMS_BASE_URL}${REPORT_FILTERS_PATH}`;
 
 const nullableValue = (value) => (value === null || value === undefined ? '—' : value);
 
@@ -76,30 +74,5 @@ export const getProgramPeople = async (programKey) => {
   return {
     instructors: (data?.instructors || []).map(mapPerson),
     certified: (data?.certified || []).map(mapPerson),
-  };
-};
-
-/**
- * Fetches the Program/Instructor/City filter dropdown options from the
- * dedicated filters endpoint. City options use the city *name* as their
- * `value` (not id) to match `getProgramReports`'s `city` param, which the
- * backend matches against `city__name` exactly.
- */
-export const getReportFilters = async () => {
-  const { data } = await getAuthenticatedHttpClient().get(getReportFiltersUrl());
-
-  return {
-    programs: (data?.programs || []).map(program => ({
-      value: program.program_key,
-      label: program.name,
-    })),
-    instructors: (data?.instructors || []).map(instructor => ({
-      value: String(instructor.id),
-      label: instructor.name,
-    })),
-    cities: (data?.cities || []).map(city => ({
-      value: city.name,
-      label: city.name,
-    })),
   };
 };

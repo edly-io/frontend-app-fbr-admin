@@ -1,13 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
-import {
-  getSessionsInstructorReports, getReportFilters, getInstructorSessionDetails,
-} from './api';
-
-const FILTER_OPTIONS_STALE_TIME = 5 * 60 * 1000;
+import { getSessionsInstructorReports, getInstructorSessionDetails } from './api';
 
 export const sessionsReportQueryKeys = {
   list: params => ['sessions-reports', 'list', params],
-  filters: ['sessions-reports', 'filters'],
   sessionDetails: params => ['sessions-reports', 'session-details', params],
 };
 
@@ -21,13 +16,6 @@ export const useSessionsInstructorReports = ({
     program, instructor, city, startDate, endDate, page, pageSize,
   }),
   placeholderData: previousData => previousData,
-  enabled,
-});
-
-export const useReportFilters = ({ enabled = true } = {}) => useQuery({
-  queryKey: sessionsReportQueryKeys.filters,
-  queryFn: getReportFilters,
-  staleTime: FILTER_OPTIONS_STALE_TIME,
   enabled,
 });
 

@@ -6,12 +6,10 @@ import { getFilenameFromContentDisposition } from '../../../utils/download';
 const DEFAULT_EXPORT_FILENAME = 'sessions-report.csv';
 
 export const INSTRUCTOR_REPORT_PATH = '/fbr/api/reports/instructors/';
-export const REPORT_FILTERS_PATH = '/fbr/api/reports/filters/';
 export const INSTRUCTOR_REPORT_DETAIL_PATH = '/fbr/api/reports/instructors/detail/';
 export const INSTRUCTOR_REPORT_EXPORT_PATH = '/fbr/api/reports/instructors/export/';
 
 export const getInstructorReportsUrl = () => `${getConfig().LMS_BASE_URL}${INSTRUCTOR_REPORT_PATH}`;
-export const getReportFiltersUrl = () => `${getConfig().LMS_BASE_URL}${REPORT_FILTERS_PATH}`;
 export const getInstructorReportDetailUrl = () => `${getConfig().LMS_BASE_URL}${INSTRUCTOR_REPORT_DETAIL_PATH}`;
 export const getInstructorReportExportUrl = () => `${getConfig().LMS_BASE_URL}${INSTRUCTOR_REPORT_EXPORT_PATH}`;
 
@@ -123,24 +121,5 @@ export const exportSessionsInstructorReports = async ({
   return {
     blob: data,
     filename: getFilenameFromContentDisposition(headers?.['content-disposition'], DEFAULT_EXPORT_FILENAME),
-  };
-};
-
-export const getReportFilters = async () => {
-  const { data } = await getAuthenticatedHttpClient().get(getReportFiltersUrl());
-
-  return {
-    programs: (data?.programs || []).map(program => ({
-      value: program.program_key,
-      label: program.name,
-    })),
-    instructors: (data?.instructors || []).map(instructor => ({
-      value: String(instructor.id),
-      label: instructor.name,
-    })),
-    cities: (data?.cities || []).map(city => ({
-      value: city.name,
-      label: city.name,
-    })),
   };
 };
