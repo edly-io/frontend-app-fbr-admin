@@ -1,0 +1,109 @@
+// Shared styling for the raw HTML `<table>` markup used by the Users,
+// Biodata Edit Requests and Signup Approvals tables. These tables predate
+// Paragon's `DataTable` usage in the reports pages, so they get their own
+// lightweight, hand-rolled table chrome here instead.
+.admin-table__wrapper {
+  overflow: visible;
+  background: #fff;
+  border: 1px solid var(--pgn-color-border);
+  border-radius: 10px;
+}
+
+.admin-table__wrapper--clip {
+  overflow: hidden;
+}
+
+.admin-table {
+  width: 100%;
+  font-size: 13.5px;
+  border-collapse: collapse;
+}
+
+.admin-table__head-row {
+  background: var(--pgn-color-gray-100);
+  border-bottom: 1px solid var(--pgn-color-border);
+}
+
+.admin-table__head-cell {
+  padding: 11px 16px;
+  color: var(--pgn-color-gray-400);
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-align: left;
+}
+
+.admin-table__head-cell--center {
+  text-align: center;
+}
+
+.admin-table__head-cell--index {
+  width: 52px;
+}
+
+.admin-table__head-cell--actions {
+  width: 110px;
+}
+
+.admin-table__body-row {
+  border-bottom: 1px solid var(--pgn-color-gray-100);
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &:hover {
+    background: var(--pgn-color-primary-light);
+  }
+}
+
+.admin-table__body-row--top {
+  vertical-align: top;
+}
+
+.admin-table__cell {
+  padding: 12px 16px;
+}
+
+.admin-table__cell--tight {
+  padding: 14px 16px;
+}
+
+.admin-table__cell--index {
+  color: var(--pgn-color-gray-400);
+  font-weight: 500;
+}
+
+.admin-table__cell--muted {
+  color: var(--pgn-color-gray-700);
+}
+
+.admin-table__cell--link {
+  color: var(--pgn-color-primary-base);
+}
+
+.admin-table__cell--wrap {
+  white-space: pre-wrap;
+}
+
+.admin-table__cell--center {
+  text-align: center;
+}
+
+.admin-table__cell--actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+}
+
+.admin-table__empty-cell {
+  padding: 48px 16px;
+  color: var(--pgn-color-text-light);
+  text-align: center;
+}
+
+.admin-table__resolved-note {
+  color: var(--pgn-color-text-light);
+  font-size: 12px;
+}

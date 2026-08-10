@@ -1,0 +1,28 @@
+.request-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  background: #FFF3E0;
+  color: #B45309;
+
+  .request-status-badge__dot {
+    flex-shrink: 0;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #B45309;
+  }
+}
+
+.request-status-badge--resolved {
+  background: #EDFAF1;
+  color: var(--pgn-color-green);
+
+  .request-status-badge__dot {
+    background: var(--pgn-color-green);
+  }
+}
