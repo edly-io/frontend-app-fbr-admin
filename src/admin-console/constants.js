@@ -1,5 +1,5 @@
 import {
-  faUsers, faUserCheck, faPen, faChartLine, faIdBadge,
+  faUsers, faUserCheck, faPen, faChartLine, faIdBadge, faBullhorn,
 } from '@fortawesome/free-solid-svg-icons';
 
 // ─── Nav config ───────────────────────────────────────────────────────────────
@@ -34,6 +34,14 @@ export const NAV_SECTIONS = [
   //     },
   //   ],
   // },
+  {
+    id: 'communications',
+    items: [
+      {
+        id: 'announcements', path: 'announcements', icon: faBullhorn,
+      },
+    ],
+  },
   {
     id: 'reports',
     items: [

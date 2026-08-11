@@ -50,6 +50,7 @@
     "@openedx/paragon": "^23.4.5",
     "@react-pdf/renderer": "^4.5.1",
     "@tanstack/react-query": "5.90.5",
+    "@tinymce/tinymce-react": "^3.14.0",
     "core-js": "3.36.0",
     "prop-types": "15.8.1",
     "react": "18.3.1",
@@ -60,7 +61,8 @@
     "react-router": "6.22.3",
     "react-router-dom": "6.22.3",
     "redux": "4.2.1",
-    "regenerator-runtime": "0.14.1"
+    "regenerator-runtime": "0.14.1",
+    "tinymce": "^5.10.7"
   },
   "devDependencies": {
     "@edx/browserslist-config": "^1.1.1",

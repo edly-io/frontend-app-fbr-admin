@@ -25,6 +25,7 @@ const NAV_ITEM_LABEL_MESSAGES = {
   program: messages.navProgram,
   'sessions-instructor': messages.navSessionsInstructor,
   attendance: messages.navAttendance,
+  announcements: messages.navAnnouncements,
 };
 
 const normalizeRole = role => String(role || '').toLowerCase();
@@ -45,6 +46,7 @@ const canAccessNavItem = (item, roles, capabilities) => {
 const SECTION_TITLE_MESSAGES = {
   administration: messages.navSectionAdministration,
   analytics: messages.navSectionAnalytics,
+  communications: messages.navSectionCommunications,
   reports: messages.navSectionReports,
 };
 
