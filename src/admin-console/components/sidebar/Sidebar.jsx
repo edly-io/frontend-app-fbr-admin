@@ -12,6 +12,7 @@ import { useBiodataEditRequests } from '../../pages/biodata-edit-requests/data/a
 import './sidebar-styles.scss';
 
 const NAV_ITEM_LABEL_MESSAGES = {
+  dashboard: messages.navDashboard,
   users: messages.navUsers,
   'signup-approvals': messages.navSignupApprovals,
   'biodata-edit-requests': messages.navBiodataEditRequests,

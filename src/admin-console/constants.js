@@ -1,5 +1,5 @@
 import {
-  faUsers, faUserCheck, faPen, faChartLine, faIdBadge, faBullhorn,
+  faTachometerAlt, faUsers, faUserCheck, faPen, faChartLine, faIdBadge, faBullhorn,
 } from '@fortawesome/free-solid-svg-icons';
 
 // ─── Nav config ───────────────────────────────────────────────────────────────
@@ -9,6 +9,10 @@ export const NAV_SECTIONS = [
   {
     id: 'administration',
     items: [
+      // `faTachometerAlt` is Font Awesome 5's name for the `fa-dashboard` icon.
+      {
+        id: 'dashboard', path: 'dashboard', icon: faTachometerAlt,
+      },
       {
         id: 'users', path: 'users', icon: faUsers,
       },
