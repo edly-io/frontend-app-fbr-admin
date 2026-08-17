@@ -323,8 +323,13 @@ const messages = defineMessages({
   },
   sessionsWeekTooltip: {
     id: 'fbrAdmin.dashboard.sessions.weekTooltip',
-    defaultMessage: 'Week of {date}: {hours} hrs',
+    defaultMessage: 'Week of {date} · {hours} hrs',
     description: 'Tooltip on a bar of the weekly training hours chart, naming the week and its exact hours.',
+  },
+  sessionsWeekAria: {
+    id: 'fbrAdmin.dashboard.sessions.weekAria',
+    defaultMessage: 'Week of {date}: {hours} hours delivered',
+    description: 'Accessible name for one bar of the weekly training hours chart.',
   },
   sessionsTrendCaption: {
     id: 'fbrAdmin.dashboard.sessions.trendCaption',
@@ -333,8 +338,18 @@ const messages = defineMessages({
   },
   sessionsTrendChartLabel: {
     id: 'fbrAdmin.dashboard.sessions.trendChartLabel',
-    defaultMessage: 'Training hours per week over the last {weeks} weeks: {values}.',
-    description: 'Accessible description of the weekly training hours chart.',
+    defaultMessage: 'Training hours per week over the last {weeks} weeks',
+    description: 'Accessible name for the group of weekly training-hours bars; each bar carries its own week and value.',
+  },
+  sessionsTrendInfo: {
+    id: 'fbrAdmin.dashboard.sessions.trendInfo',
+    defaultMessage: 'Hours delivered in each of the last 8 weeks, Monday to Sunday. The final bar is the current week, which is still in progress.',
+    description: 'Tooltip explaining what the weekly training hours chart shows.',
+  },
+  sessionsTrendInfoAlt: {
+    id: 'fbrAdmin.dashboard.sessions.trendInfoAlt',
+    defaultMessage: 'About the weekly training hours chart',
+    description: 'Accessible name for the info button beside the weekly training hours chart.',
   },
   sessionsHoursByProgram: {
     id: 'fbrAdmin.dashboard.sessions.hoursByProgram',

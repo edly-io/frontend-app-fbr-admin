@@ -587,25 +587,60 @@ $dashboard-chart-current-hover: #00527f;
     gap: 5px;
   }
 
+  // Each week is a button, so the tooltip opens on focus as well as on hover.
   .dashboard-weekly-chart__week {
     display: flex;
     flex-direction: column;
     flex: 1 1 0;
     min-width: 0;
     height: 100%;
+    padding: 0;
+    border: 0;
+    border-radius: 4px;
+    background: none;
     cursor: default;
+    transition: opacity 0.15s ease-in-out;
+
+    @include dashboard-focus-ring;
+  }
+
+  // While one week is being inspected - by pointer or by keyboard - its peers
+  // recede. Opacity is not the only cue: the inspected bar also widens, its
+  // figure turns bold, and its tooltip names the week and the exact hours.
+  .dashboard-weekly-chart:hover,
+  .dashboard-weekly-chart:focus-within {
+    .dashboard-weekly-chart__week {
+      opacity: 0.4;
+    }
+
+    .dashboard-weekly-chart__week:hover,
+    .dashboard-weekly-chart__week:focus {
+      opacity: 1;
+
+      .dashboard-weekly-chart__value {
+        font-weight: 700;
+        color: $dashboard-secondary;
+      }
+
+      .dashboard-weekly-chart__bar {
+        background: $dashboard-chart-track-hover;
+        transform: scaleX(1.12);
+      }
+    }
   }
 
   .dashboard-weekly-chart__value {
     font-size: 9.5px;
     line-height: 13px;
+    margin-top: 3px;
     text-align: center;
     font-variant-numeric: tabular-nums;
     color: $dashboard-muted;
+    transition: color 0.15s ease-in-out;
   }
 
   // The bars measure against this box, not the whole chart, so the figures
-  // above them do not eat into the scale.
+  // beneath them do not eat into the scale.
   .dashboard-weekly-chart__track {
     display: flex;
     align-items: flex-end;
@@ -615,20 +650,14 @@ $dashboard-chart-current-hover: #00527f;
 
   .dashboard-weekly-chart__bar {
     width: 100%;
+    height: var(--dashboard-bar-height, 0%);
     // A week with nothing delivered keeps a baseline stub, so it reads as an
     // empty week rather than a missing one.
     min-height: 2px;
     border-radius: 4px 4px 2px 2px;
     background: $dashboard-chart-track;
-    transition: background-color 0.15s ease-in-out;
-  }
-
-  .dashboard-weekly-chart__week:hover .dashboard-weekly-chart__bar {
-    background: $dashboard-chart-track-hover;
-  }
-
-  .dashboard-weekly-chart__week:hover .dashboard-weekly-chart__value {
-    color: $dashboard-secondary;
+    transform-origin: bottom center;
+    transition: background-color 0.15s ease-in-out, transform 0.15s ease-in-out;
   }
 
   .dashboard-weekly-chart__week--current {
@@ -640,14 +669,18 @@ $dashboard-chart-current-hover: #00527f;
     .dashboard-weekly-chart__bar {
       background: $dashboard-chart-current;
     }
+  }
 
-    &:hover {
-      .dashboard-weekly-chart__bar {
-        background: $dashboard-chart-current-hover;
-      }
-
+  .dashboard-weekly-chart:hover,
+  .dashboard-weekly-chart:focus-within {
+    .dashboard-weekly-chart__week--current:hover,
+    .dashboard-weekly-chart__week--current:focus {
       .dashboard-weekly-chart__value {
         color: $dashboard-chart-current-hover;
+      }
+
+      .dashboard-weekly-chart__bar {
+        background: $dashboard-chart-current-hover;
       }
     }
   }
@@ -656,6 +689,17 @@ $dashboard-chart-current-hover: #00527f;
     font-size: 11px;
     color: $dashboard-muted;
     margin-top: 0.4375rem;
+  }
+
+  .dashboard-sessions__trend-info {
+    color: $dashboard-muted;
+    margin-left: 0.25rem;
+    vertical-align: text-bottom;
+
+    &:hover,
+    &:focus {
+      color: $dashboard-secondary;
+    }
   }
 
   .dashboard-sessions__grid {
@@ -834,11 +878,15 @@ $dashboard-chart-current-hover: #00527f;
 @media (prefers-reduced-motion: reduce) {
   .dashboard-page {
     .dashboard-users__legend-item,
+    .dashboard-weekly-chart__week,
+    .dashboard-weekly-chart__value,
     .dashboard-weekly-chart__bar {
       transition: none;
     }
 
-    .dashboard-users__legend-item:hover {
+    .dashboard-users__legend-item:hover,
+    .dashboard-weekly-chart__week:hover .dashboard-weekly-chart__bar,
+    .dashboard-weekly-chart__week:focus .dashboard-weekly-chart__bar {
       transform: none;
     }
   }

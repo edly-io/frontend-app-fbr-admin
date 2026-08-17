@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Card } from '@openedx/paragon';
+import { Card, IconButtonWithTooltip } from '@openedx/paragon';
+import { InfoOutline } from '@openedx/paragon/icons';
 import { useIntl } from '@edx/frontend-platform/i18n';
 import MeterBar from './MeterBar';
 import SectionState from './SectionState';
@@ -23,7 +24,7 @@ const SessionsOverview = ({ sessions, isLoading, isError }) => {
   const sectionName = intl.formatMessage(messages.sessionsTitle);
 
   const hoursByProgram = sessions?.hoursByProgram || [];
-  const weeklyHours = (sessions?.hoursPerWeek || []).map(week => week.hours);
+  const hoursPerWeek = sessions?.hoursPerWeek || [];
   // Every bar is drawn relative to the busiest program, so a single zero-hour
   // program can never divide by zero here.
   const maxProgramHours = Math.max(1, ...hoursByProgram.map(program => program.hours));
@@ -83,16 +84,23 @@ const SessionsOverview = ({ sessions, isLoading, isError }) => {
 
                 <div className="dashboard-sessions__trend">
                   <WeeklySessionsChart
-                    weeks={sessions?.hoursPerWeek || []}
+                    weeks={hoursPerWeek}
                     label={intl.formatMessage(messages.sessionsTrendChartLabel, {
-                      weeks: weeklyHours.length,
-                      values: weeklyHours.join(', '),
+                      weeks: hoursPerWeek.length,
                     })}
                   />
                   <p className="dashboard-sessions__trend-caption mb-0">
                     {intl.formatMessage(messages.sessionsTrendCaption, {
-                      weeks: weeklyHours.length,
+                      weeks: hoursPerWeek.length,
                     })}
+                    <IconButtonWithTooltip
+                      src={InfoOutline}
+                      size="inline"
+                      alt={intl.formatMessage(messages.sessionsTrendInfoAlt)}
+                      tooltipPlacement="top"
+                      tooltipContent={intl.formatMessage(messages.sessionsTrendInfo)}
+                      className="dashboard-sessions__trend-info"
+                    />
                   </p>
                 </div>
               </div>
