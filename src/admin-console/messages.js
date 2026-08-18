@@ -26,6 +26,11 @@ const messages = defineMessages({
     defaultMessage: 'Announcements',
     description: 'Sidebar nav item label for the Announcements page.',
   },
+  navDashboard: {
+    id: 'fbrAdmin.shell.nav.dashboard',
+    defaultMessage: 'Dashboard',
+    description: 'Sidebar nav item label for the Dashboard page.',
+  },
   navUsers: {
     id: 'fbrAdmin.shell.nav.users',
     defaultMessage: 'Users',

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import AdminConsolePage from './AdminConsolePage';
+import DashboardPage from './pages/dashboard/DashboardPage';
 import UsersPage from './pages/users/UsersPage';
 import SignupApprovalsPage from './pages/signup-approvals/SignupApprovalsPage';
 import BiodataEditRequestsPage from './pages/biodata-edit-requests/BiodataEditRequestsPage';
@@ -24,6 +25,7 @@ const AdminConsoleRoutes = () => (
   <Routes>
     <Route path="/" element={<AdminConsolePage />}>
       <Route index element={<Navigate to="users" replace />} />
+      <Route path="dashboard" element={<DashboardPage />} />
       <Route path="users" element={<UsersPage />} />
       <Route path="signup-approvals" element={<SignupApprovalsPage />} />
       <Route path="biodata-edit-requests" element={<BiodataEditRequestsPage />} />
