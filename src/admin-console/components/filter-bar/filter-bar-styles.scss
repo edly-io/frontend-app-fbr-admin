@@ -1,4 +1,18 @@
+// `postcss-custom-media` runs per stylesheet with no shared import, so the
+// breakpoint definitions have to be pulled into this file or every
+// `--pgn-size-breakpoint-*` query below silently fails to compile.
+@use "@openedx/paragon/styles/css/core/custom-media-breakpoints" as paragonCustomMediaBreakpoints;
+
 .filter-bar {
+
+  input,
+  select {
+    @media (--pgn-size-breakpoint-max-width-xs) {
+      font-size: 14px;
+    }
+  }
+
+
   .filter-bar__row {
     // Paragon's Bootstrap 4 base has no .gap-* utilities (added in Bootstrap 5).
     row-gap: 1rem;
@@ -6,6 +20,10 @@
 
   .filter-bar__group {
     min-width: 160px;
+    @media (--pgn-size-breakpoint-max-width-xs) {
+      flex-grow: 1;
+      width: 100%;
+    }
   }
 
   // A native select is as wide as its widest option, so long program titles

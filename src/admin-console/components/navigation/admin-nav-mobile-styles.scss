@@ -1,0 +1,209 @@
+// `postcss-custom-media` runs per stylesheet with no shared import, so the
+// breakpoint definitions have to be pulled into this file or every
+// `--pgn-size-breakpoint-*` query below silently fails to compile.
+@use "@openedx/paragon/styles/css/core/custom-media-breakpoints" as paragonCustomMediaBreakpoints;
+
+// Mirrored by `SHEET_CLOSE_DURATION_MS` in `useNavSheetVisibility.js`.
+$admin-nav-sheet-close-duration: 200ms;
+$admin-nav-sheet-open-duration: 260ms;
+$admin-nav-skrim-duration: 200ms;
+$admin-nav-sheet-ease-out: cubic-bezier(0.32, 0.72, 0, 1);
+$admin-nav-sheet-radius: 16px;
+$admin-nav-sheet-max-height: 85vh;
+
+// ─── Context bar ────────────────────────────────────────────────────────────
+
+// Revealed only inside the same `--pgn-size-breakpoint-max-width-md` query that
+// hides the sidebar, so the two can never both show - nor both hide at exactly
+// 992px, which a Bootstrap `d-lg-none` would have done.
+.admin-nav-context-bar {
+  display: none;
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  padding: 12px 16px 8px;
+  // Matches the page so content scrolls out of sight behind the trigger.
+  background: var(--pgn-color-theme-bg-gray);
+
+  .admin-nav-context-bar__trigger {
+    // Paragon's Bootstrap 4 base has no .gap-* utilities (added in Bootstrap 5).
+    gap: 10px;
+    width: 100%;
+    min-height: 48px;
+    padding: 0 12px;
+    border: 1px solid var(--pgn-color-light-400);
+    border-radius: 10px;
+    background: var(--pgn-color-white);
+    text-align: left;
+    cursor: pointer;
+
+    &:focus-visible {
+      outline: 2px solid var(--pgn-color-primary-base);
+      outline-offset: 1px;
+    }
+  }
+
+  .admin-nav-context-bar__menu-icon {
+    width: 16px;
+    flex-shrink: 0;
+    color: var(--pgn-color-gray-500);
+  }
+
+  .admin-nav-context-bar__labels {
+    gap: 5px;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .admin-nav-context-bar__section,
+  .admin-nav-context-bar__divider {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--pgn-color-gray-500);
+    flex-shrink: 0;
+  }
+
+  .admin-nav-context-bar__page {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--pgn-color-gray-800);
+    // Long labels ("Biodata Edit Request") truncate rather than push the badge
+    // and chevron off the trigger.
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  .admin-nav-context-bar__badge {
+    flex-shrink: 0;
+    padding: 4px 8px;
+    font-size: 11px;
+    background-color: var(--pgn-color-danger-200);
+    color: var(--pgn-color-danger-700);
+  }
+
+  .admin-nav-context-bar__chevron {
+    width: 12px;
+    flex-shrink: 0;
+    color: var(--pgn-color-gray-500);
+    transition: transform 200ms ease;
+
+    &--open {
+      transform: rotate(180deg);
+    }
+  }
+}
+
+@media (--pgn-size-breakpoint-max-width-md) {
+  .admin-nav-context-bar {
+    display: block;
+  }
+}
+
+// ─── Nav sheet ──────────────────────────────────────────────────────────────
+
+// Scoped through the sheet's own portal container so these rules out-specify
+// Paragon's `.pgn__sheet-component.bottom` defaults whichever order the bundler
+// emits them in.
+.sheet-container.admin-nav-sheet-container {
+  .admin-nav-sheet.pgn__sheet-component {
+    // Paragon caps bottom sheets at 50% of the viewport, too little for the
+    // full grouped nav on a phone.
+    max-height: $admin-nav-sheet-max-height;
+    padding: 0;
+    border-top-left-radius: $admin-nav-sheet-radius;
+    border-top-right-radius: $admin-nav-sheet-radius;
+    animation: admin-nav-sheet-slide-in $admin-nav-sheet-open-duration $admin-nav-sheet-ease-out;
+  }
+
+  .admin-nav-sheet--closing.pgn__sheet-component {
+    animation: admin-nav-sheet-slide-out $admin-nav-sheet-close-duration ease-in forwards;
+  }
+
+  .admin-nav-sheet .pgn__sheet-content {
+    display: flex;
+    flex-direction: column;
+    max-height: $admin-nav-sheet-max-height;
+  }
+
+  .admin-nav-sheet__grabber {
+    width: 38px;
+    height: 4px;
+    margin: 8px auto 0;
+    border-radius: 999px;
+    background: var(--pgn-color-light-500);
+    flex-shrink: 0;
+  }
+
+  .admin-nav-sheet__header {
+    padding: 8px 8px 8px 20px;
+    border-bottom: 1px solid var(--pgn-color-border);
+    flex-shrink: 0;
+  }
+
+  // The nav is the only scrolling part, so the title and close button stay put.
+  .admin-nav-sheet__nav {
+    padding: 4px 12px 16px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    min-height: 0;
+
+    > div:first-child .admin-sidebar__section-title {
+      margin-top: 8px;
+    }
+  }
+
+  // Paragon only draws the skrim for `blocking` sheets, and a blocking sheet
+  // gives up click-outside and Esc dismissal. This sheet keeps the dismissible
+  // behaviour and styles the skrim back in for itself.
+  .pgn__sheet-skrim.hidden {
+    display: block;
+    animation: admin-nav-skrim-fade-in $admin-nav-skrim-duration ease-out;
+  }
+}
+
+.sheet-container.admin-nav-sheet-container--closing .pgn__sheet-skrim.hidden {
+  animation: admin-nav-skrim-fade-out $admin-nav-skrim-duration ease-in forwards;
+}
+
+@keyframes admin-nav-sheet-slide-in {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+@keyframes admin-nav-sheet-slide-out {
+  from { transform: translateY(0); }
+  to { transform: translateY(100%); }
+}
+
+@keyframes admin-nav-skrim-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes admin-nav-skrim-fade-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+// ─── Motion ─────────────────────────────────────────────────────────────────
+
+// `useNavSheetVisibility` also skips its close delay under reduced motion, so
+// there is no dead time waiting on an animation that never runs.
+@media (prefers-reduced-motion: reduce) {
+  .sheet-container.admin-nav-sheet-container {
+    .admin-nav-sheet.pgn__sheet-component,
+    .admin-nav-sheet--closing.pgn__sheet-component,
+    .pgn__sheet-skrim.hidden {
+      animation: none;
+    }
+  }
+
+  .sheet-container.admin-nav-sheet-container--closing .pgn__sheet-skrim.hidden {
+    animation: none;
+  }
+
+  .admin-nav-context-bar .admin-nav-context-bar__chevron {
+    transition: none;
+  }
+}

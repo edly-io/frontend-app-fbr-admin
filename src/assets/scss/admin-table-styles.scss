@@ -3,7 +3,7 @@
 // Paragon's `DataTable` usage in the reports pages, so they get their own
 // lightweight, hand-rolled table chrome here instead.
 .admin-table__wrapper {
-  overflow: visible;
+  overflow: auto;
   background: #fff;
   border: 1px solid var(--pgn-color-border);
   border-radius: 10px;

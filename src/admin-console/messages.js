@@ -101,6 +101,31 @@ const messages = defineMessages({
     defaultMessage: 'Attendance',
     description: 'Sidebar nav item label for the Attendance Reports page.',
   },
+  navCurrentPage: {
+    id: 'fbrAdmin.shell.nav.currentPage',
+    defaultMessage: 'Current page',
+    description: 'Screen-reader-only text marking the nav item for the page currently being viewed.',
+  },
+  navMobileTriggerLabel: {
+    id: 'fbrAdmin.shell.nav.mobile.triggerLabel',
+    defaultMessage: 'Change section. Currently viewing {section}, {page}. {count, plural, =0 {} one {# item needs attention.} other {# items need attention.}}',
+    description: 'Accessible name for the mobile context bar button that opens the navigation sheet.',
+  },
+  navMobileSheetTitle: {
+    id: 'fbrAdmin.shell.nav.mobile.sheetTitle',
+    defaultMessage: 'Go to section',
+    description: 'Heading of the mobile bottom sheet that holds the admin console navigation.',
+  },
+  navMobileSheetClose: {
+    id: 'fbrAdmin.shell.nav.mobile.sheetClose',
+    defaultMessage: 'Close section menu',
+    description: 'Accessible label for the button that dismisses the mobile navigation sheet.',
+  },
+  navMobileNoActiveSection: {
+    id: 'fbrAdmin.shell.nav.mobile.noActiveSection',
+    defaultMessage: 'Select a section',
+    description: 'Mobile context bar label shown on pages that are not part of the navigation.',
+  },
   placeholderBody: {
     id: 'fbrAdmin.shell.placeholder.body',
     defaultMessage: 'This section is under construction.',
