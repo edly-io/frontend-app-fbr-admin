@@ -1,0 +1,115 @@
+/* ── Error banner ───────────────────────────────────────────────────────── */
+.doc-modal-error {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-left: 4px solid #ef4444;
+  color: #991b1b;
+  border-radius: 6px;
+  padding: 10px 14px;
+  font-size: 0.875rem;
+  margin-bottom: 18px;
+}
+
+/* ── Section spacing ────────────────────────────────────────────────────── */
+.doc-modal-section { margin-bottom: 18px; }
+.doc-modal-row {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+.doc-modal-col { flex: 1; min-width: 0; }
+
+/* ── Form label extras ──────────────────────────────────────────────────── */
+.doc-required { color: #ef4444; margin-left: 2px; }
+.doc-optional { color: #9ca3af; font-weight: 400; font-size: 0.8rem; margin-left: 4px; }
+
+/* ── Upload zone ────────────────────────────────────────────────────────── */
+.doc-upload-zone {
+  border: 2px dashed #d1d5db;
+  border-radius: 10px;
+  padding: 32px 24px;
+  cursor: pointer;
+  text-align: center;
+  transition: border-color 0.15s, background 0.15s;
+  background: #fafafa;
+  outline: none;
+}
+.doc-upload-zone:hover,
+.doc-upload-zone:focus {
+  border-color: #6366f1;
+  background: #f5f3ff;
+}
+.doc-upload-zone--over {
+  border-color: #6366f1;
+  background: #ede9fe;
+}
+.doc-upload-zone--filled {
+  padding: 16px 20px;
+  border-style: solid;
+  border-color: #a5b4fc;
+  background: #f5f3ff;
+  cursor: default;
+}
+
+/* Upload prompt (empty state) */
+.doc-upload-prompt { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.doc-upload-icon {
+  font-size: 2.2rem;
+  color: #a5b4fc;
+  margin-bottom: 4px;
+}
+.doc-upload-label {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #374151;
+}
+.doc-upload-label strong { color: #4f46e5; }
+.doc-upload-hint {
+  margin: 0;
+  font-size: 0.78rem;
+  color: #9ca3af;
+}
+
+/* Upload preview (file selected) */
+.doc-upload-preview {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-align: left;
+}
+.doc-upload-preview-icon {
+  font-size: 1.4rem;
+  color: #6366f1;
+  flex-shrink: 0;
+}
+.doc-upload-preview-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.doc-upload-preview-name {
+  font-weight: 500;
+  color: #111827;
+  font-size: 0.875rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.doc-upload-preview-size {
+  font-size: 0.78rem;
+  color: #6b7280;
+}
+.doc-upload-clear {
+  flex-shrink: 0;
+  border: none;
+  background: transparent;
+  color: #9ca3af;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  transition: color 0.12s, background 0.12s;
+}
+.doc-upload-clear:hover { color: #ef4444; background: #fef2f2; }
