@@ -9,11 +9,13 @@ import { getAuthenticatedHttpClient } from '@edx/frontend-platform/auth';
 export const DASHBOARD_KPIS_PATH = '/fbr/api/reports/dashboard/kpis/';
 export const DASHBOARD_USERS_PATH = '/fbr/api/reports/dashboard/users/';
 export const DASHBOARD_SESSIONS_PATH = '/fbr/api/reports/dashboard/sessions/';
+export const DASHBOARD_ATTENDANCE_PATH = '/fbr/api/reports/dashboard/attendance/';
 export const DASHBOARD_NEEDS_ATTENTION_PATH = '/fbr/api/reports/dashboard/needs-attention/';
 
 export const getDashboardKpisUrl = () => `${getConfig().LMS_BASE_URL}${DASHBOARD_KPIS_PATH}`;
 export const getDashboardUsersUrl = () => `${getConfig().LMS_BASE_URL}${DASHBOARD_USERS_PATH}`;
 export const getDashboardSessionsUrl = () => `${getConfig().LMS_BASE_URL}${DASHBOARD_SESSIONS_PATH}`;
+export const getDashboardAttendanceUrl = () => `${getConfig().LMS_BASE_URL}${DASHBOARD_ATTENDANCE_PATH}`;
 export const getDashboardNeedsAttentionUrl = () => `${getConfig().LMS_BASE_URL}${DASHBOARD_NEEDS_ATTENTION_PATH}`;
 
 /**
@@ -78,6 +80,35 @@ export const mapSessionDelivery = (data) => ({
   hoursPerWeek: (data?.hours_per_week || []).map((week) => ({
     weekStart: week.week_start,
     hours: asCount(week.hours),
+  })),
+});
+
+/**
+ * Every (session, trainee) pair the roster expected, in one of four states.
+ * `pending` is "the session happened and nobody marked this trainee" and counts
+ * in the denominator, so a rate here matches the roster screens rather than
+ * flattering them. `rate` is `null` where no session has occurred yet - nothing
+ * to measure, which is not the same as nobody attending.
+ */
+const attendanceCounts = row => ({
+  present: asCount(row?.present),
+  absent: asCount(row?.absent),
+  leave: asCount(row?.leave),
+  pending: asCount(row?.pending),
+  total: asCount(row?.total),
+  rate: nullableNumber(row?.attendance_rate),
+});
+
+/** Programs arrive worst-first and capped by the API; `totalPrograms` is the
+ * unclipped count, so a client can say "10 of 23" rather than imply 10. */
+export const mapAttendanceOverview = data => ({
+  ...attendanceCounts(data),
+  totalPrograms: asCount(data?.total_programs),
+  programs: (data?.programs || []).map(program => ({
+    id: program.program_key,
+    programKey: program.program_key,
+    name: program.program_title || program.program_key,
+    ...attendanceCounts(program),
   })),
 });
 
@@ -215,6 +246,11 @@ export const getDashboardSessionDelivery = async () => {
 };
 
 /** Outstanding work across the caller's active, city-scoped programmes. */
+export const getDashboardAttendanceOverview = async () => {
+  const { data } = await getAuthenticatedHttpClient().get(getDashboardAttendanceUrl());
+  return mapAttendanceOverview(data);
+};
+
 export const getDashboardNeedsAttention = async () => {
   const { data } = await getAuthenticatedHttpClient().get(getDashboardNeedsAttentionUrl());
   return mapNeedsAttention(data);

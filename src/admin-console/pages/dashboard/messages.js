@@ -68,13 +68,13 @@ const messages = defineMessages({
   },
   markingWindowTitle: {
     id: 'fbrAdmin.dashboard.attention.markingWindow.title',
-    defaultMessage: 'Attendance still unmarked',
+    defaultMessage: 'Attendance still pending',
     description: 'Needs-attention task: sessions whose attendance is about to become unrecordable.',
   },
   markingWindowDescription: {
     id: 'fbrAdmin.dashboard.attention.markingWindow.description',
-    defaultMessage: '{trainees, plural, one {# trainee} other {# trainees}} still unmarked · marking locks in {days, plural, one {# day} other {# days}}',
-    description: 'Supporting text for the marking window task. "Locks" because once the window shuts the attendance can never be recorded.',
+    defaultMessage: '{trainees, plural, one {# trainee} other {# trainees}} still pending · marking locks in {days, plural, one {# day} other {# days}}',
+    description: 'Supporting text for the marking window task. "Locks" because once the window shuts the attendance can never be recorded. "Pending" is the platform\'s own name for this attendance state.',
   },
   pendingRequestsTitle: {
     id: 'fbrAdmin.dashboard.attention.pendingRequests.title',
@@ -103,17 +103,22 @@ const messages = defineMessages({
   },
   attentionMarkingSummary: {
     id: 'fbrAdmin.dashboard.attention.markingSummary',
-    defaultMessage: '{sessions, plural, one {# session} other {# sessions}} · {trainees, plural, one {# trainee} other {# trainees}} unmarked · {days, plural, =0 {first closes today} one {first closes in # day} other {first closes in # days}}',
+    defaultMessage: '{sessions, plural, one {# session} other {# sessions}} · {trainees, plural, one {# trainee} other {# trainees}} pending · {days, plural, =0 {first closes today} one {first closes in # day} other {first closes in # days}}',
     description: 'Per-program summary of the marking window task. "First" because the deadline is the soonest of its sessions, not one they all share.',
   },
-  attentionCourseUnassigned: {
-    id: 'fbrAdmin.dashboard.attention.courseUnassigned',
-    defaultMessage: 'Sessions without a course',
-    description: 'Label for the marking-window sessions that belong to no course.',
+  attentionSessionCourse: {
+    id: 'fbrAdmin.dashboard.attention.sessionCourse',
+    defaultMessage: 'Course · {course}',
+    description: 'Eyebrow above a session name, saying which course it belongs to.',
+  },
+  attentionSessionNoCourse: {
+    id: 'fbrAdmin.dashboard.attention.sessionNoCourse',
+    defaultMessage: 'No course attached',
+    description: 'Eyebrow for a session that belongs to no course - a program-wide ceremony or orientation, not missing data. Says "attached" so it reads as a fact about the session rather than as a gap in the data.',
   },
   attentionSessionSummary: {
     id: 'fbrAdmin.dashboard.attention.sessionSummary',
-    defaultMessage: '{date} · {trainees, plural, one {# unmarked} other {# unmarked}} · {days, plural, =0 {closes today} one {closes in # day} other {closes in # days}}',
+    defaultMessage: '{date} · {trainees, plural, one {# pending} other {# pending}} · {days, plural, =0 {closes today} one {closes in # day} other {closes in # days}}',
     description: 'Per-session summary of the marking window task.',
   },
   attentionSessionUntitled: {
@@ -411,13 +416,13 @@ const messages = defineMessages({
   },
   attendanceCaption: {
     id: 'fbrAdmin.dashboard.attendance.caption',
-    defaultMessage: 'Overall attendance · {change} vs last period',
-    description: 'Caption under the overall attendance percentage, including the change since last period.',
+    defaultMessage: 'Overall attendance across {total, plural, one {# expected attendance} other {# expected attendances}}',
+    description: 'Caption under the overall attendance percentage. Counts session-trainee pairs, not people.',
   },
-  attendanceChange: {
-    id: 'fbrAdmin.dashboard.attendance.change',
-    defaultMessage: '{delta} pts',
-    description: 'Change in attendance against the previous period, in percentage points.',
+  attendanceEmpty: {
+    id: 'fbrAdmin.dashboard.attendance.empty',
+    defaultMessage: 'No sessions have taken place yet, so there is no attendance to report.',
+    description: 'Shown when no session in the active programs has occurred.',
   },
   statePresent: {
     id: 'fbrAdmin.dashboard.attendance.state.present',
@@ -434,6 +439,11 @@ const messages = defineMessages({
     defaultMessage: 'On leave',
     description: 'Attendance state: trainee was on approved leave.',
   },
+  statePending: {
+    id: 'fbrAdmin.dashboard.attendance.state.pending',
+    defaultMessage: 'Pending',
+    description: 'Attendance state: the session happened and nobody recorded this trainee. Matches the Attendance report\'s own label for the same state.',
+  },
   attendanceBreakdownLabel: {
     id: 'fbrAdmin.dashboard.attendance.breakdownLabel',
     defaultMessage: 'Attendance breakdown: {breakdown}.',
@@ -449,30 +459,20 @@ const messages = defineMessages({
     defaultMessage: 'below the {threshold}% threshold',
     description: 'Text alternative marking a program that is under the attendance threshold.',
   },
-  attendanceBelowThresholdStat: {
-    id: 'fbrAdmin.dashboard.attendance.belowThresholdStat',
-    defaultMessage: 'Below {threshold}% threshold',
-    description: 'Label for the number of trainees under the attendance threshold.',
-  },
-  attendanceMarkedToday: {
-    id: 'fbrAdmin.dashboard.attendance.markedToday',
-    defaultMessage: 'Today\'s sessions marked',
-    description: 'Label for the share of today\'s sessions with attendance recorded.',
-  },
-  attendanceMarkedTodayValue: {
-    id: 'fbrAdmin.dashboard.attendance.markedTodayValue',
-    defaultMessage: '{marked} / {total}',
-    description: 'Sessions marked out of the sessions scheduled today.',
-  },
-  attendanceTraineesTracked: {
-    id: 'fbrAdmin.dashboard.attendance.traineesTracked',
-    defaultMessage: 'Trainees tracked',
-    description: 'Label for the number of trainees whose attendance is recorded.',
-  },
   attendanceProgramValue: {
     id: 'fbrAdmin.dashboard.attendance.programValue',
     defaultMessage: '{percentage}%',
     description: 'Attendance percentage for one program.',
+  },
+  attendanceProgramNotStarted: {
+    id: 'fbrAdmin.dashboard.attendance.programNotStarted',
+    defaultMessage: 'Not started',
+    description: 'Shown for a program whose sessions have not occurred yet, instead of 0%.',
+  },
+  attendanceProgramsCapped: {
+    id: 'fbrAdmin.dashboard.attendance.programsCapped',
+    defaultMessage: 'Showing the {shown} lowest of {total} programs',
+    description: 'Note under the program list, which the API caps as a ranked sample.',
   },
 
   percentageValue: {

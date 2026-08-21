@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { Spinner } from '@openedx/paragon';
 import { useIntl } from '@edx/frontend-platform/i18n';
 import Breadcrumb from '../../components/breadcrumb/Breadcrumb';
@@ -9,11 +9,9 @@ import ProgramPerformance from './ProgramPerformance';
 import SessionsOverview from './SessionsOverview';
 import UsersOverview from './UsersOverview';
 import {
-  useDashboardKpis, useDashboardNeedsAttention, useDashboardSessionDelivery,
-  useDashboardUserComposition,
+  useDashboardAttendanceOverview, useDashboardKpis, useDashboardNeedsAttention,
+  useDashboardSessionDelivery, useDashboardUserComposition,
 } from './data/apiHooks';
-import { dashboardMockData } from './data/mockData';
-import { getDashboardMetrics } from './data/selectors';
 import { useReportsAccess } from '../../data/apiHooks';
 import messages from './messages';
 import './styles.scss';
@@ -23,9 +21,8 @@ const AS_OF_FORMAT = {
 };
 
 /**
- * Admin dashboard. Each API-backed section owns its own query under
+ * Admin dashboard. Every section owns its own query under
  * `/fbr/api/reports/dashboard/`, so one failing endpoint degrades on its own.
- * Attendance has no endpoint yet and still reads from `dashboardMockData`.
  */
 const DashboardPage = () => {
   const intl = useIntl();
@@ -49,8 +46,9 @@ const DashboardPage = () => {
     data: needsAttention, isLoading: isAttentionLoading, isError: isAttentionError,
   } = useDashboardNeedsAttention({ enabled: isAccessReady });
 
-  const mockMetrics = useMemo(() => getDashboardMetrics(dashboardMockData), []);
-  const { programs, attendanceMetrics } = mockMetrics;
+  const {
+    data: attendance, isLoading: isAttendanceLoading, isError: isAttendanceError,
+  } = useDashboardAttendanceOverview({ enabled: isAccessReady });
 
   // Dates the figures on screen, not the moment the page was opened.
   const generatedAt = dataUpdatedAt ? new Date(dataUpdatedAt) : null;
@@ -113,8 +111,9 @@ const DashboardPage = () => {
       />
 
       <AttendanceOverview
-        attendanceMetrics={attendanceMetrics}
-        programs={programs}
+        attendance={attendance}
+        isLoading={isAttendanceLoading}
+        isError={isAttendanceError}
       />
     </div>
   );

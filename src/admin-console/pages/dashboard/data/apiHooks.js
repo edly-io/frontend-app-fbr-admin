@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import {
+  getDashboardAttendanceOverview,
   getDashboardKpis,
   getDashboardNeedsAttention,
   getDashboardSessionDelivery,
@@ -15,6 +16,7 @@ export const dashboardQueryKeys = {
   kpis: ['dashboard', 'kpis'],
   users: ['dashboard', 'users'],
   sessions: ['dashboard', 'sessions'],
+  attendance: ['dashboard', 'attendance'],
   needsAttention: ['dashboard', 'needsAttention'],
 };
 
@@ -35,6 +37,13 @@ export const useDashboardUserComposition = ({ enabled = true } = {}) => useQuery
 export const useDashboardSessionDelivery = ({ enabled = true } = {}) => useQuery({
   queryKey: dashboardQueryKeys.sessions,
   queryFn: getDashboardSessionDelivery,
+  staleTime: DASHBOARD_STALE_TIME,
+  enabled,
+});
+
+export const useDashboardAttendanceOverview = ({ enabled = true } = {}) => useQuery({
+  queryKey: dashboardQueryKeys.attendance,
+  queryFn: getDashboardAttendanceOverview,
   staleTime: DASHBOARD_STALE_TIME,
   enabled,
 });

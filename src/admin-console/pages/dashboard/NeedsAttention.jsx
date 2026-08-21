@@ -33,6 +33,11 @@ const buildTasks = (intl, needsAttention) => {
 
   const markingSession = (program, course, session) => ({
     id: session.id,
+    eyebrow: course.courseId
+      ? intl.formatMessage(messages.attentionSessionCourse, {
+        course: course.title || course.courseId,
+      })
+      : intl.formatMessage(messages.attentionSessionNoCourse),
     title: session.title || intl.formatMessage(messages.attentionSessionUntitled),
     description: intl.formatMessage(messages.attentionSessionSummary, {
       date: formatDateTime(session.startTime),
@@ -42,29 +47,12 @@ const buildTasks = (intl, needsAttention) => {
     href: getSessionAttendanceUrl(program.programKey, session.sessionId, course.courseId),
   });
 
-  // The course heads its sessions and links nowhere - the session is what an
-  // admin opens, so it is what carries the destination.
-  //
-  // "Sessions without a course" is dropped when it is the programme's only
-  // group: with nothing to tell it apart from, it names no distinction and
-  // leaves an admin reading a heading that says less than the row above it. A
-  // real course keeps its heading either way, because the name is information.
-  const markingCourse = (program, course) => ({
-    id: course.id,
-    isGroup: true,
-    title: course.courseId
-      ? course.title || course.courseId
-      : intl.formatMessage(messages.attentionCourseUnassigned),
-    children: course.sessions.map(session => markingSession(program, course, session)),
-  });
-
-  const markingChildren = (program) => {
-    const [only] = program.courses;
-    if (program.courses.length === 1 && !only.courseId) {
-      return only.sessions.map(session => markingSession(program, only, session));
-    }
-    return program.courses.map(course => markingCourse(program, course));
-  };
+  // Sessions sit straight under their programme, each naming its own course in
+  // the eyebrow. A heading row per course would say the same thing once more,
+  // and courses arrive most-urgent-first, so flattening keeps that order.
+  const markingChildren = program => program.courses.flatMap(
+    course => course.sessions.map(session => markingSession(program, course, session)),
+  );
 
   return [
     {

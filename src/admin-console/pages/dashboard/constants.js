@@ -73,11 +73,17 @@ export const DEFAULT_ROLE_COLOR = TONE_COLORS.neutral;
 export const DEFAULT_ROLE_SURFACE = '#F2F2F2';
 
 /** Ordered the way they stack in the breakdown bar. */
+// Keyed by the API's own state names. `pending` is unfinished marking rather
+// than a verdict on the trainee, so it takes the neutral hue.
 export const ATTENDANCE_COLORS = {
   present: TONE_COLORS.positive,
   absent: TONE_COLORS.negative,
-  onLeave: TONE_COLORS.caution,
+  leave: TONE_COLORS.caution,
+  pending: TONE_COLORS.neutral,
 };
+
+/** Attendance below this puts a program on the card as at risk. */
+export const ATTENDANCE_AT_RISK = 75;
 
 /** Ordered best-to-worst; the first matching band wins. */
 export const ATTENDANCE_BANDS = [

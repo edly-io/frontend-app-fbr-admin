@@ -384,12 +384,6 @@ $dashboard-attention-step: 1.75rem;
     );
   }
 
-  .dashboard-attention__row--level-3 {
-    padding-left: calc(
-      #{$dashboard-attention-indent} + #{$dashboard-attention-step} * 2
-    );
-  }
-
   .dashboard-attention__icon {
     width: $dashboard-attention-icon;
     height: $dashboard-attention-icon;
@@ -447,20 +441,6 @@ $dashboard-attention-step: 1.75rem;
     text-transform: uppercase;
     color: $dashboard-muted;
     margin-bottom: 1px;
-  }
-
-  // A heading, not a control: nothing here is clickable, so it must not look
-  // like the rows around it that are.
-  .dashboard-attention__row--group {
-    padding-bottom: 0.25rem;
-
-    .dashboard-attention__item-title {
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      color: $dashboard-muted;
-    }
   }
 
   // One smaller scale for every nested level, however deep.
@@ -825,6 +805,13 @@ $dashboard-attention-step: 1.75rem;
     margin-bottom: 1rem;
   }
 
+  // The program list is a ranked sample the API caps, so it says what it omits.
+  .dashboard-attendance__note {
+    font-size: 11.5px;
+    color: $dashboard-muted;
+    margin-top: 0.75rem;
+  }
+
   .dashboard-attendance__split {
     gap: 1.125rem;
     margin-left: auto;
@@ -910,10 +897,6 @@ $dashboard-attention-step: 1.75rem;
 
     .dashboard-attention__row--level-2 {
       padding-left: calc(2rem + #{$dashboard-attention-step});
-    }
-
-    .dashboard-attention__row--level-3 {
-      padding-left: calc(2rem + #{$dashboard-attention-step} * 2);
     }
 
     // Meter drops below the label so neither is squeezed on a phone.
