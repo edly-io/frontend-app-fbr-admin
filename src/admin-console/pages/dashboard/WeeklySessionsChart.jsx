@@ -5,20 +5,14 @@ import { useIntl } from '@edx/frontend-platform/i18n';
 import messages from './messages';
 
 /**
- * Weekly training hours as eight proportional bars, with the current week
- * emphasised. Plain markup and CSS rather than a charting library: the shape is
- * eight rectangles with no axes, gridlines or legend.
- *
- * Each week is a button, so hovering *and* keyboard focus reveal its Paragon
- * tooltip - which carries the exact hours, since the figure printed above the
- * bar is rounded to keep the bars narrow. Only the data-driven height crosses
- * from JS into CSS, as a custom property.
+ * Weekly training hours as eight proportional bars. Each week is a button, so
+ * hover and keyboard focus both reveal its tooltip, which carries the exact
+ * hours - the printed figure is rounded to keep the bars narrow.
  */
 
 /**
- * Floor for a week that had *some* delivery, as a share of the tallest bar. A
- * week with a single short session would otherwise round to a hairline and read
- * as nothing delivered.
+ * Floor for a week that had *some* delivery: a single short session would
+ * otherwise round to a hairline and read as nothing delivered.
  */
 const MIN_VISIBLE_PERCENTAGE = 8;
 
@@ -31,17 +25,12 @@ const getBarHeight = (hours, peakHours) => {
   return Math.max((hours / peakHours) * 100, MIN_VISIBLE_PERCENTAGE);
 };
 
-/**
- * `week_start` is a plain `YYYY-MM-DD` day, so it is parsed as local midnight:
- * `new Date('2026-08-10')` is parsed as UTC and renders as the 9th for anyone
- * west of Greenwich.
- */
+/** Parsed as local midnight: `new Date('2026-08-10')` is UTC and can shift a day. */
 const parseWeekStart = weekStart => (weekStart ? new Date(`${weekStart}T00:00:00`) : null);
 
 /**
  * A bar does nothing when clicked, so it must not keep focus afterwards - the
- * chart would stay dimmed around a pinned bar once the pointer left. Tabbing to
- * it still focuses it.
+ * chart would stay dimmed around a pinned bar. Tabbing to it still focuses it.
  */
 const preventFocusOnClick = event => event.preventDefault();
 
@@ -100,7 +89,6 @@ WeeklySessionsChart.propTypes = {
     weekStart: PropTypes.string,
     hours: PropTypes.number.isRequired,
   })).isRequired,
-  /** Names the group of bars; each bar carries its own week and value. */
   label: PropTypes.string.isRequired,
 };
 

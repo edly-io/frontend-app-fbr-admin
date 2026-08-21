@@ -1,7 +1,6 @@
 import {
-  Assessment, Groups, School, StarFilled, TaskAlt, WorkspacePremium,
+  Assessment, Groups, School, TaskAlt, WorkspacePremium,
 } from '@openedx/paragon/icons';
-import { RATING_IDS } from './data/mockData';
 
 /**
  * Chart and meter colours. These are consumed as values by both chart props and
@@ -80,15 +79,6 @@ export const ATTENDANCE_COLORS = {
   onLeave: TONE_COLORS.caution,
 };
 
-/** Ordinal, best to worst. */
-export const RATING_COLORS = {
-  [RATING_IDS.excellent]: '#126842', // --pgn-color-success-700
-  [RATING_IDS.veryGood]: '#178253', // --pgn-color-success-500
-  [RATING_IDS.good]: TONE_COLORS.neutral,
-  [RATING_IDS.fair]: TONE_COLORS.caution,
-  [RATING_IDS.poor]: TONE_COLORS.negative,
-};
-
 /** Ordered best-to-worst; the first matching band wins. */
 export const ATTENDANCE_BANDS = [
   { minimum: 75, color: TONE_COLORS.positive },
@@ -100,11 +90,8 @@ export const getAttendanceBandColor = percentage => (
   ATTENDANCE_BANDS.find(band => percentage >= band.minimum) || ATTENDANCE_BANDS[0]
 ).color;
 
-/** Faculty rating is collected as a 1-5 star rating. */
-export const FACULTY_RATING_MAXIMUM = 5;
-
 /**
- * The six Program performance tiles, in the order `GET /dashboard/kpis/`
+ * The Program performance tiles, in the order `GET /dashboard/kpis/`
  * documents them. `tone` picks both the icon colour and the card's left accent
  * out of `TONE_COLORS`/`TONE_SURFACES`, so a tile is recoloured in one place.
  */
@@ -114,5 +101,4 @@ export const KPI_TILES = [
   { id: 'overallCompletion', icon: TaskAlt, tone: 'positive' },
   { id: 'averageScore', icon: Assessment, tone: 'caution' },
   { id: 'certificatesIssued', icon: WorkspacePremium, tone: 'teal' },
-  { id: 'facultyRating', icon: StarFilled, tone: 'violet' },
 ];

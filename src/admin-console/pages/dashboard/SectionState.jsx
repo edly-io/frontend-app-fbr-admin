@@ -5,12 +5,9 @@ import { useIntl } from '@edx/frontend-platform/i18n';
 import messages from './messages';
 
 /**
- * Loading / error / empty wrapper shared by every API-backed dashboard section.
- *
- * Each section is backed by its own endpoint, so one that fails shows its own
- * message in place rather than taking the whole page down - the same reason the
- * backend splits the dashboard across three routes. `children` renders only
- * once there is data worth showing.
+ * Loading / error / empty wrapper shared by every API-backed dashboard section,
+ * so one failing endpoint shows its message in place instead of taking the whole
+ * page down.
  */
 const SectionState = ({
   section, isLoading, isError, isEmpty, emptyMessage, children,
