@@ -6,9 +6,12 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faPlus, faEdit, faTrash, faLink, faChevronLeft, faChevronRight,
   faEye, faFileImage, faFilePdf, faFileArchive, faFileAlt,
+  faLock, faLockOpen,
 } from '@fortawesome/free-solid-svg-icons';
 import { getConfig } from '@edx/frontend-platform';
-import { listDocuments, deleteDocument, listDocumentTypes } from './api';
+import {
+  listDocuments, deleteDocument, listDocumentTypes, updateDocument,
+} from './api';
 import DocumentModal from './DocumentModal';
 import DebouncedSearchInput from '../admin-console/components/debounced-search-input/DebouncedSearchInput';
 import './DocumentsView.css';
@@ -160,6 +163,15 @@ const DocumentsView = () => {
     fetchDocuments(currentPage);
   };
 
+  const handleToggleVisibility = async (doc) => {
+    try {
+      await updateDocument(doc.id, { is_public: !doc.is_public });
+      fetchDocuments(currentPage);
+    } catch (err) {
+      setError(err?.response?.data?.detail || 'Failed to update visibility.');
+    }
+  };
+
   const openCreate = () => { setModalDoc(null); setShowModal(true); };
   const openEdit = (doc) => { setModalDoc(doc); setShowModal(true); };
 
@@ -304,6 +316,25 @@ const DocumentsView = () => {
                             aria-label="Copy shareable link"
                           >
                             <FontAwesomeIcon icon={faLink} />
+                          </button>
+                        </OverlayTrigger>
+                        <OverlayTrigger
+                          placement="top"
+                          overlay={(
+                            <Tooltip id={`vis-${doc.id}`}>
+                              {doc.is_public
+                                ? 'Make private — only FBR members can view'
+                                : 'Make public — anyone can view without logging in'}
+                            </Tooltip>
+                          )}
+                        >
+                          <button
+                            type="button"
+                            className={`docs-action-btn docs-action-btn--visibility${doc.is_public ? ' docs-action-btn--public' : ''}`}
+                            onClick={() => handleToggleVisibility(doc)}
+                            aria-label={doc.is_public ? 'Set document to private' : 'Set document to public'}
+                          >
+                            <FontAwesomeIcon icon={doc.is_public ? faLockOpen : faLock} />
                           </button>
                         </OverlayTrigger>
                         <OverlayTrigger placement="top" overlay={<Tooltip id={`edit-${doc.id}`}>Edit</Tooltip>}>

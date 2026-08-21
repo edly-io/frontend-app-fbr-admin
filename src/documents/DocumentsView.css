@@ -216,6 +216,9 @@
 .docs-action-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 .docs-action-btn--preview:hover { color: #0891b2; }
 .docs-action-btn--link:hover { color: #1d4ed8; }
+.docs-action-btn--visibility:hover { color: #6b7280; }
+.docs-action-btn--visibility.docs-action-btn--public { color: #059669; }
+.docs-action-btn--visibility.docs-action-btn--public:hover { color: #047857; }
 .docs-action-btn--edit:hover { color: #059669; }
 .docs-action-btn--delete:hover { color: #dc2626; }
 
