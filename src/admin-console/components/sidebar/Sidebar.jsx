@@ -27,6 +27,7 @@ const NAV_ITEM_LABEL_MESSAGES = {
   'sessions-instructor': messages.navSessionsInstructor,
   attendance: messages.navAttendance,
   announcements: messages.navAnnouncements,
+  documents: messages.navDocuments,
 };
 
 const normalizeRole = role => String(role || '').toLowerCase();

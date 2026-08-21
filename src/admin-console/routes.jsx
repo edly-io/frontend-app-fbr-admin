@@ -14,6 +14,7 @@ import SessionsInstructorReportsPage from './pages/sessions-instructor-reports/S
 import AttendanceReportsPage from './pages/attendance-reports/AttendanceReportsPage';
 import HrmsPage from './pages/hrms/HrmsPage';
 import AnnouncementsPage from './pages/announcements/AnnouncementsPage';
+import DocumentsPage from './pages/documents/DocumentsPage';
 
 /**
  * Top-level admin console routes. `AdminConsolePage` is the layout route
@@ -38,6 +39,7 @@ const AdminConsoleRoutes = () => (
       <Route path="access-policies" element={<AccessPoliciesPage />} />
       <Route path="audit-log" element={<AuditLogPage />} />
       <Route path="announcements" element={<AnnouncementsPage />} />
+      <Route path="documents" element={<DocumentsPage />} />
       <Route path="*" element={<Navigate to="users" replace />} />
     </Route>
   </Routes>

@@ -1,5 +1,5 @@
 import {
-  faTachometerAlt, faUsers, faUserCheck, faPen, faChartLine, faIdBadge, faBullhorn,
+  faTachometerAlt, faUsers, faUserCheck, faPen, faChartLine, faIdBadge, faBullhorn, faFileAlt,
 } from '@fortawesome/free-solid-svg-icons';
 
 // ─── Nav config ───────────────────────────────────────────────────────────────
@@ -43,6 +43,9 @@ export const NAV_SECTIONS = [
     items: [
       {
         id: 'announcements', path: 'announcements', icon: faBullhorn,
+      },
+      {
+        id: 'documents', path: 'documents', icon: faFileAlt,
       },
     ],
   },
