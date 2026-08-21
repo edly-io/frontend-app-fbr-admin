@@ -1,11 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-/**
- * `id` is what the surrounding `<section aria-labelledby>` points at, so a
- * section that names its heading this way stays correctly labelled - without
- * it the reference dangles and the section is announced unlabelled.
- */
+/** `id` is what the surrounding `<section aria-labelledby>` points at. */
 const SectionHeading = ({
   id, title, subtitle, action,
 }) => (

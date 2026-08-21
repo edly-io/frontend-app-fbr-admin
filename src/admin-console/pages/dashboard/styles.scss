@@ -18,6 +18,28 @@ $dashboard-chart-track: #edf2fa;
 $dashboard-chart-track-hover: #dbe5f5;
 $dashboard-chart-current: #006daa;
 $dashboard-chart-current-hover: #00527f;
+$dashboard-chip-surface: #fdf6e8;
+$dashboard-chip-color: #b45309;
+
+// Needs attention: the columns a top-level row is built from. A nested row has
+// no icon and no count, so it has to be pushed past both to start where its
+// parent's text starts - and that is a sum of these, not a number to keep in
+// step by hand. The count is a fixed width rather than a minimum so a two-digit
+// row does not shift its own children out of line.
+$dashboard-attention-padding-x: 1.25rem;
+$dashboard-attention-gap: 0.875rem;
+$dashboard-attention-icon: 36px;
+$dashboard-attention-count: 1.5rem;
+// `calc` rather than Sass arithmetic: the icon is in px and the rest in rem, so
+// the sum has to be resolved by the browser at the root size actually in force.
+$dashboard-attention-indent: calc(
+  #{$dashboard-attention-padding-x} + #{$dashboard-attention-icon} +
+  #{$dashboard-attention-gap} + #{$dashboard-attention-count} +
+  #{$dashboard-attention-gap}
+);
+// One further step per level below that. Wide enough that a session reads as
+// sitting inside its course rather than merely after it.
+$dashboard-attention-step: 1.75rem;
 
 // Paragon's tertiary button and the tinted tiles carry no focus outline of their
 // own, so keyboard focus is drawn explicitly - the same treatment the attendance
@@ -199,8 +221,8 @@ $dashboard-chart-current-hover: #00527f;
 
   // Each row is its own grid, so every track has to resolve to the same width in
   // every row or the meters step in and out. Only the label track is flexible:
-  // sizing the value track to its content (`auto`) let a longer figure -
-  // "71.5h · 37" against "46h · 23" - pull that row's meter sideways.
+  // sizing the value track to its content let a longer figure pull its meter
+  // sideways.
   .dashboard-row {
     display: grid;
     grid-template-columns: minmax(9rem, 1fr) minmax(4.5rem, 9.375rem) 6rem;
@@ -299,25 +321,78 @@ $dashboard-chart-current-hover: #00527f;
     font-weight: 700;
     padding: 0.125rem 0.5625rem;
     border-radius: 99px;
-    background: #FDF6E8;
-    color: #B45309;
+    background: $dashboard-chip-surface;
+    color: $dashboard-chip-color;
   }
 
-  .dashboard-attention__caption {
-    font-size: 12.5px;
-    color: $dashboard-muted;
-  }
-
-  .dashboard-attention__item {
-    gap: 0.875rem;
-    padding: 0.8125rem 1.25rem;
+  // Only top-level rows are divided; a nested list reads as one block under the
+  // row that opened it.
+  .dashboard-attention__list > .dashboard-attention__item {
     border-top: 1px solid $dashboard-separator;
+  }
+
+  // Every row at every depth: a button when it expands, a link when it
+  // navigates, a span when it does neither. The whole row is the target.
+  .dashboard-attention__row {
+    width: 100%;
+    padding: 0.8125rem $dashboard-attention-padding-x;
+    border: 0;
+    background: none;
+    color: inherit;
+    text-align: left;
+    // Paragon's Bootstrap 4 base has no .gap-* utilities (added in Bootstrap 5).
+    gap: $dashboard-attention-gap;
     flex-wrap: wrap;
+    transition: background-color 0.15s ease-in-out;
+
+    @include dashboard-focus-ring;
+
+    &:hover,
+    &:focus {
+      color: inherit;
+      text-decoration: none;
+    }
+  }
+
+  a.dashboard-attention__row:hover,
+  button.dashboard-attention__row:hover {
+    background: $dashboard-soft-surface;
+  }
+
+  // A navigating row underlines like the link it is; an expanding row does not,
+  // because nothing is being opened elsewhere.
+  a.dashboard-attention__row:hover .dashboard-attention__item-title,
+  a.dashboard-attention__row:focus .dashboard-attention__item-title {
+    text-decoration: underline;
+  }
+
+  .dashboard-attention__row--plain {
+    cursor: default;
+  }
+
+  // A nested row starts on its parent's text, not under the icon and count it
+  // does not have - so the titles down a branch share one left edge instead of
+  // stepping backwards at the first level. Deeper than level 2 keeps level 2's
+  // indent.
+  .dashboard-attention__row--level-1 {
+    padding-left: $dashboard-attention-indent;
+  }
+
+  .dashboard-attention__row--level-2 {
+    padding-left: calc(
+      #{$dashboard-attention-indent} + #{$dashboard-attention-step}
+    );
+  }
+
+  .dashboard-attention__row--level-3 {
+    padding-left: calc(
+      #{$dashboard-attention-indent} + #{$dashboard-attention-step} * 2
+    );
   }
 
   .dashboard-attention__icon {
-    width: 36px;
-    height: 36px;
+    width: $dashboard-attention-icon;
+    height: $dashboard-attention-icon;
     border-radius: 10px;
     display: flex;
     align-items: center;
@@ -330,15 +405,20 @@ $dashboard-chart-current-hover: #00527f;
     }
   }
 
+  // Fixed width, not a minimum: this column decides where every title below it
+  // starts, so a bigger number must not shift the branch. Three digits still
+  // clear the title - they run into the gap that follows, which is wider than
+  // the overflow.
   .dashboard-attention__count {
     font-size: 20px;
     font-weight: 800;
     font-variant-numeric: tabular-nums;
     letter-spacing: -0.02em;
     flex: none;
-    min-width: 1.25rem;
+    width: $dashboard-attention-count;
   }
 
+  // Takes the free width so the chevron lines up on the right edge.
   .dashboard-attention__text {
     display: flex;
     flex-direction: column;
@@ -358,11 +438,47 @@ $dashboard-chart-current-hover: #00527f;
     margin-top: 2px;
   }
 
-  // Colours come from Paragon's primary button, not from here: the tint this
-  // used to set was a fixed light value, so it stayed light-on-light once the
-  // surface behind it went dark. Only the layout override is left.
-  .dashboard-attention__action.btn {
+  // Says what kind of thing the row names, so a programme is never read as a
+  // session two rows below it.
+  .dashboard-attention__eyebrow {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: $dashboard-muted;
+    margin-bottom: 1px;
+  }
+
+  // A heading, not a control: nothing here is clickable, so it must not look
+  // like the rows around it that are.
+  .dashboard-attention__row--group {
+    padding-bottom: 0.25rem;
+
+    .dashboard-attention__item-title {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: $dashboard-muted;
+    }
+  }
+
+  // One smaller scale for every nested level, however deep.
+  .dashboard-attention__children {
+    .dashboard-attention__item-title {
+      font-size: 12.5px;
+    }
+
+    .dashboard-attention__item-description {
+      font-size: 11.5px;
+      font-variant-numeric: tabular-nums;
+    }
+  }
+
+  // Right leaves the page, down opens in place, up closes again.
+  .dashboard-attention__chevron {
     flex: none;
+    color: $dashboard-muted;
   }
 
   // ─── Program performance ──────────────────────────────────────────────────
@@ -371,7 +487,7 @@ $dashboard-chart-current-hover: #00527f;
   }
 
   // Left accent in the metric's own colour, set inline per tile - the same
-  // treatment the reports stat cards use, so the two rows read as one system.
+  // treatment the reports stat cards use.
   .dashboard-kpi {
     border-left: 4px solid var(--pgn-color-primary-base);
   }
@@ -572,10 +688,8 @@ $dashboard-chart-current-hover: #00527f;
     min-width: 0;
   }
 
-  // Eight proportional bars drawn in CSS - see `WeeklySessionsChart` for why
-  // this is plain markup rather than a charting library. Bar thickness is fixed
-  // by the design, so the box is capped rather than fluid; stretching it would
-  // leave eight hairlines in a wide empty field.
+  // Bar thickness is fixed by the design, so the box is capped rather than
+  // fluid; stretching it would leave eight hairlines in a wide empty field.
   .dashboard-weekly-chart {
     display: flex;
     align-items: flex-end;
@@ -604,9 +718,8 @@ $dashboard-chart-current-hover: #00527f;
     @include dashboard-focus-ring;
   }
 
-  // While one week is being inspected - by pointer or by keyboard - its peers
-  // recede. Opacity is not the only cue: the inspected bar also widens, its
-  // figure turns bold, and its tooltip names the week and the exact hours.
+  // Opacity is not the only cue: the inspected bar also widens, its figure turns
+  // bold, and its tooltip names the week and the exact hours.
   .dashboard-weekly-chart:hover,
   .dashboard-weekly-chart:focus-within {
     .dashboard-weekly-chart__week {
@@ -737,138 +850,6 @@ $dashboard-chart-current-hover: #00527f;
     margin-top: 1rem;
   }
 
-  // ─── Feedback ─────────────────────────────────────────────────────────────
-  .dashboard-feedback__top {
-    gap: 1rem;
-    margin-bottom: 1rem;
-    flex-wrap: wrap;
-  }
-
-  .dashboard-stars {
-    display: inline-flex;
-    gap: 2px;
-    margin-top: 0.375rem;
-
-    .pgn__icon {
-      width: 15px;
-      height: 15px;
-    }
-  }
-
-  .dashboard-stars__star--on {
-    color: #B45309;
-  }
-
-  .dashboard-stars__star--off {
-    color: var(--pgn-color-gray-300);
-  }
-
-  .dashboard-feedback__response {
-    margin-left: auto;
-    text-align: right;
-  }
-
-  .dashboard-feedback__response-value {
-    font-size: 19px;
-    font-weight: 800;
-    font-variant-numeric: tabular-nums;
-  }
-
-  .dashboard-feedback__response-label {
-    font-size: 11.5px;
-    color: $dashboard-muted;
-    margin-top: 3px;
-  }
-
-  .dashboard-feedback__band {
-    display: grid;
-    grid-template-columns: minmax(4.25rem, auto) minmax(4rem, 1fr) 2.5rem;
-    align-items: center;
-    column-gap: 0.625rem;
-    padding: 0.25rem 0;
-  }
-
-  .dashboard-feedback__band-label {
-    font-size: 11.5px;
-    font-weight: 500;
-    color: $dashboard-muted;
-  }
-
-  .dashboard-feedback__band-value {
-    text-align: right;
-    font-size: 11.5px;
-    font-weight: 700;
-    font-variant-numeric: tabular-nums;
-  }
-
-  .dashboard-feedback__instructors {
-    margin-top: 0.875rem;
-  }
-
-  .dashboard-feedback__instructor {
-    gap: 0.625rem;
-    padding: 0.625rem 0;
-    border-top: 1px dashed $dashboard-separator;
-  }
-
-  .dashboard-feedback__initials {
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 11px;
-    font-weight: 700;
-    flex: none;
-  }
-
-  .dashboard-feedback__instructor-text {
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
-    flex: 1;
-  }
-
-  .dashboard-feedback__instructor-name {
-    font-size: 13px;
-    font-weight: 600;
-    line-height: 1.2;
-  }
-
-  .dashboard-feedback__instructor-caption {
-    font-size: 11px;
-    color: $dashboard-muted;
-    margin-top: 1px;
-    overflow-wrap: normal;
-  }
-
-  .dashboard-feedback__instructor-score {
-    font-size: 15px;
-    font-weight: 800;
-    font-variant-numeric: tabular-nums;
-    flex: none;
-  }
-
-  .dashboard-feedback__quote {
-    margin-top: 0.875rem;
-    padding: 0.8125rem 0.9375rem;
-    background: $dashboard-soft-surface;
-    border-radius: 11px;
-  }
-
-  .dashboard-feedback__quote-text {
-    font-size: 12.5px;
-    color: $dashboard-secondary;
-    font-style: italic;
-    line-height: 1.55;
-  }
-
-  .dashboard-feedback__quote-meta {
-    font-size: 11px;
-    color: $dashboard-muted;
-    margin-top: 0.5rem;
-  }
 }
 
 // ─── Motion ─────────────────────────────────────────────────────────────────
@@ -877,6 +858,7 @@ $dashboard-chart-current-hover: #00527f;
 // motion gets the same affordances without the movement.
 @media (prefers-reduced-motion: reduce) {
   .dashboard-page {
+    .dashboard-attention__row,
     .dashboard-users__legend-item,
     .dashboard-weekly-chart__week,
     .dashboard-weekly-chart__value,
@@ -901,8 +883,7 @@ $dashboard-chart-current-hover: #00527f;
   .dashboard-page {
     .dashboard-sessions__trend,
     .dashboard-users__pending,
-    .dashboard-attendance__split,
-    .dashboard-feedback__response {
+    .dashboard-attendance__split {
       margin-left: 0;
     }
 
@@ -915,14 +896,26 @@ $dashboard-chart-current-hover: #00527f;
       margin-left: 0;
     }
 
-    .dashboard-feedback__response {
-      text-align: left;
-    }
   }
 }
 
 @media (--pgn-size-breakpoint-max-width-sm) {
   .dashboard-page {
+    // On a phone the full indent would spend a third of the width on white
+    // space, so the branch steps in from the row edge instead. Alignment with
+    // the parent's text is worth less here than room for the text itself.
+    .dashboard-attention__row--level-1 {
+      padding-left: 2rem;
+    }
+
+    .dashboard-attention__row--level-2 {
+      padding-left: calc(2rem + #{$dashboard-attention-step});
+    }
+
+    .dashboard-attention__row--level-3 {
+      padding-left: calc(2rem + #{$dashboard-attention-step} * 2);
+    }
+
     // Meter drops below the label so neither is squeezed on a phone.
     .dashboard-row {
       grid-template-columns: minmax(0, 1fr) auto;

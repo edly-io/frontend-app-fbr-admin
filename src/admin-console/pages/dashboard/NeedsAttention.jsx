@@ -1,171 +1,243 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Link } from 'react-router-dom';
+import { Badge, Card } from '@openedx/paragon';
 import {
-  Badge, Button, Card, Icon,
-} from '@openedx/paragon';
-import {
-  Award, CalendarMonth, ChevronRight, EditOutline, ErrorOutline, PersonAdd,
+  EditOutline, EventBusy, PendingActions, PersonAdd, PersonSearch,
 } from '@openedx/paragon/icons';
 import { useIntl } from '@edx/frontend-platform/i18n';
-import { TONE_COLORS, TONE_SURFACES } from './constants';
+import AttentionRow from './AttentionRow';
+import SectionState from './SectionState';
+import {
+  getProgramRequestsUrl, getSessionAttendanceUrl, getSubstituteRequestsUrl,
+} from './data/api';
+import { formatDateTime } from '../../utils/date';
 import messages from './messages';
 
 /**
- * `signup-approvals` and `attendance-reports` are the intended destinations. The
- * results-entry and certificate-award screens do not exist in this MFE yet, so
- * those three point at the programs report and need repointing when they land.
+ * Each row is a node: `children` makes it expand, `to`/`href` makes it
+ * navigate. Nothing carries both, so the whole list follows one rule at every
+ * depth.
  */
-const TASK_ROUTES = {
-  loginApprovals: '/signup-approvals',
-  noResults: '/program-reports',
-  lowAttendance: '/attendance-reports',
-  draftResults: '/program-reports',
-  certificatesPending: '/program-reports',
-};
+const buildTasks = (intl, needsAttention) => {
+  const { markingWindow, pendingRequests, unassignedSubstitutes } = needsAttention;
 
-const buildTasks = ({
-  intl, programMetrics, attendanceMetrics, pendingApprovals,
-}) => {
-  const { programsWithoutResults, programsWithDraftResults, certificatesPending } = programMetrics;
+  const programEyebrow = intl.formatMessage(messages.attentionProgramEyebrow);
+
+  // `daysLeft` is the soonest deadline in the programme, never one all of its
+  // sessions share - hence "first closes in", not "closes in".
+  const markingSummary = program => intl.formatMessage(messages.attentionMarkingSummary, {
+    sessions: program.sessionCount,
+    trainees: program.unmarkedTrainees,
+    days: program.daysLeft,
+  });
+
+  const markingSession = (program, course, session) => ({
+    id: session.id,
+    title: session.title || intl.formatMessage(messages.attentionSessionUntitled),
+    description: intl.formatMessage(messages.attentionSessionSummary, {
+      date: formatDateTime(session.startTime),
+      trainees: session.unmarkedTrainees,
+      days: session.daysLeft,
+    }),
+    href: getSessionAttendanceUrl(program.programKey, session.sessionId, course.courseId),
+  });
+
+  // The course heads its sessions and links nowhere - the session is what an
+  // admin opens, so it is what carries the destination.
+  //
+  // "Sessions without a course" is dropped when it is the programme's only
+  // group: with nothing to tell it apart from, it names no distinction and
+  // leaves an admin reading a heading that says less than the row above it. A
+  // real course keeps its heading either way, because the name is information.
+  const markingCourse = (program, course) => ({
+    id: course.id,
+    isGroup: true,
+    title: course.courseId
+      ? course.title || course.courseId
+      : intl.formatMessage(messages.attentionCourseUnassigned),
+    children: course.sessions.map(session => markingSession(program, course, session)),
+  });
+
+  const markingChildren = (program) => {
+    const [only] = program.courses;
+    if (program.courses.length === 1 && !only.courseId) {
+      return only.sessions.map(session => markingSession(program, only, session));
+    }
+    return program.courses.map(course => markingCourse(program, course));
+  };
 
   return [
     {
       id: 'loginApprovals',
-      count: pendingApprovals,
+      count: needsAttention.loginApprovals,
       icon: PersonAdd,
       tone: 'caution',
       title: intl.formatMessage(messages.loginApprovalsTitle),
       description: intl.formatMessage(messages.loginApprovalsDescription),
-      action: intl.formatMessage(messages.loginApprovalsAction),
+      to: '/signup-approvals',
     },
     {
-      id: 'noResults',
-      count: programsWithoutResults.length,
-      icon: ErrorOutline,
-      tone: 'negative',
-      title: intl.formatMessage(messages.noResultsTitle, { count: programsWithoutResults.length }),
-      description: programsWithoutResults.map(program => program.name).join(', '),
-      action: intl.formatMessage(messages.noResultsAction),
-    },
-    {
-      id: 'lowAttendance',
-      count: attendanceMetrics.traineesBelowThreshold,
-      icon: CalendarMonth,
-      tone: 'negative',
-      title: intl.formatMessage(messages.lowAttendanceTitle, {
-        threshold: attendanceMetrics.threshold,
-      }),
-      description: intl.formatMessage(messages.lowAttendanceDescription),
-      action: intl.formatMessage(messages.lowAttendanceAction),
-    },
-    {
-      id: 'draftResults',
-      count: programsWithDraftResults.length,
+      id: 'biodataEditRequests',
+      count: needsAttention.biodataEditRequests,
       icon: EditOutline,
-      tone: 'caution',
-      title: intl.formatMessage(messages.draftResultsTitle, {
-        count: programsWithDraftResults.length,
-      }),
-      description: intl.formatMessage(messages.draftResultsDescription),
-      action: intl.formatMessage(messages.draftResultsAction),
+      tone: 'info',
+      title: intl.formatMessage(messages.biodataEditRequestsTitle),
+      description: intl.formatMessage(messages.biodataEditRequestsDescription),
+      to: '/biodata-edit-requests',
     },
     {
-      id: 'certificatesPending',
-      count: certificatesPending,
-      icon: Award,
-      tone: 'positive',
-      title: intl.formatMessage(messages.certificatesPendingTitle),
-      description: intl.formatMessage(messages.certificatesPendingDescription),
-      action: intl.formatMessage(messages.certificatesPendingAction),
+      id: 'markingWindow',
+      count: markingWindow.totalSessions,
+      icon: EventBusy,
+      tone: 'negative',
+      title: intl.formatMessage(messages.markingWindowTitle),
+      description: intl.formatMessage(messages.markingWindowDescription, {
+        trainees: markingWindow.totalUnmarkedTrainees,
+        days: markingWindow.thresholdDays,
+      }),
+      children: markingWindow.programs.map(program => ({
+        id: program.id,
+        eyebrow: programEyebrow,
+        title: program.name,
+        description: markingSummary(program),
+        children: markingChildren(program),
+      })),
+    },
+    {
+      id: 'pendingRequests',
+      count: pendingRequests.totalPrograms,
+      icon: PendingActions,
+      tone: 'caution',
+      title: intl.formatMessage(messages.pendingRequestsTitle),
+      description: intl.formatMessage(messages.pendingRequestsDescription),
+      children: pendingRequests.programs.map(program => ({
+        id: program.id,
+        eyebrow: programEyebrow,
+        title: program.name,
+        description: intl.formatMessage(messages.attentionPendingSummary, {
+          count: program.pending,
+        }),
+        href: getProgramRequestsUrl(program.programKey),
+      })),
+    },
+    {
+      id: 'unassignedSubstitutes',
+      count: unassignedSubstitutes.totalSessions,
+      icon: PersonSearch,
+      tone: 'negative',
+      title: intl.formatMessage(messages.substitutesTitle),
+      description: intl.formatMessage(messages.substitutesDescription),
+      children: unassignedSubstitutes.programs.map(program => ({
+        id: program.id,
+        eyebrow: programEyebrow,
+        title: program.name,
+        description: program.soonestSession
+          ? intl.formatMessage(messages.attentionSubstituteSummary, {
+            sessions: program.sessions,
+            date: formatDateTime(program.soonestSession),
+          })
+          : intl.formatMessage(messages.attentionSessionCount, { count: program.sessions }),
+        href: getSubstituteRequestsUrl(program.programKey),
+      })),
     },
   ].filter(task => task.count > 0);
 };
 
-const NeedsAttention = ({ programMetrics, attendanceMetrics, pendingApprovals }) => {
+/**
+ * Outstanding work, one row per kind. A row that has reached zero drops off -
+ * the card is a queue, not a scoreboard - and when every row is clear the card
+ * says so rather than disappearing, so it still holds its loading and error
+ * states.
+ */
+const NeedsAttention = ({ needsAttention, isLoading, isError }) => {
   const intl = useIntl();
-  const tasks = buildTasks({
-    intl, programMetrics, attendanceMetrics, pendingApprovals,
-  });
-
-  if (!tasks.length) {
-    return null;
-  }
+  const sectionName = intl.formatMessage(messages.attentionTitle);
+  const tasks = needsAttention ? buildTasks(intl, needsAttention) : [];
 
   return (
     <section className="dashboard-section" aria-labelledby="dashboard-attention-heading">
       <Card className="dashboard-attention">
         <div className="dashboard-attention__header d-flex align-items-center">
           <h2 className="dashboard-attention__title mb-0" id="dashboard-attention-heading">
-            {intl.formatMessage(messages.attentionTitle)}
+            {sectionName}
           </h2>
-          <Badge className="dashboard-attention__badge">
-            {intl.formatMessage(messages.attentionCount, { count: tasks.length })}
-          </Badge>
-          <span className="dashboard-attention__caption ml-auto">
-            {intl.formatMessage(messages.attentionSubtitle)}
-          </span>
+          {tasks.length > 0 && (
+            <Badge className="dashboard-attention__badge">
+              {intl.formatMessage(messages.attentionCount, { count: tasks.length })}
+            </Badge>
+          )}
         </div>
 
-        <ul className="dashboard-attention__list list-unstyled mb-0">
-          {tasks.map(task => (
-            <li className="dashboard-attention__item d-flex align-items-center" key={task.id}>
-              <span
-                className="dashboard-attention__icon"
-                style={{
-                  backgroundColor: TONE_SURFACES[task.tone],
-                  color: TONE_COLORS[task.tone],
-                }}
-              >
-                <Icon src={task.icon} aria-hidden />
-              </span>
-
-              <span
-                className="dashboard-attention__count"
-                style={{ color: TONE_COLORS[task.tone] }}
-              >
-                {task.count}
-              </span>
-
-              <span className="dashboard-attention__text">
-                <span className="dashboard-attention__item-title">{task.title}</span>
-                <span className="dashboard-attention__item-description">{task.description}</span>
-              </span>
-
-              <Button
-                as={Link}
-                to={TASK_ROUTES[task.id]}
-                variant="primary"
-                size="sm"
-                iconAfter={ChevronRight}
-                className="dashboard-attention__action"
-                aria-label={intl.formatMessage(messages.attentionAction, {
-                  action: task.action,
-                  task: `${task.count} ${task.title}`,
-                })}
-              >
-                {task.action}
-              </Button>
-            </li>
-          ))}
-        </ul>
+        <SectionState
+          section={sectionName}
+          isLoading={isLoading}
+          isError={isError}
+          isEmpty={Boolean(needsAttention) && tasks.length === 0}
+          emptyMessage={intl.formatMessage(messages.attentionEmpty)}
+        >
+          <ul className="dashboard-attention__list list-unstyled mb-0">
+            {tasks.map(task => <AttentionRow node={task} key={task.id} />)}
+          </ul>
+        </SectionState>
       </Card>
     </section>
   );
 };
 
+const attentionProgram = PropTypes.shape({
+  id: PropTypes.string.isRequired,
+  name: PropTypes.string.isRequired,
+});
+
+const attentionMarkingProgram = PropTypes.shape({
+  id: PropTypes.string.isRequired,
+  name: PropTypes.string.isRequired,
+  sessionCount: PropTypes.number.isRequired,
+  unmarkedTrainees: PropTypes.number.isRequired,
+  daysLeft: PropTypes.number.isRequired,
+  courses: PropTypes.arrayOf(PropTypes.shape({
+    id: PropTypes.string.isRequired,
+    courseId: PropTypes.string,
+    title: PropTypes.string,
+    sessions: PropTypes.arrayOf(PropTypes.shape({
+      id: PropTypes.string.isRequired,
+      sessionId: PropTypes.string.isRequired,
+      title: PropTypes.string,
+      startTime: PropTypes.string,
+      unmarkedTrainees: PropTypes.number.isRequired,
+      daysLeft: PropTypes.number.isRequired,
+    })).isRequired,
+  })).isRequired,
+});
+
 NeedsAttention.propTypes = {
-  programMetrics: PropTypes.shape({
-    programsWithoutResults: PropTypes.arrayOf(PropTypes.shape({ name: PropTypes.string })),
-    programsWithDraftResults: PropTypes.arrayOf(PropTypes.shape({ name: PropTypes.string })),
-    certificatesPending: PropTypes.number,
-  }).isRequired,
-  attendanceMetrics: PropTypes.shape({
-    traineesBelowThreshold: PropTypes.number,
-    threshold: PropTypes.number,
-  }).isRequired,
-  /** From `GET /fbr/api/reports/dashboard/users/`; the rest is still mock-backed. */
-  pendingApprovals: PropTypes.number.isRequired,
+  /** `null` until `GET /fbr/api/reports/dashboard/needs-attention/` resolves. */
+  needsAttention: PropTypes.shape({
+    loginApprovals: PropTypes.number.isRequired,
+    biodataEditRequests: PropTypes.number.isRequired,
+    markingWindow: PropTypes.shape({
+      thresholdDays: PropTypes.number.isRequired,
+      totalSessions: PropTypes.number.isRequired,
+      totalUnmarkedTrainees: PropTypes.number.isRequired,
+      programs: PropTypes.arrayOf(attentionMarkingProgram).isRequired,
+    }).isRequired,
+    pendingRequests: PropTypes.shape({
+      totalPrograms: PropTypes.number.isRequired,
+      programs: PropTypes.arrayOf(attentionProgram).isRequired,
+    }).isRequired,
+    unassignedSubstitutes: PropTypes.shape({
+      totalSessions: PropTypes.number.isRequired,
+      programs: PropTypes.arrayOf(attentionProgram).isRequired,
+    }).isRequired,
+  }),
+  isLoading: PropTypes.bool,
+  isError: PropTypes.bool,
+};
+
+NeedsAttention.defaultProps = {
+  needsAttention: null,
+  isLoading: false,
+  isError: false,
 };
 
 export default NeedsAttention;

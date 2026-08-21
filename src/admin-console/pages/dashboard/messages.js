@@ -13,7 +13,7 @@ const messages = defineMessages({
   },
   pageSubtitle: {
     id: 'fbrAdmin.dashboard.subtitle',
-    defaultMessage: 'Sessions, attendance, results, certification and feedback across all programs.',
+    defaultMessage: 'Sessions, attendance, results and certification across all programs.',
     description: 'Subtitle shown below the Dashboard page title.',
   },
   asOf: {
@@ -45,16 +45,6 @@ const messages = defineMessages({
     defaultMessage: '{count, plural, one {# item} other {# items}}',
     description: 'Badge counting the outstanding tasks in the needs-attention list.',
   },
-  attentionSubtitle: {
-    id: 'fbrAdmin.dashboard.attention.subtitle',
-    defaultMessage: 'Waiting on an administrator',
-    description: 'Caption clarifying who the needs-attention tasks are assigned to.',
-  },
-  attentionAction: {
-    id: 'fbrAdmin.dashboard.attention.action',
-    defaultMessage: '{action}: {task}',
-    description: 'Accessible name for a needs-attention action button, e.g. "Review: 4 login approvals pending".',
-  },
   loginApprovalsTitle: {
     id: 'fbrAdmin.dashboard.attention.loginApprovals.title',
     defaultMessage: 'Login approvals pending',
@@ -62,68 +52,94 @@ const messages = defineMessages({
   },
   loginApprovalsDescription: {
     id: 'fbrAdmin.dashboard.attention.loginApprovals.description',
-    defaultMessage: 'New sign-up requests waiting for a role assignment',
+    defaultMessage: 'New sign-up requests waiting for a role assignment, across all cities',
     description: 'Supporting text for the pending login approvals task.',
   },
-  loginApprovalsAction: {
-    id: 'fbrAdmin.dashboard.attention.loginApprovals.action',
-    defaultMessage: 'Review',
-    description: 'Action label taking the administrator to the signup approvals page.',
+
+  biodataEditRequestsTitle: {
+    id: 'fbrAdmin.dashboard.attention.biodataEditRequests.title',
+    defaultMessage: 'Biodata edit requests pending',
+    description: 'Needs-attention task: trainees asking an admin to change their biodata.',
   },
-  noResultsTitle: {
-    id: 'fbrAdmin.dashboard.attention.noResults.title',
-    defaultMessage: '{count, plural, one {Program with no results entered} other {Programs with no results entered}}',
-    description: 'Needs-attention task: programs that have no results captured yet.',
+  biodataEditRequestsDescription: {
+    id: 'fbrAdmin.dashboard.attention.biodataEditRequests.description',
+    defaultMessage: 'Trainees waiting on a change to their record',
+    description: 'Supporting text for the pending biodata edit requests task.',
   },
-  noResultsAction: {
-    id: 'fbrAdmin.dashboard.attention.noResults.action',
-    defaultMessage: 'Enter results',
-    description: 'Action label taking the administrator to results entry.',
+  markingWindowTitle: {
+    id: 'fbrAdmin.dashboard.attention.markingWindow.title',
+    defaultMessage: 'Attendance still unmarked',
+    description: 'Needs-attention task: sessions whose attendance is about to become unrecordable.',
   },
-  lowAttendanceTitle: {
-    id: 'fbrAdmin.dashboard.attention.lowAttendance.title',
-    defaultMessage: 'Trainees below {threshold}% attendance',
-    description: 'Needs-attention task: trainees under the attendance threshold.',
+  markingWindowDescription: {
+    id: 'fbrAdmin.dashboard.attention.markingWindow.description',
+    defaultMessage: '{trainees, plural, one {# trainee} other {# trainees}} still unmarked · marking locks in {days, plural, one {# day} other {# days}}',
+    description: 'Supporting text for the marking window task. "Locks" because once the window shuts the attendance can never be recorded.',
   },
-  lowAttendanceDescription: {
-    id: 'fbrAdmin.dashboard.attention.lowAttendance.description',
-    defaultMessage: 'At risk of failing the discipline & conduct criterion',
-    description: 'Supporting text for the low attendance task.',
+  pendingRequestsTitle: {
+    id: 'fbrAdmin.dashboard.attention.pendingRequests.title',
+    defaultMessage: 'Requests waiting for your decision',
+    description: 'Needs-attention task: programs with leave, remote-session or withdrawal requests pending.',
   },
-  lowAttendanceAction: {
-    id: 'fbrAdmin.dashboard.attention.lowAttendance.action',
-    defaultMessage: 'View',
-    description: 'Action label taking the administrator to the attendance report.',
+  pendingRequestsDescription: {
+    id: 'fbrAdmin.dashboard.attention.pendingRequests.description',
+    defaultMessage: 'Leave, remote-session and withdrawal requests',
+    description: 'Supporting text for the pending requests task.',
   },
-  draftResultsTitle: {
-    id: 'fbrAdmin.dashboard.attention.draftResults.title',
-    defaultMessage: '{count, plural, one {Program with results in draft} other {Programs with results in draft}}',
-    description: 'Needs-attention task: programs whose results are entered but not finalized.',
+  substitutesTitle: {
+    id: 'fbrAdmin.dashboard.attention.substitutes.title',
+    defaultMessage: 'Sessions with no one to teach them',
+    description: 'Needs-attention task: sessions left uncovered by approved instructor leave.',
   },
-  draftResultsDescription: {
-    id: 'fbrAdmin.dashboard.attention.draftResults.description',
-    defaultMessage: 'Scores entered but not finalized',
-    description: 'Supporting text for the draft results task.',
+  substitutesDescription: {
+    id: 'fbrAdmin.dashboard.attention.substitutes.description',
+    defaultMessage: 'Instructor on approved leave, no replacement assigned',
+    description: 'Supporting text for the unassigned substitutes task.',
   },
-  draftResultsAction: {
-    id: 'fbrAdmin.dashboard.attention.draftResults.action',
-    defaultMessage: 'Finalize',
-    description: 'Action label taking the administrator to finalize draft results.',
+  attentionProgramEyebrow: {
+    id: 'fbrAdmin.dashboard.attention.programEyebrow',
+    defaultMessage: 'Program',
+    description: 'Label above a program name, so it is not mistaken for a session or a person.',
   },
-  certificatesPendingTitle: {
-    id: 'fbrAdmin.dashboard.attention.certificatesPending.title',
-    defaultMessage: 'Certificates pending award',
-    description: 'Needs-attention task: completed trainees without a certificate.',
+  attentionMarkingSummary: {
+    id: 'fbrAdmin.dashboard.attention.markingSummary',
+    defaultMessage: '{sessions, plural, one {# session} other {# sessions}} · {trainees, plural, one {# trainee} other {# trainees}} unmarked · {days, plural, =0 {first closes today} one {first closes in # day} other {first closes in # days}}',
+    description: 'Per-program summary of the marking window task. "First" because the deadline is the soonest of its sessions, not one they all share.',
   },
-  certificatesPendingDescription: {
-    id: 'fbrAdmin.dashboard.attention.certificatesPending.description',
-    defaultMessage: 'Trainees who completed but have no certificate',
-    description: 'Supporting text for the pending certificates task.',
+  attentionCourseUnassigned: {
+    id: 'fbrAdmin.dashboard.attention.courseUnassigned',
+    defaultMessage: 'Sessions without a course',
+    description: 'Label for the marking-window sessions that belong to no course.',
   },
-  certificatesPendingAction: {
-    id: 'fbrAdmin.dashboard.attention.certificatesPending.action',
-    defaultMessage: 'Award',
-    description: 'Action label taking the administrator to certificate awarding.',
+  attentionSessionSummary: {
+    id: 'fbrAdmin.dashboard.attention.sessionSummary',
+    defaultMessage: '{date} · {trainees, plural, one {# unmarked} other {# unmarked}} · {days, plural, =0 {closes today} one {closes in # day} other {closes in # days}}',
+    description: 'Per-session summary of the marking window task.',
+  },
+  attentionSessionUntitled: {
+    id: 'fbrAdmin.dashboard.attention.sessionUntitled',
+    defaultMessage: 'Untitled session',
+    description: 'Fallback name for a marking-window session that has no title.',
+  },
+  attentionPendingSummary: {
+    id: 'fbrAdmin.dashboard.attention.pendingSummary',
+    defaultMessage: '{count, plural, one {# request} other {# requests}} pending',
+    description: 'Per-program summary of the pending requests task.',
+  },
+  attentionSubstituteSummary: {
+    id: 'fbrAdmin.dashboard.attention.substituteSummary',
+    defaultMessage: '{sessions, plural, one {# session} other {# sessions}} · soonest {date}',
+    description: 'Per-program summary of the unassigned substitutes task, naming the first session at risk.',
+  },
+  attentionSessionCount: {
+    id: 'fbrAdmin.dashboard.attention.sessionCount',
+    defaultMessage: '{count, plural, one {# session} other {# sessions}}',
+    description: 'Per-program session count, used when no session date is available.',
+  },
+  attentionEmpty: {
+    id: 'fbrAdmin.dashboard.attention.empty',
+    defaultMessage: 'Nothing needs your attention right now.',
+    description: 'Empty state shown when every needs-attention row has reached zero.',
   },
 
   // ─── Program performance ────────────────────────────────────────────────────
@@ -167,11 +183,6 @@ const messages = defineMessages({
     defaultMessage: 'Certificates issued',
     description: 'KPI label for the number of certificates awarded.',
   },
-  facultyRatingLabel: {
-    id: 'fbrAdmin.dashboard.kpi.facultyRating',
-    defaultMessage: 'Faculty rating',
-    description: 'KPI label for the average instructor feedback rating.',
-  },
   captionActivePrograms: {
     id: 'fbrAdmin.dashboard.kpi.caption.activePrograms',
     defaultMessage: 'Currently running',
@@ -206,16 +217,6 @@ const messages = defineMessages({
     id: 'fbrAdmin.dashboard.kpi.caption.certificatesIssued',
     defaultMessage: 'Awarded, excluding revoked',
     description: 'KPI caption explaining which certificates are counted.',
-  },
-  captionFacultyRating: {
-    id: 'fbrAdmin.dashboard.kpi.caption.facultyRating',
-    defaultMessage: 'Average instructor feedback',
-    description: 'KPI caption explaining that the rating comes from feedback about instructors.',
-  },
-  captionFacultyRatingEmpty: {
-    id: 'fbrAdmin.dashboard.kpi.caption.facultyRatingEmpty',
-    defaultMessage: 'No instructor rated yet',
-    description: 'KPI caption shown when no feedback about an instructor has been received.',
   },
 
   // ─── Users ──────────────────────────────────────────────────────────────────
@@ -474,72 +475,6 @@ const messages = defineMessages({
     description: 'Attendance percentage for one program.',
   },
 
-  // ─── Feedback ───────────────────────────────────────────────────────────────
-  feedbackTitle: {
-    id: 'fbrAdmin.dashboard.feedback.title',
-    defaultMessage: 'Feedback',
-    description: 'Heading of the feedback card.',
-  },
-  feedbackSubtitle: {
-    id: 'fbrAdmin.dashboard.feedback.subtitle',
-    defaultMessage: 'Trainee ratings across programs',
-    description: 'Caption of the feedback card.',
-  },
-  feedbackRatingOutOf: {
-    id: 'fbrAdmin.dashboard.feedback.ratingOutOf',
-    defaultMessage: '/{maximum}',
-    description: 'Suffix showing the top of the rating scale, e.g. "/5".',
-  },
-  feedbackStarsLabel: {
-    id: 'fbrAdmin.dashboard.feedback.starsLabel',
-    defaultMessage: 'Rated {rating} out of {maximum}',
-    description: 'Accessible name of the star rating.',
-  },
-  feedbackResponded: {
-    id: 'fbrAdmin.dashboard.feedback.responded',
-    defaultMessage: '{responded} of {invited} responded',
-    description: 'Caption showing how many invited trainees submitted feedback.',
-  },
-  feedbackHighestRated: {
-    id: 'fbrAdmin.dashboard.feedback.highestRated',
-    defaultMessage: 'Highest rated · {program}',
-    description: 'Caption identifying the best rated instructor and their program.',
-  },
-  feedbackLowestRated: {
-    id: 'fbrAdmin.dashboard.feedback.lowestRated',
-    defaultMessage: 'Lowest rated · {program}',
-    description: 'Caption identifying the lowest rated instructor and their program.',
-  },
-  feedbackQuoteAttribution: {
-    id: 'fbrAdmin.dashboard.feedback.quoteAttribution',
-    defaultMessage: '{respondent} · {program}',
-    description: 'Attribution line under a quoted piece of trainee feedback.',
-  },
-  ratingExcellent: {
-    id: 'fbrAdmin.dashboard.feedback.rating.excellent',
-    defaultMessage: 'Excellent',
-    description: 'Feedback rating band: excellent.',
-  },
-  ratingVeryGood: {
-    id: 'fbrAdmin.dashboard.feedback.rating.veryGood',
-    defaultMessage: 'Very Good',
-    description: 'Feedback rating band: very good.',
-  },
-  ratingGood: {
-    id: 'fbrAdmin.dashboard.feedback.rating.good',
-    defaultMessage: 'Good',
-    description: 'Feedback rating band: good.',
-  },
-  ratingFair: {
-    id: 'fbrAdmin.dashboard.feedback.rating.fair',
-    defaultMessage: 'Fair',
-    description: 'Feedback rating band: fair.',
-  },
-  ratingPoor: {
-    id: 'fbrAdmin.dashboard.feedback.rating.poor',
-    defaultMessage: 'Poor',
-    description: 'Feedback rating band: poor.',
-  },
   percentageValue: {
     id: 'fbrAdmin.dashboard.percentageValue',
     defaultMessage: '{percentage}%',

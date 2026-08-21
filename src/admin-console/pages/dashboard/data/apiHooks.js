@@ -1,13 +1,13 @@
 import { useQuery } from '@tanstack/react-query';
 import {
   getDashboardKpis,
+  getDashboardNeedsAttention,
   getDashboardSessionDelivery,
   getDashboardUserComposition,
 } from './api';
 
-// The dashboard is a landing page an admin bounces in and out of; none of these
-// figures move minute to minute, so a short cache keeps navigation instant
-// without serving stale numbers.
+// A landing page an admin bounces in and out of; none of these figures move
+// minute to minute.
 const DASHBOARD_STALE_TIME = 5 * 60 * 1000;
 
 export const dashboardQueryKeys = {
@@ -15,6 +15,7 @@ export const dashboardQueryKeys = {
   kpis: ['dashboard', 'kpis'],
   users: ['dashboard', 'users'],
   sessions: ['dashboard', 'sessions'],
+  needsAttention: ['dashboard', 'needsAttention'],
 };
 
 export const useDashboardKpis = ({ enabled = true } = {}) => useQuery({
@@ -34,6 +35,13 @@ export const useDashboardUserComposition = ({ enabled = true } = {}) => useQuery
 export const useDashboardSessionDelivery = ({ enabled = true } = {}) => useQuery({
   queryKey: dashboardQueryKeys.sessions,
   queryFn: getDashboardSessionDelivery,
+  staleTime: DASHBOARD_STALE_TIME,
+  enabled,
+});
+
+export const useDashboardNeedsAttention = ({ enabled = true } = {}) => useQuery({
+  queryKey: dashboardQueryKeys.needsAttention,
+  queryFn: getDashboardNeedsAttention,
   staleTime: DASHBOARD_STALE_TIME,
   enabled,
 });

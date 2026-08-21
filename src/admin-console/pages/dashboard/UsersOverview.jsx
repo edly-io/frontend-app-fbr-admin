@@ -14,9 +14,7 @@ import {
 import messages from './messages';
 import componentMessages from '../../components/messages';
 
-// Translated role names for the roles this MFE knows about. The backend also
-// sends a `label`, which is used verbatim for anything added since - a new role
-// then reads correctly in English rather than not rendering at all.
+// The backend's own `label` is the fallback for a role added since this list.
 const ROLE_MESSAGES = {
   [ROLE_IDS.superAdmin]: messages.roleSuperAdmin,
   [ROLE_IDS.middleAdmin]: messages.roleMiddleAdmin,
@@ -25,10 +23,8 @@ const ROLE_MESSAGES = {
   [ROLE_IDS.trainee]: messages.roleTrainee,
 };
 
-// What each role is for, reusing the Add User modal's own one-line role
-// descriptions so the two screens describe a role the same way. The API sends
-// no per-role detail beyond the head-count, so this is static copy rather than
-// a derived figure.
+// Reuses the Add User modal's role descriptions so both screens describe a role
+// the same way; the API sends no per-role detail beyond the head-count.
 const ROLE_DESCRIPTIONS = {
   [ROLE_IDS.superAdmin]: componentMessages.roleSuperAdminDesc,
   [ROLE_IDS.middleAdmin]: componentMessages.roleMiddleAdminDesc,
@@ -47,9 +43,8 @@ const UsersOverview = ({ users, isLoading, isError }) => {
 
   const roles = users?.roles || [];
 
-  // Segments are sized against the sum of the role counts, not the head-count:
-  // a person holding two roles is counted under each, so the counts can add up
-  // to more than `totalUsers`.
+  // Sized against the sum of the counts, not `totalUsers`: a person holding two
+  // roles is counted under each.
   const segments = roles.map(role => ({
     id: role.id,
     percentage: role.share,

@@ -1,11 +1,13 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Card, Icon } from '@openedx/paragon';
+import {
+  Card, Col, Icon, Row,
+} from '@openedx/paragon';
 import { useIntl } from '@edx/frontend-platform/i18n';
 import SectionHeading from './SectionHeading';
 import SectionState from './SectionState';
 import {
-  FACULTY_RATING_MAXIMUM, KPI_TILES, TONE_COLORS, TONE_SURFACES,
+  KPI_TILES, TONE_COLORS, TONE_SURFACES,
 } from './constants';
 import messages from './messages';
 
@@ -35,11 +37,6 @@ const TILE_MESSAGES = {
     label: messages.certificatesIssuedLabel,
     caption: messages.captionCertificatesIssued,
   },
-  facultyRating: {
-    label: messages.facultyRatingLabel,
-    caption: messages.captionFacultyRating,
-    emptyCaption: messages.captionFacultyRatingEmpty,
-  },
 };
 
 const asPercentage = value => (
@@ -47,9 +44,8 @@ const asPercentage = value => (
 );
 
 /**
- * How each tile turns its KPI into a figure. Returning `null` means the backend
- * had nothing to measure (`null`, not zero) - the tile then shows a dash and
- * the metric's `emptyCaption` instead of inventing a value.
+ * Returning `null` means the backend had nothing to measure: the tile then shows
+ * a dash and the metric's `emptyCaption` rather than inventing a value.
  */
 const TILE_VALUES = {
   activePrograms: kpis => ({ value: kpis.activePrograms }),
@@ -57,10 +53,6 @@ const TILE_VALUES = {
   overallCompletion: kpis => asPercentage(kpis.overallCompletion),
   averageScore: kpis => asPercentage(kpis.averageScore),
   certificatesIssued: kpis => ({ value: kpis.certificatesIssued }),
-  facultyRating: kpis => (kpis.facultyRating === null ? null : {
-    value: kpis.facultyRating.toFixed(1),
-    unit: `/${FACULTY_RATING_MAXIMUM}`,
-  }),
 };
 
 const ProgramPerformance = ({ kpis, isLoading, isError }) => {
@@ -82,13 +74,20 @@ const ProgramPerformance = ({ kpis, isLoading, isError }) => {
         isEmpty={Boolean(kpis) && kpis.activePrograms === 0}
         emptyMessage={intl.formatMessage(messages.performanceEmpty)}
       >
-        <div className="row">
+        <Row>
           {kpis && KPI_TILES.map((tile) => {
             const figure = TILE_VALUES[tile.id](kpis);
             const { label, caption, emptyCaption } = TILE_MESSAGES[tile.id];
 
             return (
-              <div className="col-12 col-sm-6 col-lg-4 col-xl-2 dashboard-kpi-col" key={tile.id}>
+              <Col
+                xs={12}
+                sm={6}
+                lg={4}
+                xl
+                className="dashboard-kpi-col"
+                key={tile.id}
+              >
                 <Card
                   className="dashboard-kpi h-100"
                   style={{ borderLeftColor: TONE_COLORS[tile.tone] }}
@@ -108,9 +107,7 @@ const ProgramPerformance = ({ kpis, isLoading, isError }) => {
                     </div>
 
                     <p className="dashboard-kpi__value mb-0">
-                      {/* The dash is decorative: a screen reader gets the label
-                          followed by the caption, which says why there is no
-                          number, rather than an unexplained "em dash". */}
+                      {/* Decorative: the caption below says why there is no number. */}
                       {figure ? figure.value : <span aria-hidden="true">{NO_VALUE}</span>}
                       {figure?.unit && <small className="dashboard-kpi__unit">{figure.unit}</small>}
                     </p>
@@ -120,10 +117,10 @@ const ProgramPerformance = ({ kpis, isLoading, isError }) => {
                     </p>
                   </Card.Section>
                 </Card>
-              </div>
+              </Col>
             );
           })}
-        </div>
+        </Row>
       </SectionState>
     </section>
   );
@@ -137,7 +134,6 @@ ProgramPerformance.propTypes = {
     overallCompletion: PropTypes.number,
     averageScore: PropTypes.number,
     certificatesIssued: PropTypes.number.isRequired,
-    facultyRating: PropTypes.number,
   }),
   isLoading: PropTypes.bool,
   isError: PropTypes.bool,

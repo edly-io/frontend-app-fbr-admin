@@ -4,13 +4,13 @@ import { useIntl } from '@edx/frontend-platform/i18n';
 import Breadcrumb from '../../components/breadcrumb/Breadcrumb';
 import PermissionDeniedAlert from '../../components/PermissionDeniedAlert';
 import AttendanceOverview from './AttendanceOverview';
-import FeedbackOverview from './FeedbackOverview';
 import NeedsAttention from './NeedsAttention';
 import ProgramPerformance from './ProgramPerformance';
 import SessionsOverview from './SessionsOverview';
 import UsersOverview from './UsersOverview';
 import {
-  useDashboardKpis, useDashboardSessionDelivery, useDashboardUserComposition,
+  useDashboardKpis, useDashboardNeedsAttention, useDashboardSessionDelivery,
+  useDashboardUserComposition,
 } from './data/apiHooks';
 import { dashboardMockData } from './data/mockData';
 import { getDashboardMetrics } from './data/selectors';
@@ -23,17 +23,9 @@ const AS_OF_FORMAT = {
 };
 
 /**
- * Admin dashboard.
- *
- * Program performance, Users and Sessions are each backed by their own endpoint
- * under `/fbr/api/reports/dashboard/`, fetched independently so a section that
- * fails degrades on its own. Access is Data Admin or higher, matching the
- * backend's own gate, so the page is gated on the same capability the report
- * pages use rather than waiting for a 403.
- *
- * Attendance, Feedback and the results/certificate signals in Needs attention
- * have no endpoint yet and still read from `dashboardMockData`; they swap over
- * the same way once those endpoints land.
+ * Admin dashboard. Each API-backed section owns its own query under
+ * `/fbr/api/reports/dashboard/`, so one failing endpoint degrades on its own.
+ * Attendance has no endpoint yet and still reads from `dashboardMockData`.
  */
 const DashboardPage = () => {
   const intl = useIntl();
@@ -53,13 +45,14 @@ const DashboardPage = () => {
     data: sessions, isLoading: isSessionsLoading, isError: isSessionsError,
   } = useDashboardSessionDelivery({ enabled: isAccessReady });
 
-  // Attendance, Feedback and the programme-level signals behind Needs attention
-  // are still mock-backed - see the component docblock above.
-  const mockMetrics = useMemo(() => getDashboardMetrics(dashboardMockData), []);
-  const { programMetrics, attendanceMetrics, feedbackMetrics } = mockMetrics;
+  const {
+    data: needsAttention, isLoading: isAttentionLoading, isError: isAttentionError,
+  } = useDashboardNeedsAttention({ enabled: isAccessReady });
 
-  // Stamped from the KPI response rather than render time, so the caption dates
-  // the figures on screen and not the moment the page was opened.
+  const mockMetrics = useMemo(() => getDashboardMetrics(dashboardMockData), []);
+  const { programs, attendanceMetrics } = mockMetrics;
+
+  // Dates the figures on screen, not the moment the page was opened.
   const generatedAt = dataUpdatedAt ? new Date(dataUpdatedAt) : null;
 
   if (isAccessLoading) {
@@ -96,9 +89,9 @@ const DashboardPage = () => {
       )}
 
       <NeedsAttention
-        programMetrics={programMetrics}
-        attendanceMetrics={attendanceMetrics}
-        pendingApprovals={users?.pendingApproval || 0}
+        needsAttention={needsAttention}
+        isLoading={isAttentionLoading}
+        isError={isAttentionError}
       />
 
       <ProgramPerformance
@@ -119,17 +112,10 @@ const DashboardPage = () => {
         isError={isSessionsError}
       />
 
-      <div className="row dashboard-page__split">
-        <div className="col-12 col-xl-7 dashboard-page__split-col">
-          <AttendanceOverview
-            attendanceMetrics={attendanceMetrics}
-            programs={programMetrics.programs}
-          />
-        </div>
-        <div className="col-12 col-xl-5 dashboard-page__split-col">
-          <FeedbackOverview feedbackMetrics={feedbackMetrics} />
-        </div>
-      </div>
+      <AttendanceOverview
+        attendanceMetrics={attendanceMetrics}
+        programs={programs}
+      />
     </div>
   );
 };
