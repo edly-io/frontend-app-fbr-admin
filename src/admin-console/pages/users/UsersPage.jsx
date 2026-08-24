@@ -1,4 +1,5 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Alert } from '@openedx/paragon';
 import { useIntl } from '@edx/frontend-platform/i18n';
 import { getProfileMfeUserUrl } from '../../data/api';
@@ -39,8 +40,7 @@ const TAB_LABEL_MESSAGES = {
  */
 const UsersPage = () => {
   const intl = useIntl();
-
-  const [activeTab, setActiveTab] = useState('all');
+  const [searchParams, setSearchParams] = useSearchParams();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   const [currentPage, setCurrentPage] = useState(1);
@@ -61,14 +61,13 @@ const UsersPage = () => {
     () => TABS.filter(tab => !tab.superAdminOnly || canViewSuperAdminTabs),
     [canViewSuperAdminTabs],
   );
+  // `?role=` is the tab, so a link from the dashboard opens on the right one and
+  // the tab survives a reload or a shared URL. Derived rather than mirrored into
+  // state: a role that is not a visible tab - unknown, or super-admin-only for
+  // someone who may not see it - resolves to All on its own, including when the
+  // access probe resolves after the first render.
+  const activeTab = visibleTabs.find(tab => tab.role === searchParams.get('role'))?.id || 'all';
   const activeRole = visibleTabs.find(tab => tab.id === activeTab)?.role || null;
-
-  useEffect(() => {
-    if (!visibleTabs.some(tab => tab.id === activeTab)) {
-      setActiveTab('all');
-      setCurrentPage(1);
-    }
-  }, [activeTab, visibleTabs]);
 
   const {
     data, isLoading, isError, error,
@@ -95,7 +94,13 @@ const UsersPage = () => {
     ? (error?.response?.data?.detail || intl.formatMessage(messages.loadError))
     : '';
 
-  const handleTabChange = (tabId) => { setActiveTab(tabId); setCurrentPage(1); };
+  const handleTabChange = (tabId) => {
+    const next = new URLSearchParams(searchParams);
+    const { role } = visibleTabs.find(tab => tab.id === tabId) || {};
+    if (role) { next.set('role', role); } else { next.delete('role'); }
+    setSearchParams(next, { replace: true });
+    setCurrentPage(1);
+  };
   const handleSearchChange = (value) => { setSearch(value); setCurrentPage(1); };
   const handleStatusFilterChange = (value) => { setStatusFilter(value); setCurrentPage(1); };
 

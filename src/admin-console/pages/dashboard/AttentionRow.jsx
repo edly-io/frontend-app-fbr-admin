@@ -13,22 +13,17 @@ import { TONE_COLORS, TONE_SURFACES } from './constants';
  * chevron says which before the click - right leaves the page, down opens in
  * place, up closes again. Children are the same component, so every level
  * behaves identically.
- *
- * `isGroup` is the exception: a heading whose children are always on screen. It
- * labels the rows beneath it without being a control of its own, so it costs no
- * click and leaves the depth a reader has to click through unchanged.
  */
-const MAX_INDENT_LEVEL = 3;
+const MAX_INDENT_LEVEL = 2;
 
 const AttentionRow = ({ node, level }) => {
   const [isOpen, setIsOpen] = useState(false);
   const childrenId = useId();
 
   const {
-    icon, tone, count, eyebrow, title, description, to, href, children, isGroup,
+    icon, tone, count, eyebrow, title, description, to, href, children,
   } = node;
-  const hasChildren = Boolean(children?.length);
-  const isExpandable = hasChildren && !isGroup;
+  const isExpandable = Boolean(children?.length);
   const isNavigable = Boolean(to || href);
 
   const chevron = (() => {
@@ -69,7 +64,7 @@ const AttentionRow = ({ node, level }) => {
 
   const rowClassName = `dashboard-attention__row dashboard-attention__row--level-${
     Math.min(level, MAX_INDENT_LEVEL)
-  }${isGroup ? ' dashboard-attention__row--group' : ''} d-flex align-items-center`;
+  } d-flex align-items-center`;
 
   const renderRow = () => {
     if (isExpandable) {
@@ -101,7 +96,7 @@ const AttentionRow = ({ node, level }) => {
     <li className="dashboard-attention__item">
       {renderRow()}
 
-      {hasChildren && (isGroup || isOpen) && (
+      {isExpandable && isOpen && (
         <ul className="dashboard-attention__children list-unstyled mb-0" id={childrenId}>
           {children.map(child => (
             <AttentionRow node={child} level={level + 1} key={child.id} />
@@ -121,9 +116,7 @@ AttentionRow.propTypes = {
     to: PropTypes.string,
     /** Absolute URL; `null` when the Sessions MFE base is not configured. */
     href: PropTypes.string,
-    /** Renders as a heading with its children always visible. */
-    isGroup: PropTypes.bool,
-    /** Small label above the title, saying what kind of thing the row names. */
+    /** Small label above the title, saying what the row belongs to. */
     eyebrow: PropTypes.string,
     /** Top-level rows only. */
     icon: PropTypes.elementType,

@@ -118,7 +118,7 @@ const UsersOverview = ({ users, isLoading, isError }) => {
               {roles.map(role => (
                 <li className="col-6 col-md-4 col-xl dashboard-users__legend-col" key={role.id}>
                   <Link
-                    to="/users"
+                    to={{ pathname: '/users', search: `?${new URLSearchParams({ role: role.id })}` }}
                     className="dashboard-users__legend-item d-block"
                     style={{
                       '--dashboard-role-surface': ROLE_SURFACES[role.id] || DEFAULT_ROLE_SURFACE,
