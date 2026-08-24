@@ -3,7 +3,13 @@ import { getAuthenticatedHttpClient } from '@edx/frontend-platform/auth';
 
 const getBaseUrl = () => `${getConfig().LMS_BASE_URL}/fbr/announcements/api/v1`;
 
-export const listAnnouncements = () => getAuthenticatedHttpClient().get(`${getBaseUrl()}/announcements/`);
+export const listAnnouncements = ({ search = '', filter = '' } = {}) => {
+  const params = new URLSearchParams();
+  if (search) { params.set('search', search); }
+  if (filter) { params.set('filter', filter); }
+  const qs = params.toString();
+  return getAuthenticatedHttpClient().get(`${getBaseUrl()}/announcements/${qs ? `?${qs}` : ''}`);
+};
 
 export const createAnnouncement = (payload) => getAuthenticatedHttpClient().post(`${getBaseUrl()}/announcements/`, payload);
 

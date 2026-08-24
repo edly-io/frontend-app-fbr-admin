@@ -2,7 +2,9 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Alert } from '@openedx/paragon';
 import { useIntl } from '@edx/frontend-platform/i18n';
 import { getProfileMfeUserUrl } from '../../data/api';
-import { useUsers, useSuperAdminAccessProbe, useUserDetailMutation } from './data/apiHooks';
+import {
+  useUsers, useSuperAdminAccessProbe, useUserDetailMutation, useUpdateUserStatus,
+} from './data/apiHooks';
 import { TABS, DEFAULT_USERS_ROWS_PER_PAGE } from './constants';
 import UsersToolbar from './UsersToolbar';
 import UsersFilters from './UsersFilters';
@@ -33,9 +35,8 @@ const TAB_LABEL_MESSAGES = {
  *  - Pagination math (`totalPages`, `start`, `end`) is driven by the
  *    server-side total count for the *unfiltered* page, not the
  *    status-filtered subset actually rendered.
- *  - "Deactivate/Activate" is a purely client-side, non-persisted toggle
- *    (no request is sent) - modeled here as local `statusOverrides` applied
- *    on top of the query's cached data, rather than mutating the cache.
+ *  - "Deactivate/Activate" calls POST /v1/users/{id}/status/ and uses
+ *    `statusOverrides` for an optimistic update while the request is in flight.
  */
 const UsersPage = () => {
   const intl = useIntl();
@@ -56,6 +57,7 @@ const UsersPage = () => {
 
   const { canViewSuperAdminTabs } = useSuperAdminAccessProbe();
   const userDetailMutation = useUserDetailMutation();
+  const updateStatusMutation = useUpdateUserStatus();
 
   const visibleTabs = useMemo(
     () => TABS.filter(tab => !tab.superAdminOnly || canViewSuperAdminTabs),
@@ -125,10 +127,22 @@ const UsersPage = () => {
     setViewingUser(detail);
   };
   const handleDeactivate = (user) => {
-    setStatusOverrides(prev => ({
-      ...prev,
-      [user.id]: user.status === 'Active' ? 'Inactive' : 'Active',
-    }));
+    const newStatusValue = user.statusValue === 'active' ? 'deactivated' : 'active';
+    const newStatusLabel = user.statusValue === 'active' ? 'Deactivated' : 'Active';
+
+    setStatusOverrides(prev => ({ ...prev, [user.id]: newStatusLabel }));
+
+    updateStatusMutation.mutate(
+      { profileId: user.id, status: newStatusValue },
+      {
+        onSuccess: () => {
+          setStatusOverrides(prev => { const next = { ...prev }; delete next[user.id]; return next; });
+        },
+        onError: () => {
+          setStatusOverrides(prev => { const next = { ...prev }; delete next[user.id]; return next; });
+        },
+      },
+    );
   };
   const handleModalClose = () => {
     setShowAddModal(false);

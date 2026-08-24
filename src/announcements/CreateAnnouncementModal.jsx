@@ -27,6 +27,11 @@ const fetchPrograms = () => getAuthenticatedHttpClient()
   .get(`${getConfig().STUDIO_BASE_URL}/fbr/api/programs/`)
   .then(({ data }) => extractResults(data));
 
+const fetchActiveBannerCount = () => getAuthenticatedHttpClient()
+  .get(`${getConfig().LMS_BASE_URL}/fbr/announcements/api/v1/active-banners/`)
+  .then(({ data }) => (data.results || []).length)
+  .catch(() => 0);
+
 const SCOPE_OPTIONS = [
   { value: 'sitewide', title: 'Sitewide', desc: 'All active users on the platform' },
   { value: 'program', title: 'Program', desc: 'Users in a specific program' },
@@ -64,6 +69,8 @@ const TINYMCE_INIT = {
   statusbar: false,
 };
 
+const todayIsoDate = () => new Date().toISOString().split('T')[0];
+
 const CreateAnnouncementModal = ({ onClose, onCreated }) => {
   const [subject, setSubject] = useState('');
   const [bodyHtml, setBodyHtml] = useState('');
@@ -71,6 +78,8 @@ const CreateAnnouncementModal = ({ onClose, onCreated }) => {
   const [sendEmail, setSendEmail] = useState(true);
   const [sendBanner, setSendBanner] = useState(false);
   const [sendNotification, setSendNotification] = useState(false);
+  const [bannerExpiresAt, setBannerExpiresAt] = useState('');
+  const [activeBannerCount, setActiveBannerCount] = useState(0);
   const [scope, setScope] = useState('sitewide');
   const [programKey, setProgramKey] = useState('');
   const [recipientTypes, setRecipientTypes] = useState(DEFAULT_RECIPIENT_TYPES.sitewide);
@@ -83,6 +92,10 @@ const CreateAnnouncementModal = ({ onClose, onCreated }) => {
   const [recipientCountLoading, setRecipientCountLoading] = useState(false);
   const fileInputRef = useRef(null);
   const previewTimerRef = useRef(null);
+
+  useEffect(() => {
+    fetchActiveBannerCount().then(setActiveBannerCount);
+  }, []);
 
   useEffect(() => {
     setRecipientTypes(DEFAULT_RECIPIENT_TYPES[scope] || []);
@@ -112,6 +125,7 @@ const CreateAnnouncementModal = ({ onClose, onCreated }) => {
     return () => clearTimeout(previewTimerRef.current);
   }, [scope, programKey, recipientTypes]);
 
+  const bannerAtLimit = activeBannerCount >= 2;
   const needsSummary = sendBanner || sendNotification;
 
   const isFormReady = (
@@ -120,6 +134,7 @@ const CreateAnnouncementModal = ({ onClose, onCreated }) => {
     && (!needsSummary || summary.trim() !== '')
     && (scope !== 'program' || programKey.trim() !== '')
     && recipientTypes.length > 0
+    && (!sendBanner || bannerExpiresAt !== '')
   );
 
   const validate = () => {
@@ -128,6 +143,7 @@ const CreateAnnouncementModal = ({ onClose, onCreated }) => {
     if (needsSummary && !summary.trim()) { return 'Summary is required when Banner or Notification is enabled.'; }
     if (scope === 'program' && !programKey.trim()) { return 'Please select a program.'; }
     if (recipientTypes.length === 0) { return 'Please select at least one recipient type.'; }
+    if (sendBanner && !bannerExpiresAt) { return 'Banner expiry date is required.'; }
     return null;
   };
 
@@ -156,6 +172,7 @@ const CreateAnnouncementModal = ({ onClose, onCreated }) => {
         send_email: sendEmail,
         send_banner: sendBanner,
         send_notification: sendNotification,
+        banner_expires_at: sendBanner ? bannerExpiresAt : null,
         scope,
         program_key: scope === 'program' ? programKey : '',
         recipient_types: recipientTypes,
@@ -178,6 +195,11 @@ const CreateAnnouncementModal = ({ onClose, onCreated }) => {
 
   const channelState = { email: sendEmail, banner: sendBanner, notification: sendNotification };
   const channelSetter = { email: setSendEmail, banner: setSendBanner, notification: setSendNotification };
+
+  const handleBannerToggle = () => {
+    if (!sendBanner && bannerAtLimit) { return; }
+    setSendBanner(v => !v);
+  };
 
   return (
     <div className="ann-overlay" role="dialog" aria-modal="true">
@@ -257,20 +279,51 @@ const CreateAnnouncementModal = ({ onClose, onCreated }) => {
           {/* Channels */}
           <div className="ann-field">
             <span className="ann-label">Delivery Channels</span>
+            {bannerAtLimit && (
+              <p className="ann-banner-limit-note">
+                Maximum 2 active banners reached. Banner channel is unavailable until an existing banner expires.
+              </p>
+            )}
             <div className="ann-channels-grid">
-              {CHANNEL_OPTIONS.map(ch => (
-                <button
-                  key={ch.id}
-                  type="button"
-                  className={`ann-tile${channelState[ch.id] ? ' ann-tile--selected' : ''}`}
-                  onClick={() => channelSetter[ch.id](v => !v)}
-                >
-                  <div className="ann-tile-title">{ch.label}</div>
-                  <div className="ann-tile-desc">{ch.desc}</div>
-                </button>
-              ))}
+              {CHANNEL_OPTIONS.map(ch => {
+                const isBannerDisabled = ch.id === 'banner' && bannerAtLimit;
+                return (
+                  <button
+                    key={ch.id}
+                    type="button"
+                    className={[
+                      'ann-tile',
+                      channelState[ch.id] ? 'ann-tile--selected' : '',
+                      isBannerDisabled ? 'ann-tile--disabled' : '',
+                    ].filter(Boolean).join(' ')}
+                    onClick={ch.id === 'banner' ? handleBannerToggle : () => channelSetter[ch.id](v => !v)}
+                    disabled={isBannerDisabled}
+                  >
+                    <div className="ann-tile-title">{ch.label}</div>
+                    <div className="ann-tile-desc">{ch.desc}</div>
+                  </button>
+                );
+              })}
             </div>
           </div>
+
+          {/* Banner expiry (required when banner enabled) */}
+          {sendBanner && (
+            <div className="ann-field">
+              <label htmlFor="ann-banner-expires" className="ann-label">
+                Banner Expiry Date *
+                {' '}
+                <span className="ann-label-note">(banner stops showing after this date)</span>
+              </label>
+              <Form.Control
+                id="ann-banner-expires"
+                type="date"
+                value={bannerExpiresAt}
+                min={todayIsoDate()}
+                onChange={e => setBannerExpiresAt(e.target.value)}
+              />
+            </div>
+          )}
 
           {/* Summary (conditional) */}
           {needsSummary && (

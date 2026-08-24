@@ -1,17 +1,32 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, {
+  useCallback, useEffect, useRef, useState,
+} from 'react';
 import PropTypes from 'prop-types';
-import { Button } from '@openedx/paragon';
+import {
+  Button, Form, OverlayTrigger, Tooltip,
+} from '@openedx/paragon';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
-  faPlus, faTrash, faChevronDown, faChevronUp,
+  faPlus, faChevronDown, faChevronUp, faEye, faPen,
 } from '@fortawesome/free-solid-svg-icons';
-import { listAnnouncements, deleteAnnouncement, getAnnouncementRecipients } from './api';
+import { listAnnouncements, getAnnouncementRecipients } from './api';
 import CreateAnnouncementModal from './CreateAnnouncementModal';
+import ViewAnnouncementModal from './ViewAnnouncementModal';
+import EditBannerExpiryModal from './EditBannerExpiryModal';
+import UserIdentity from '../admin-console/components/UserIdentity';
 import './AnnouncementsView.css';
 
 const CHANNEL_LABELS = { send_email: 'Email', send_banner: 'Banner', send_notification: 'Notification' };
 const CHANNELS = Object.keys(CHANNEL_LABELS);
 const SCOPE_LABELS = { sitewide: 'Sitewide', program: 'Program', course: 'Course' };
+
+const ROLE_DISPLAY = {
+  super_admin: 'Super Admin',
+  middle_admin: 'Middle Admin',
+  data_admin: 'Data Admin',
+  instructor: 'Instructor',
+  trainee: 'Trainee',
+};
 
 const DELIVERY_CLASS = {
   sent: 'ann-delivery--sent',
@@ -49,6 +64,25 @@ StatusBadge.propTypes = { status: PropTypes.string.isRequired };
 
 const formatDate = (val) => (val ? new Date(val).toLocaleString() : '—');
 
+const BANNER_STATUS_META = {
+  active: { label: 'Banner Active', cls: 'ann-banner-status--active' },
+  expired: { label: 'Banner Expired', cls: 'ann-banner-status--expired' },
+};
+
+const BannerStatusBadge = ({ bannerStatus }) => {
+  const meta = BANNER_STATUS_META[bannerStatus];
+  if (!meta) { return null; }
+  return <span className={`ann-banner-status ${meta.cls}`}>{meta.label}</span>;
+};
+BannerStatusBadge.propTypes = { bannerStatus: PropTypes.string };
+BannerStatusBadge.defaultProps = { bannerStatus: null };
+
+const FILTER_OPTIONS = [
+  { value: '', label: 'All' },
+  { value: 'banner_active', label: 'Banner Active' },
+  { value: 'banner_expired', label: 'Banner Expired' },
+];
+
 const RecipientsLog = ({ announcementId, sendEmail, sendNotification }) => {
   const [recipients, setRecipients] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -65,7 +99,7 @@ const RecipientsLog = ({ announcementId, sendEmail, sendNotification }) => {
   if (loading) {
     return (
       <tr>
-        <td colSpan={6} className="ann-log-cell">
+        <td colSpan={7} className="ann-log-cell">
           <span className="ann-log-loading-text">Loading send log...</span>
         </td>
       </tr>
@@ -75,7 +109,7 @@ const RecipientsLog = ({ announcementId, sendEmail, sendNotification }) => {
   if (error) {
     return (
       <tr>
-        <td colSpan={6} className="ann-log-cell">
+        <td colSpan={7} className="ann-log-cell">
           <span className="ann-log-error-text">{error}</span>
         </td>
       </tr>
@@ -90,7 +124,7 @@ const RecipientsLog = ({ announcementId, sendEmail, sendNotification }) => {
 
   return (
     <tr>
-      <td colSpan={6} className="ann-log-cell--border">
+      <td colSpan={7} className="ann-log-cell--border">
         <div className="ann-log-inner">
           <p className="ann-log-title">
             Send Log — {recipients.count} recipient{recipients.count !== 1 ? 's' : ''}
@@ -142,7 +176,8 @@ const COL_DEFS = [
   ['CHANNELS', '200px'],
   ['STATUS', '90px'],
   ['SENT AT', '160px'],
-  ['ACTIONS', '100px'],
+  ['CREATED BY', '220px'],
+  ['ACTIONS', '90px'],
 ];
 
 const AnnouncementsView = ({ sectionLabel }) => {
@@ -150,15 +185,18 @@ const AnnouncementsView = ({ sectionLabel }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [showCreate, setShowCreate] = useState(false);
-  const [deletingId, setDeletingId] = useState(null);
-  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
   const [expandedId, setExpandedId] = useState(null);
+  const [viewItem, setViewItem] = useState(null);
+  const [editExpiryItem, setEditExpiryItem] = useState(null);
+  const [search, setSearch] = useState('');
+  const [filter, setFilter] = useState('');
+  const searchTimerRef = useRef(null);
 
-  const fetchAnnouncements = useCallback(async () => {
+  const fetchAnnouncements = useCallback(async (searchVal, filterVal) => {
     setIsLoading(true);
     setError('');
     try {
-      const { data } = await listAnnouncements();
+      const { data } = await listAnnouncements({ search: searchVal, filter: filterVal });
       let results = [];
       if (Array.isArray(data?.results)) { results = data.results; } else if (Array.isArray(data)) { results = data; }
       setAnnouncements(results);
@@ -169,24 +207,17 @@ const AnnouncementsView = ({ sectionLabel }) => {
     }
   }, []);
 
-  useEffect(() => { fetchAnnouncements(); }, [fetchAnnouncements]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { fetchAnnouncements(search, filter); }, [fetchAnnouncements, filter]);
 
-  const handleDelete = async (id) => {
-    if (confirmDeleteId !== id) { setConfirmDeleteId(id); return; }
-    setConfirmDeleteId(null);
-    setDeletingId(id);
-    try {
-      await deleteAnnouncement(id);
-      setAnnouncements(prev => prev.filter(a => a.id !== id));
-      if (expandedId === id) { setExpandedId(null); }
-    } catch (err) {
-      setError(err?.response?.data?.detail || 'Failed to delete announcement.');
-    } finally {
-      setDeletingId(null);
-    }
+  const handleSearchChange = (e) => {
+    const val = e.target.value;
+    setSearch(val);
+    clearTimeout(searchTimerRef.current);
+    searchTimerRef.current = setTimeout(() => fetchAnnouncements(val, filter), 350);
   };
 
-  const handleCreated = () => { setShowCreate(false); fetchAnnouncements(); };
+  const handleCreated = () => { setShowCreate(false); fetchAnnouncements(search, filter); };
 
   const toggleExpand = (id) => setExpandedId(prev => (prev === id ? null : id));
 
@@ -211,13 +242,35 @@ const AnnouncementsView = ({ sectionLabel }) => {
 
       {error && <div className="ann-error-banner">{error}</div>}
 
+      <div className="ann-toolbar">
+        <Form.Control
+          type="search"
+          value={search}
+          onChange={handleSearchChange}
+          placeholder="Search by subject…"
+          className="ann-search-input"
+        />
+        <div className="ann-filter-pills">
+          {FILTER_OPTIONS.map(opt => (
+            <button
+              key={opt.value}
+              type="button"
+              className={`ann-filter-pill${filter === opt.value ? ' ann-filter-pill--active' : ''}`}
+              onClick={() => setFilter(opt.value)}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
       <div className="ann-table-wrap">
         <table className="ann-table">
           <thead>
             <tr className="ann-thead-row">
               {COL_DEFS.map(([label, width]) => (
                 <th
-                  key={label}
+                  key={label || '__actions'}
                   className={`ann-th${label === 'ACTIONS' ? ' ann-th--center' : ''}`}
                   style={width ? { width } : undefined}
                 >
@@ -228,10 +281,10 @@ const AnnouncementsView = ({ sectionLabel }) => {
           </thead>
           <tbody>
             {isLoading && (
-              <tr><td colSpan={6} className="ann-td-empty">Loading announcements...</td></tr>
+              <tr><td colSpan={7} className="ann-td-empty">Loading announcements...</td></tr>
             )}
             {!isLoading && announcements.length === 0 && (
-              <tr><td colSpan={6} className="ann-td-empty">No announcements yet.</td></tr>
+              <tr><td colSpan={7} className="ann-td-empty">No announcements yet.</td></tr>
             )}
             {!isLoading && announcements.map((item) => {
               const isExpanded = expandedId === item.id;
@@ -266,35 +319,84 @@ const AnnouncementsView = ({ sectionLabel }) => {
                         <div className="ann-scope-sub">{item.course_id}</div>
                       )}
                     </td>
-                    <td className="ann-td"><ChannelTags item={item} /></td>
+                    <td className="ann-td">
+                      <ChannelTags item={item} />
+                      {item.banner_status && (
+                        <div className="ann-banner-status-row">
+                          <BannerStatusBadge bannerStatus={item.banner_status} />
+                          {item.banner_expires_at && (
+                            <span className="ann-banner-expiry">
+                              {item.banner_status === 'expired' ? 'Expired' : 'Expires'}{' '}
+                              {new Date(item.banner_expires_at).toLocaleDateString()}
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </td>
                     <td className="ann-td"><StatusBadge status={item.status} /></td>
                     <td className="ann-td-date">{formatDate(item.sent_at)}</td>
+                    <td className="ann-td">
+                      {item.sent_by_name ? (
+                        <UserIdentity
+                          name={item.sent_by_name}
+                          badges={[ROLE_DISPLAY[item.sent_by_role]].filter(Boolean)}
+                          size="compact"
+                          showAvatar
+                        />
+                      ) : '—'}
+                    </td>
                     <td
                       className="ann-td-actions"
                       onClick={e => e.stopPropagation()}
                     >
-                      {confirmDeleteId === item.id ? (
-                        <Button
-                          variant="tertiary"
-                          size="sm"
-                          onClick={() => handleDelete(item.id)}
-                          disabled={deletingId === item.id}
-                          className="ann-confirm-btn"
+                      <div className="ann-action-group">
+                        <OverlayTrigger
+                          placement="top"
+                          overlay={<Tooltip id={`tooltip-view-${item.id}`}>View details</Tooltip>}
                         >
-                          Confirm?
-                        </Button>
-                      ) : (
-                        <Button
-                          variant="tertiary"
-                          size="sm"
-                          title="Delete"
-                          onClick={() => handleDelete(item.id)}
-                          disabled={deletingId === item.id}
-                          className="ann-delete-btn"
-                        >
-                          <FontAwesomeIcon icon={faTrash} />
-                        </Button>
-                      )}
+                          <button
+                            type="button"
+                            className="ann-view-btn"
+                            onClick={() => setViewItem(item)}
+                            aria-label="View announcement details"
+                          >
+                            <FontAwesomeIcon icon={faEye} />
+                          </button>
+                        </OverlayTrigger>
+                        {item.send_banner && item.status === 'sent' && (
+                          item.banner_status === 'expired' ? (
+                            <OverlayTrigger
+                              placement="top"
+                              overlay={<Tooltip id={`tooltip-expired-${item.id}`}>Banner has expired and cannot be modified</Tooltip>}
+                            >
+                              <span>
+                                <button
+                                  type="button"
+                                  className="ann-edit-btn ann-edit-btn--disabled"
+                                  aria-label="Banner expired"
+                                  disabled
+                                >
+                                  <FontAwesomeIcon icon={faPen} />
+                                </button>
+                              </span>
+                            </OverlayTrigger>
+                          ) : (
+                            <OverlayTrigger
+                              placement="top"
+                              overlay={<Tooltip id={`tooltip-edit-${item.id}`}>Edit banner expiry</Tooltip>}
+                            >
+                              <button
+                                type="button"
+                                className="ann-edit-btn"
+                                onClick={() => setEditExpiryItem(item)}
+                                aria-label="Edit banner expiry date"
+                              >
+                                <FontAwesomeIcon icon={faPen} />
+                              </button>
+                            </OverlayTrigger>
+                          )
+                        )}
+                      </div>
                     </td>
                   </tr>
                   {isExpanded && (
@@ -314,6 +416,16 @@ const AnnouncementsView = ({ sectionLabel }) => {
 
       {showCreate && (
         <CreateAnnouncementModal onClose={() => setShowCreate(false)} onCreated={handleCreated} />
+      )}
+      {viewItem && (
+        <ViewAnnouncementModal item={viewItem} onClose={() => setViewItem(null)} />
+      )}
+      {editExpiryItem && (
+        <EditBannerExpiryModal
+          item={editExpiryItem}
+          onClose={() => setEditExpiryItem(null)}
+          onSaved={() => { setEditExpiryItem(null); fetchAnnouncements(search, filter); }}
+        />
       )}
     </>
   );

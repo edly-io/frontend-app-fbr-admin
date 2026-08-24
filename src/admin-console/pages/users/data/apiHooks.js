@@ -1,6 +1,8 @@
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { getUserDetail, getUsers, probeSuperAdminAccess } from './api';
+import {
+  getUserDetail, getUsers, probeSuperAdminAccess, updateUserStatus,
+} from './api';
 
 export const usersQueryKeys = {
   all: ['users'],
@@ -50,3 +52,13 @@ export const useSuperAdminAccessProbe = () => {
  * imperative, user-triggered fetch that isn't cached/re-rendered from.
  */
 export const useUserDetailMutation = () => useMutation({ mutationFn: getUserDetail });
+
+export const useUpdateUserStatus = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ profileId, status }) => updateUserStatus(profileId, status),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: usersQueryKeys.all });
+    },
+  });
+};

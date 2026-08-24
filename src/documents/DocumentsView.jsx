@@ -9,6 +9,7 @@ import {
   faLock, faLockOpen,
 } from '@fortawesome/free-solid-svg-icons';
 import { getConfig } from '@edx/frontend-platform';
+import UserIdentity from '../admin-console/components/UserIdentity';
 import {
   listDocuments, deleteDocument, listDocumentTypes, updateDocument,
 } from './api';
@@ -68,6 +69,14 @@ const formatBytes = (bytes) => {
 };
 
 const formatDate = (val) => (val ? new Date(val).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '—');
+
+const ROLE_DISPLAY = {
+  super_admin: 'Super Admin',
+  middle_admin: 'Middle Admin',
+  data_admin: 'Data Admin',
+  instructor: 'Instructor',
+  trainee: 'Trainee',
+};
 
 const DocumentsView = () => {
   const [documents, setDocuments] = useState([]);
@@ -238,7 +247,7 @@ const DocumentsView = () => {
                 <th className="docs-th">Title</th>
                 <th className="docs-th" style={{ width: '140px' }}>Type</th>
                 <th className="docs-th" style={{ width: '85px' }}>Size</th>
-                <th className="docs-th" style={{ width: '130px' }}>Uploaded by</th>
+                <th className="docs-th" style={{ width: '200px' }}>Uploaded by</th>
                 <th className="docs-th" style={{ width: '110px' }}>Date</th>
                 <th className="docs-th docs-th--center" style={{ width: '140px' }}>Actions</th>
               </tr>
@@ -294,7 +303,16 @@ const DocumentsView = () => {
                       )}
                     </td>
                     <td className="docs-td docs-td-mono">{formatBytes(doc.file_size)}</td>
-                    <td className="docs-td">{doc.uploaded_by_name || '—'}</td>
+                    <td className="docs-td">
+                      {doc.uploaded_by_name ? (
+                        <UserIdentity
+                          name={doc.uploaded_by_name}
+                          badges={[ROLE_DISPLAY[doc.uploaded_by_role]].filter(Boolean)}
+                          size="compact"
+                          showAvatar
+                        />
+                      ) : '—'}
+                    </td>
                     <td className="docs-td docs-td-mono">{formatDate(doc.created)}</td>
                     <td className="docs-td-actions">
                       <div className="docs-action-group">
