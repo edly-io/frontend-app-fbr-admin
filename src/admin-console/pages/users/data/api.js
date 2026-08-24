@@ -74,6 +74,12 @@ export const probeSuperAdminAccess = async () => {
   return true;
 };
 
+export const updateUserStatus = async (profileId, newStatus) => {
+  const url = `${getConfig().LMS_BASE_URL}/fbr/api/biodata/v1/users/${profileId}/status/`;
+  const { data } = await getAuthenticatedHttpClient().post(url, { status: newStatus });
+  return data;
+};
+
 /**
  * Fetches full detail for a single user and merges it into the base user
  * object, mirroring the monolith's `fetchUserDetail` merge behavior. The
