@@ -50,6 +50,7 @@ const existingDoc = {
   description: 'All HR policies',
   document_type: 'type-1',
   document_type_name: 'Policy',
+  is_public: false,
 };
 
 const makeFile = (name = 'report.pdf', type = 'application/pdf') => new File(
@@ -147,6 +148,30 @@ describe('DocumentModal — create mode', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
     expect(onClose).toHaveBeenCalled();
   });
+
+  it('shows private hint by default', () => {
+    renderModal();
+    expect(screen.getByText(/Only FBR users/)).toBeInTheDocument();
+  });
+
+  it('shows public hint after toggling switch', async () => {
+    renderModal();
+    fireEvent.click(screen.getByRole('switch'));
+    await waitFor(() => expect(screen.getByText(/Anyone with the link/)).toBeInTheDocument());
+  });
+
+  it('sends is_public true when toggled on upload', async () => {
+    renderModal();
+    fireEvent.click(screen.getByRole('switch'));
+    fireEvent.change(getFileInput(), { target: { files: [makeFile('doc.pdf')] } });
+    await screen.findByText('doc.pdf');
+    fireEvent.change(screen.getByLabelText(/Title/), { target: { value: 'Public Doc' } });
+    submitForm();
+    await waitFor(() => {
+      const formData = api.uploadDocument.mock.calls[0][0];
+      expect(formData.get('is_public')).toBe('true');
+    });
+  });
 });
 
 // ── Edit mode ─────────────────────────────────────────────────────────────────
@@ -215,5 +240,25 @@ describe('DocumentModal — edit mode', () => {
     renderModal({ document: existingDoc });
     submitForm();
     expect(await screen.findByText('Server error occurred.')).toBeInTheDocument();
+  });
+
+  it('pre-fills toggle from document is_public false', () => {
+    renderModal({ document: existingDoc });
+    expect(screen.getByRole('switch')).toHaveAttribute('aria-checked', 'false');
+  });
+
+  it('pre-fills toggle from document is_public true', () => {
+    renderModal({ document: { ...existingDoc, is_public: true } });
+    expect(screen.getByRole('switch')).toHaveAttribute('aria-checked', 'true');
+  });
+
+  it('sends is_public in update payload', async () => {
+    renderModal({ document: existingDoc });
+    fireEvent.click(screen.getByRole('switch'));
+    submitForm();
+    await waitFor(() => expect(api.updateDocument).toHaveBeenCalledWith(
+      'doc-1',
+      expect.objectContaining({ is_public: true }),
+    ));
   });
 });

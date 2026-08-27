@@ -341,7 +341,7 @@ const DocumentsView = () => {
                           overlay={(
                             <Tooltip id={`vis-${doc.id}`}>
                               {doc.is_public
-                                ? 'Make private — only FBR members can view'
+                                ? 'Make private — only FBR users (admins, instructors, trainees) can view after logging in'
                                 : 'Make public — anyone can view without logging in'}
                             </Tooltip>
                           )}
