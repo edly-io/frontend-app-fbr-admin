@@ -23,24 +23,9 @@ const DEFAULT_FILTERS = {
 const EMPTY_FILTER_OPTIONS = { programs: [], instructors: [], cities: [] };
 const EMPTY_KPIS = { learners: 0, avgAttendance: 0, sessionsTracked: 0 };
 
-// Date range filter can't select the future, its end date can't precede its
-// start date, and the two dates can't be more than MAX_DATE_RANGE_MONTHS
-// apart - see the matching handlers below for the input-level bounds.
+// Date range filter can't select the future and its end date can't precede
+// its start date - see the matching handlers below for the input-level bounds.
 const getTodayIsoDate = () => new Date().toISOString().slice(0, 10);
-
-const MAX_DATE_RANGE_MONTHS = 6;
-
-const addMonthsIso = (isoDate, months) => {
-  const date = new Date(`${isoDate}T00:00:00`);
-  date.setMonth(date.getMonth() + months);
-  return date.toISOString().slice(0, 10);
-};
-
-const getEndDateMax = (startDate, today) => {
-  if (!startDate) { return today; }
-  const rangeMax = addMonthsIso(startDate, MAX_DATE_RANGE_MONTHS);
-  return rangeMax < today ? rangeMax : today;
-};
 
 /**
  * Attendance Report page: a Program/Instructor/City/Date-Range filter row
@@ -48,7 +33,7 @@ const getEndDateMax = (startDate, today) => {
  * The dropdown filters come from `GET /fbr/api/reports/filters/` and are sent
  * to the report endpoint as query params; changing any filter resets the
  * listing back to page 1. Mirrors `SessionsInstructorReportsPage`'s
- * draft/applied filter pattern, 6-month date range cap, and CSV export flow.
+ * draft/applied filter pattern and CSV export flow.
  */
 const AttendanceReportsPage = () => {
   const intl = useIntl();
@@ -99,12 +84,9 @@ const AttendanceReportsPage = () => {
   const handleStartDateChange = (value) => {
     const startDate = value > today ? today : value;
     setDraftFilters(previous => {
-      const endDateMax = getEndDateMax(startDate, today);
       let { endDate } = previous;
       if (endDate && endDate < startDate) {
         endDate = startDate;
-      } else if (endDate && endDate > endDateMax) {
-        endDate = endDateMax;
       }
       return { ...previous, startDate, endDate };
     });
@@ -112,8 +94,7 @@ const AttendanceReportsPage = () => {
 
   const handleEndDateChange = (value) => {
     setDraftFilters(previous => {
-      const endDateMax = getEndDateMax(previous.startDate, today);
-      let endDate = value > endDateMax ? endDateMax : value;
+      let endDate = value > today ? today : value;
       if (previous.startDate && endDate < previous.startDate) {
         endDate = previous.startDate;
       }
@@ -151,6 +132,9 @@ const AttendanceReportsPage = () => {
 
   const isApplyDisabled = Object.keys(DEFAULT_FILTERS)
     .every(key => draftFilters[key] === appliedFilters[key]);
+
+  const isDownloadDisabled = appliedFilters.program === DEFAULT_FILTERS.program
+    && appliedFilters.instructor === DEFAULT_FILTERS.instructor;
 
   const filterConfig = [
     {
@@ -195,8 +179,7 @@ const AttendanceReportsPage = () => {
       onEndChange: handleEndDateChange,
       startMax: today,
       endMin: draftFilters.startDate || undefined,
-      endMax: getEndDateMax(draftFilters.startDate, today),
-      caption: intl.formatMessage(messages.filterDateRangeMaxRangeCaption),
+      endMax: today,
     },
   ];
 
@@ -252,7 +235,7 @@ const AttendanceReportsPage = () => {
             variant="outline-primary"
             iconBefore={Download}
             onClick={handleDownloadCsv}
-            disabled={isExporting}
+            disabled={isExporting || isDownloadDisabled}
           >
             {isExporting ? intl.formatMessage(messages.downloadingCsv) : intl.formatMessage(messages.downloadCsv)}
           </Button>
