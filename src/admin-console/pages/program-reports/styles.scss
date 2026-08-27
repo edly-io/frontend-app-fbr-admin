@@ -5,6 +5,78 @@
   .report-download-pdf-btn--loading {
     opacity: 0.5;
   }
+
+  .report-expand-btn {
+    // Paragon's Bootstrap 4 base has no .gap-* utilities (added in Bootstrap 5).
+    gap: 0.5rem;
+    max-width: 100%;
+
+    &:hover,
+    &:focus {
+      color: var(--pgn-color-text-base);
+      text-decoration: none;
+    }
+  }
+
+  .report-expand-btn__icon {
+    flex-shrink: 0;
+  }
+
+  // Left accent ties the expanded content back to the program row it
+  // belongs to - same technique as `.report-stat-card`'s accent border,
+  // just lighter, so it reads as a child section rather than another card.
+  .program-overview-panel {
+    border-left: 3px solid var(--pgn-color-primary-base);
+  }
+
+  // Capped so a large roster scrolls in place instead of stretching the
+  // expanded row (and the whole table) to match its length.
+  .program-overview-panel__trainee-list {
+    max-height: 320px;
+    overflow-y: auto;
+  }
+
+  // A grid, not a flex row, so the identity/meta/action columns actually
+  // line up down the list regardless of how long any one trainee's name is.
+  .program-overview-panel__trainee-row {
+    display: grid;
+    grid-template-columns: minmax(160px, 220px) minmax(0, 1fr) auto;
+    align-items: center;
+    column-gap: 1rem;
+
+    &:hover {
+      background-color: var(--pgn-color-light-200, #f5f5f5);
+    }
+  }
+
+  .program-overview-panel__trainee-meta {
+    min-width: 0;
+  }
+}
+
+@media (--pgn-size-breakpoint-max-width-sm) {
+  // Too narrow for three side-by-side columns - keep the identity + action
+  // on one row (so the action stays reachable next to the trainee it acts
+  // on) and drop the email/batch meta to a second row underneath.
+  .reports-page .program-overview-panel__trainee-row {
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      'identity action'
+      'meta meta';
+    row-gap: 0.125rem;
+
+    > :first-child {
+      grid-area: identity;
+    }
+
+    > :last-child {
+      grid-area: action;
+    }
+
+    .program-overview-panel__trainee-meta {
+      grid-area: meta;
+    }
+  }
 }
 
 .people-sheet {
@@ -42,5 +114,51 @@
 @media (--pgn-size-breakpoint-max-width-sm) {
   .people-sheet {
     max-width: 100%;
+  }
+}
+
+// Same sizing as `.course-scores-sheet` in frontend-app-authoring's
+// bulk-trainee-results, so both "trainee's course results" Sheets in the
+// product read as one consistent pattern. Paragon's own
+// `.pgn__sheet-component.right` rule also sets `max-width` (272px) with the
+// same two-class specificity a plain `.trainee-progress-sheet` selector
+// can't beat, so this has to match on `.pgn__sheet-component` + `.right`
+// directly to actually win.
+.pgn__sheet-component.trainee-progress-sheet.right {
+  width: 420px;
+  max-width: 90vw;
+  padding: 1.5rem;
+  height: 100%;
+  overflow-y: auto;
+
+  .trainee-progress-sheet__eyebrow {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--pgn-color-text-light);
+  }
+
+  .trainee-progress-sheet__course {
+    &:first-of-type {
+      margin-top: 1.5rem;
+    }
+
+    &:last-child {
+      margin-bottom: 0 !important;
+    }
+  }
+
+  // Long course titles shouldn't push the score/badge out of view - flex
+  // items default to a content-based min-width, so this has to be explicit.
+  .trainee-progress-sheet__course-title {
+    min-width: 0;
+  }
+
+  .trainee-progress-sheet__metric-divider {
+    border-bottom: 1px dashed var(--pgn-color-gray-300, #d1d5db);
+  }
+
+  .trainee-progress-sheet__empty {
+    margin-top: 1.5rem;
   }
 }

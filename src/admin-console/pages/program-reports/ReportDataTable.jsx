@@ -3,12 +3,16 @@ import React, {
 } from 'react';
 import PropTypes from 'prop-types';
 import {
-  Badge, DataTable, IconButton, IconButtonWithTooltip, Pagination,
+  Badge, DataTable, Icon, IconButton, IconButtonWithTooltip, Pagination,
 } from '@openedx/paragon';
 import { pdf } from '@react-pdf/renderer';
-import { Download, InfoOutline, Visibility } from '@openedx/paragon/icons';
+import {
+  Download, ExpandLess, ExpandMore, InfoOutline, Visibility,
+} from '@openedx/paragon/icons';
 import { useIntl } from '@edx/frontend-platform/i18n';
 import PeopleSheet from './PeopleSheet';
+import ProgramOverviewPanel from './ProgramOverviewPanel';
+import TraineeProgressSheet from './TraineeProgressSheet';
 import ProgramReportPdf from './pdf/ProgramReportPdf';
 import { useProgramPeople } from './data/apiHooks';
 import {
@@ -58,6 +62,32 @@ const TextCell = ({ value, column }) => (
 TextCell.propTypes = {
   value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
   column: PropTypes.shape({ strong: PropTypes.bool }).isRequired,
+};
+
+const ProgramExpandCell = ({ value, row }) => {
+  const intl = useIntl();
+  const { onClick } = row.getToggleRowExpandedProps();
+
+  return (
+    <button
+      type="button"
+      className="report-expand-btn btn btn-link p-0 text-body text-left text-decoration-none report-text-cell--strong d-inline-flex align-items-center gap-2"
+      aria-expanded={row.isExpanded}
+      title={intl.formatMessage(messages.toggleProgramOverviewAria, { program: value })}
+      onClick={onClick}
+    >
+      <Icon src={row.isExpanded ? ExpandLess : ExpandMore} className="report-expand-btn__icon" />
+      <span>{value}</span>
+    </button>
+  );
+};
+
+ProgramExpandCell.propTypes = {
+  value: PropTypes.string.isRequired,
+  row: PropTypes.shape({
+    isExpanded: PropTypes.bool,
+    getToggleRowExpandedProps: PropTypes.func.isRequired,
+  }).isRequired,
 };
 
 const NumCell = ({ value }) => <span>{value}</span>;
@@ -175,6 +205,7 @@ const CELL_RENDERERS = {
   status: StatusCell,
   peopleCount: PeopleCountCell,
   action: ActionCell,
+  programExpand: ProgramExpandCell,
 };
 
 const ReportDataTable = ({
@@ -183,6 +214,9 @@ const ReportDataTable = ({
   const intl = useIntl();
   const [sheet, setSheet] = useState({
     show: false, kind: null, programKey: '', program: '',
+  });
+  const [traineeSheet, setTraineeSheet] = useState({
+    show: false, trainee: null, program: '', programKey: '',
   });
 
   const pageCount = Math.max(1, Math.ceil(count / pageSize));
@@ -198,6 +232,23 @@ const ReportDataTable = ({
   const closeSheet = useCallback(() => {
     setSheet(previous => ({ ...previous, show: false }));
   }, []);
+
+  const openTraineeSheet = useCallback((trainee, program, programKey) => {
+    setTraineeSheet({
+      show: true, trainee, program, programKey,
+    });
+  }, []);
+
+  const closeTraineeSheet = useCallback(() => {
+    setTraineeSheet(previous => ({ ...previous, show: false }));
+  }, []);
+
+  const renderRowSubComponent = useCallback(({ row }) => (
+    <ProgramOverviewPanel
+      programKey={row.original.programKey}
+      onViewTrainee={(trainee) => openTraineeSheet(trainee, row.original.program, row.original.programKey)}
+    />
+  ), [openTraineeSheet]);
 
   const columns = useMemo(() => PROGRAM_COLUMNS.map(column => {
     const isPeopleCount = column.kind === 'peopleCount';
@@ -237,6 +288,8 @@ const ReportDataTable = ({
     <div className="report-data-table">
       <DataTable
         isSortable
+        isExpandable
+        renderRowSubComponent={renderRowSubComponent}
         isLoading={isLoading}
         data={rows}
         columns={columns}
@@ -276,6 +329,16 @@ const ReportDataTable = ({
           onClose={closeSheet}
         />
       )}
+
+      <TraineeProgressSheet
+        show={traineeSheet.show}
+        trainee={traineeSheet.trainee?.name ?? ''}
+        email={traineeSheet.trainee?.email ?? ''}
+        program={traineeSheet.program}
+        traineeId={traineeSheet.trainee?.id ?? null}
+        programKey={traineeSheet.programKey}
+        onClose={closeTraineeSheet}
+      />
     </div>
   );
 };

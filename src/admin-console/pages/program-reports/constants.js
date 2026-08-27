@@ -1,5 +1,5 @@
 export const PROGRAM_COLUMNS = [
-  { key: 'program', kind: 'text', strong: true },
+  { key: 'program', kind: 'programExpand', strong: true },
   { key: 'city', kind: 'text' },
   { key: 'instructors', kind: 'peopleCount', countKey: 'instructorCount' },
   { key: 'certificates', kind: 'peopleCount', countKey: 'certificateCount' },
@@ -74,3 +74,9 @@ export const getStatusVariant = (status) => STATUS_VARIANT[status] || 'secondary
 
 // Sent to the backend as `page_size` and used as the DataTable's page size.
 export const REPORT_PAGE_SIZE = 20;
+
+// Rotates a course header's accent color in the Trainee Progress Sheet -
+// mirrors `SECTION_VARIANTS` in frontend-app-authoring's grade-scheme-tab.
+export const COURSE_VARIANTS = ['primary', 'warning', 'success', 'dark', 'info'];
+
+export const getCourseVariant = (index) => COURSE_VARIANTS[index % COURSE_VARIANTS.length];

@@ -33,6 +33,11 @@ export const mapSessionsInstructorRow = (row) => ({
   })),
 });
 
+/**
+ * `startDate`/`endDate` are sent as `from`/`to`, matching what the backend's
+ * session date-range filter actually reads (same param names
+ * `exportSessionsInstructorReports` below already uses).
+ */
 export const getSessionsInstructorReports = async ({
   program, instructor, city, startDate, endDate, page = 1, pageSize,
 } = {}) => {
@@ -40,8 +45,8 @@ export const getSessionsInstructorReports = async ({
   if (program && program !== 'all') { params.set('program', program); }
   if (instructor && instructor !== 'all') { params.set('instructor', instructor); }
   if (city && city !== 'all') { params.set('city', city); }
-  if (startDate) { params.set('start_date', startDate); }
-  if (endDate) { params.set('end_date', endDate); }
+  if (startDate) { params.set('from', startDate); }
+  if (endDate) { params.set('to', endDate); }
 
   const { data } = await getAuthenticatedHttpClient().get(`${getInstructorReportsUrl()}?${params.toString()}`);
   const results = getPaginatedResults(data);

@@ -231,6 +231,81 @@ const messages = defineMessages({
     defaultMessage: 'Something went wrong while loading the report. Please try again.',
     description: 'Fallback error message shown when the Program Report fails to load.',
   },
+  toggleProgramOverviewAria: {
+    id: 'fbrAdmin.reports.overview.toggle.aria',
+    defaultMessage: 'Toggle program overview for {program}',
+    description: 'Accessible name for the expand/collapse control on a Program Report row.',
+  },
+  overviewLoading: {
+    id: 'fbrAdmin.reports.overview.loading',
+    defaultMessage: 'Loading program overview…',
+    description: 'Loading state shown in the expanded Program Report row while its overview data is fetched.',
+  },
+  overviewLoadError: {
+    id: 'fbrAdmin.reports.overview.loadError',
+    defaultMessage: 'Something went wrong while loading the program overview. Please try again.',
+    description: 'Error state shown in the expanded Program Report row when its overview data fails to load.',
+  },
+  overviewTraineesHeading: {
+    id: 'fbrAdmin.reports.overview.trainees.heading',
+    defaultMessage: '{count, plural, one {# Trainee} other {# Trainees}}',
+    description: 'Heading for the trainee roster in the expanded Program Report row.',
+  },
+  overviewTraineesEmpty: {
+    id: 'fbrAdmin.reports.overview.trainees.empty',
+    defaultMessage: 'No trainees are enrolled in this program yet.',
+    description: 'Empty state for the trainee roster in the expanded Program Report row.',
+  },
+  viewTraineeProgressAria: {
+    id: 'fbrAdmin.reports.overview.viewTraineeProgress.aria',
+    defaultMessage: 'View trainee progress for {trainee}',
+    description: 'Accessible label for the button that opens a trainee\'s progress sheet.',
+  },
+  traineeProgressSheetEyebrow: {
+    id: 'fbrAdmin.reports.traineeProgressSheet.eyebrow',
+    defaultMessage: 'Trainee Progress',
+    description: 'Small eyebrow label shown above the trainee name in the trainee progress sheet.',
+  },
+  closeTraineeProgressSheet: {
+    id: 'fbrAdmin.reports.traineeProgressSheet.close',
+    defaultMessage: 'Close trainee progress panel',
+    description: 'Accessible label for the button that closes the trainee progress sheet.',
+  },
+  traineeProgressLoading: {
+    id: 'fbrAdmin.reports.traineeProgressSheet.loading',
+    defaultMessage: 'Loading trainee progress…',
+    description: 'Loading state shown in the trainee progress sheet while its data is fetched.',
+  },
+  traineeProgressLoadError: {
+    id: 'fbrAdmin.reports.traineeProgressSheet.loadError',
+    defaultMessage: 'Something went wrong while loading this trainee\'s progress. Please try again.',
+    description: 'Error state shown in the trainee progress sheet when its data fails to load.',
+  },
+  traineeProgressEmptyState: {
+    id: 'fbrAdmin.reports.traineeProgressSheet.empty',
+    defaultMessage: 'This trainee is not enrolled in any courses yet.',
+    description: 'Empty state shown in the trainee progress sheet when the program has no courses.',
+  },
+  colGrade: {
+    id: 'fbrAdmin.reports.traineeProgressSheet.col.grade',
+    defaultMessage: 'Grade',
+    description: 'Column header for the trainee\'s grade in the trainee progress sheet.',
+  },
+  colCourseProgress: {
+    id: 'fbrAdmin.reports.traineeProgressSheet.col.progress',
+    defaultMessage: 'Progress',
+    description: 'Column header for the trainee\'s course completion progress in the trainee progress sheet.',
+  },
+  gradePassed: {
+    id: 'fbrAdmin.reports.traineeProgressSheet.grade.passed',
+    defaultMessage: 'Passed',
+    description: 'Label shown next to a course grade the trainee has passed.',
+  },
+  metricNotAvailable: {
+    id: 'fbrAdmin.reports.traineeProgressSheet.metric.notAvailable',
+    defaultMessage: 'Not available',
+    description: 'Fallback shown when a course\'s grade or progress could not be computed.',
+  },
 });
 
 export default messages;
