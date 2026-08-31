@@ -1,31 +1,32 @@
 export const PROGRAM_COLUMNS = [
   { key: 'program', kind: 'programExpand', strong: true },
+  { key: 'description', kind: 'description' },
   { key: 'city', kind: 'text' },
+  { key: 'startDate', kind: 'date' },
+  { key: 'endDate', kind: 'date' },
   { key: 'instructors', kind: 'peopleCount', countKey: 'instructorCount' },
   { key: 'certificates', kind: 'peopleCount', countKey: 'certificateCount' },
   { key: 'enrolled', kind: 'num' },
-  { key: 'completed', kind: 'num' },
-  { key: 'avgScore', kind: 'num' },
   { key: 'status', kind: 'status' },
   { key: 'action', kind: 'action' },
 ];
 
 export const COLUMN_LABEL_MESSAGE_KEYS = {
   program: 'colProgram',
+  description: 'colDescription',
   city: 'colCity',
+  startDate: 'colStartDate',
+  endDate: 'colEndDate',
   instructors: 'colInstructors',
   enrolled: 'colEnrolled',
-  completed: 'colCompleted',
-  avgScore: 'colAvgScore',
   certificates: 'colCertificate',
   action: 'colAction',
   status: 'colStatus',
 };
 
-export const COLUMN_TOOLTIP_MESSAGE_KEYS = {
-  completed: 'colCompletedTooltip',
-  avgScore: 'colAvgScoreTooltip',
-};
+// Placeholder for a row whose optional value (description, start/end date)
+// the API returned as null/empty.
+export const EMPTY_CELL_VALUE = '\u2014';
 
 export const STAT_LABEL_MESSAGE_KEYS = {
   programCount: 'statProgramCount',
