@@ -1,15 +1,20 @@
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import PropTypes from 'prop-types';
 import {
-  Alert, IconButton, ProgressBar, Sheet, Spinner,
+  Alert, Icon, IconButton, ProgressBar, Sheet, Spinner,
 } from '@openedx/paragon';
+import { Download } from '@openedx/paragon/icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTimes } from '@fortawesome/free-solid-svg-icons';
 import { UserIdentity } from '@edly-io/frontend-component-fbr';
 import { useIntl } from '@edx/frontend-platform/i18n';
 import { useTraineeProgress } from './data/apiHooks';
+import { exportTraineeProgress } from './data/api';
 import { getCourseVariant } from './constants';
+import { downloadBlob } from '../../utils/download';
 import messages from './messages';
+
+const toPercent = (metric) => Math.round(metric?.percent || 0);
 
 const CourseMetricRow = ({
   label, available, percent, isLast,
@@ -60,13 +65,31 @@ const TraineeProgressSheet = ({
   show, trainee, email, program, traineeId, programKey, onClose,
 }) => {
   const intl = useIntl();
+  const [isExporting, setIsExporting] = useState(false);
+  const [exportError, setExportError] = useState('');
 
   const { data, isLoading, isError } = useTraineeProgress(
     programKey,
     traineeId,
     { enabled: show },
   );
-  const courses = data?.courses || [];
+  const courses = useMemo(() => data?.courses || [], [data]);
+
+  // The backend renders the CSV from the same payload this panel is showing -
+  // `GET .../trainee-progress/export/` takes the same program/trainee params.
+  const handleDownloadCsv = async () => {
+    if (isExporting) { return; }
+    setIsExporting(true);
+    setExportError('');
+    try {
+      const { blob, filename } = await exportTraineeProgress(programKey, traineeId);
+      downloadBlob(blob, filename);
+    } catch (exportRequestError) {
+      setExportError(exportRequestError?.response?.data?.detail || intl.formatMessage(messages.exportError));
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   return (
     <Sheet position="right" show={show} onClose={onClose} className="trainee-progress-sheet">
@@ -79,14 +102,26 @@ const TraineeProgressSheet = ({
           {email && <p className="small text-muted mb-0 mt-1">{email}</p>}
           <p className="small text-muted mb-0">{program}</p>
         </div>
-        <IconButton
-          iconAs={FontAwesomeIcon}
-          icon={faTimes}
-          alt={intl.formatMessage(messages.closeTraineeProgressSheet)}
-          size="sm"
-          onClick={onClose}
-        />
+        <div className="trainee-progress-sheet__header-actions d-flex align-items-center">
+          <IconButton
+            src={Download}
+            iconAs={Icon}
+            alt={intl.formatMessage(messages.downloadTraineeProgressCsv, { trainee })}
+            size="sm"
+            disabled={isExporting || courses.length === 0}
+            onClick={handleDownloadCsv}
+          />
+          <IconButton
+            iconAs={FontAwesomeIcon}
+            icon={faTimes}
+            alt={intl.formatMessage(messages.closeTraineeProgressSheet)}
+            size="sm"
+            onClick={onClose}
+          />
+        </div>
       </div>
+
+      {exportError && <Alert variant="danger" className="mt-3">{exportError}</Alert>}
 
       {isLoading && (
         <div className="trainee-progress-sheet__loading d-flex justify-content-center py-4">
@@ -105,8 +140,8 @@ const TraineeProgressSheet = ({
       )}
 
       {!isLoading && !isError && courses.map((course, index) => {
-        const gradePercent = Math.round(course.grade.percent || 0);
-        const progressPercent = Math.round(course.progress.percent || 0);
+        const gradePercent = toPercent(course.grade);
+        const progressPercent = toPercent(course.progress);
         const variant = getCourseVariant(index);
 
         return (

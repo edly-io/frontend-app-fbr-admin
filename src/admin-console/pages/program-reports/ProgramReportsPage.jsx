@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
-import { Alert, Spinner } from '@openedx/paragon';
+import {
+  Alert, Button, Spinner,
+} from '@openedx/paragon';
+import { Download } from '@openedx/paragon/icons';
 import { useIntl } from '@edx/frontend-platform/i18n';
 import Breadcrumb from '../../components/breadcrumb/Breadcrumb';
 import FilterBar from '../../components/filter-bar/FilterBar';
@@ -7,7 +10,9 @@ import PermissionDeniedAlert from '../../components/PermissionDeniedAlert';
 import ReportDataTable from './ReportDataTable';
 import ReportStatCards from './ReportStatCards';
 import { useProgramReports } from './data/apiHooks';
+import { exportProgramReports } from './data/api';
 import { useReportsAccess, useReportFilters } from '../../data/apiHooks';
+import { downloadBlob } from '../../utils/download';
 import { REPORT_PAGE_SIZE } from './constants';
 import messages from './messages';
 import shellMessages from '../../messages';
@@ -29,8 +34,9 @@ const getTodayIsoDate = () => new Date().toISOString().slice(0, 10);
  * server-paginated data table backed by `GET /fbr/api/reports/program/`.
  * The dropdown filters themselves come from `GET /fbr/api/reports/filters/`
  * and are sent to the report endpoint as query params; changing any filter
- * resets the listing back to page 1. PDF export happens per-row (see
- * `ReportDataTable`'s Action column) rather than for the whole page.
+ * resets the listing back to page 1. Download CSV exports every row matching
+ * the applied filters; the Action column's per-row button downloads that one
+ * program's summary sheet (see `ReportDataTable`).
  */
 const ProgramReportsPage = () => {
   const intl = useIntl();
@@ -43,6 +49,8 @@ const ProgramReportsPage = () => {
   const [draftFilters, setDraftFilters] = useState(DEFAULT_FILTERS);
   const [appliedFilters, setAppliedFilters] = useState(DEFAULT_FILTERS);
   const [page, setPage] = useState(1);
+  const [isExporting, setIsExporting] = useState(false);
+  const [exportError, setExportError] = useState('');
   const today = getTodayIsoDate();
 
   const isAccessReady = !isAccessLoading && capabilities.canAccessPrograms;
@@ -92,6 +100,23 @@ const ProgramReportsPage = () => {
         endDate: previous.startDate && endDate < previous.startDate ? previous.startDate : endDate,
       };
     });
+  };
+
+  // The backend builds and streams the CSV over the *applied* filters, so the
+  // file covers every program the filtered table can page through - not just
+  // the page in view.
+  const handleDownloadCsv = async () => {
+    if (isExporting) { return; }
+    setIsExporting(true);
+    setExportError('');
+    try {
+      const { blob, filename } = await exportProgramReports(appliedFilters);
+      downloadBlob(blob, filename);
+    } catch (exportRequestError) {
+      setExportError(exportRequestError?.response?.data?.detail || intl.formatMessage(messages.exportError));
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   const handleApplyFilters = () => {
@@ -195,6 +220,7 @@ const ProgramReportsPage = () => {
       <ReportStatCards stats={stats} />
 
       {errorMessage && <Alert variant="danger" className="mb-3">{errorMessage}</Alert>}
+      {exportError && <Alert variant="danger" className="mb-3">{exportError}</Alert>}
 
       <FilterBar
         filters={filterConfig}
@@ -204,6 +230,16 @@ const ProgramReportsPage = () => {
         onClearAll={handleClearAll}
         clearAllLabel={intl.formatMessage(messages.clearAllFilters)}
         isClearAllDisabled={isClearAllDisabled}
+        trailingActions={(
+          <Button
+            variant="outline-primary"
+            iconBefore={Download}
+            onClick={handleDownloadCsv}
+            disabled={isExporting || count === 0}
+          >
+            {isExporting ? intl.formatMessage(messages.downloadingCsv) : intl.formatMessage(messages.downloadCsv)}
+          </Button>
+        )}
       />
 
       <ReportDataTable
