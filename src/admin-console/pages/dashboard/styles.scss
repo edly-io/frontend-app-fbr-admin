@@ -29,7 +29,7 @@ $dashboard-chip-color: #b45309;
 $dashboard-attention-padding-x: 1.25rem;
 $dashboard-attention-gap: 0.875rem;
 $dashboard-attention-icon: 36px;
-$dashboard-attention-count: 1.5rem;
+$dashboard-attention-count: 2.5rem;
 // `calc` rather than Sass arithmetic: the icon is in px and the rest in rem, so
 // the sum has to be resolved by the browser at the root size actually in force.
 $dashboard-attention-indent: calc(
@@ -409,6 +409,7 @@ $dashboard-attention-step: 1.75rem;
     font-variant-numeric: tabular-nums;
     letter-spacing: -0.02em;
     flex: none;
+    white-space: nowrap;
     width: $dashboard-attention-count;
   }
 
