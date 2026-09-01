@@ -1,55 +1,26 @@
 import React, {
-  useCallback, useEffect, useMemo, useState,
+  useCallback, useMemo, useState,
 } from 'react';
 import PropTypes from 'prop-types';
 import {
-  Badge, DataTable, IconButton, IconButtonWithTooltip, Pagination,
+  Alert, Badge, DataTable, Icon, IconButton, OverlayTrigger, Pagination, Tooltip,
 } from '@openedx/paragon';
-import { pdf } from '@react-pdf/renderer';
-import { Download, InfoOutline, Visibility } from '@openedx/paragon/icons';
+import {
+  Download, ExpandLess, ExpandMore, Visibility,
+} from '@openedx/paragon/icons';
 import { useIntl } from '@edx/frontend-platform/i18n';
 import PeopleSheet from './PeopleSheet';
-import ProgramReportPdf from './pdf/ProgramReportPdf';
+import ProgramOverviewPanel from './ProgramOverviewPanel';
+import TraineeProgressSheet from './TraineeProgressSheet';
 import { useProgramPeople } from './data/apiHooks';
+import { exportProgramPeople } from './data/api';
+import { downloadBlob } from '../../utils/download';
 import {
-  COLUMN_LABEL_MESSAGE_KEYS, COLUMN_TOOLTIP_MESSAGE_KEYS, PEOPLE_SHEET_CONFIG, PROGRAM_COLUMNS,
+  COLUMN_LABEL_MESSAGE_KEYS, EMPTY_CELL_VALUE, PEOPLE_SHEET_CONFIG, PROGRAM_COLUMNS,
   STATUS_LABEL_MESSAGE_KEYS, getStatusVariant,
 } from './constants';
 import { formatDate } from '../../utils/date';
 import messages from './messages';
-
-const ColumnHeaderWithTooltip = ({ label, tooltipText, tooltipAlt }) => (
-  <span className="report-column-header d-inline-flex align-items-center gap-1">
-    {label}
-    <IconButtonWithTooltip
-      src={InfoOutline}
-      size="inline"
-      alt={tooltipAlt}
-      tooltipPlacement="top"
-      tooltipContent={tooltipText}
-      className="report-column-header__info-icon"
-      onClick={(event) => event.stopPropagation()}
-    />
-  </span>
-);
-
-ColumnHeaderWithTooltip.propTypes = {
-  label: PropTypes.string.isRequired,
-  tooltipText: PropTypes.string.isRequired,
-  tooltipAlt: PropTypes.string.isRequired,
-};
-
-// Paragon's TableRow keys body cells with `${cell.column.Header}${rowId}`.
-// Every React element stringifies to the same "[object Object]" literal, so
-// two JSX-element Headers collide on every row. Wrapping the element in a
-// plain function component (functions aren't frozen, so we can override
-// toString) gives each column header a unique string while still rendering
-// the original element correctly.
-const makeHeaderRenderer = (element, uniqueId) => {
-  const HeaderRenderer = () => element;
-  HeaderRenderer.toString = () => uniqueId;
-  return HeaderRenderer;
-};
 
 const TextCell = ({ value, column }) => (
   <span className={column.strong ? 'report-text-cell--strong' : undefined}>{value}</span>
@@ -58,6 +29,94 @@ const TextCell = ({ value, column }) => (
 TextCell.propTypes = {
   value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
   column: PropTypes.shape({ strong: PropTypes.bool }).isRequired,
+};
+
+const DateCell = ({ value }) => (
+  <span className="report-date-cell">{formatDate(value) || EMPTY_CELL_VALUE}</span>
+);
+
+DateCell.propTypes = { value: PropTypes.string };
+
+DateCell.defaultProps = { value: '' };
+
+// A program description can run to several paragraphs, so the cell shows a
+// single truncated line and puts the full text in a Paragon Tooltip. The
+// trigger fires on `hover` *and* `focus` and is tabbable, so keyboard-only
+// users reach the full description exactly like mouse users do.
+const DescriptionCell = ({ value, row }) => {
+  const intl = useIntl();
+  const description = (value || '').trim();
+
+  if (!description) {
+    return (
+      <span className="report-description-cell" aria-label={intl.formatMessage(messages.programDescriptionEmpty)}>
+        {EMPTY_CELL_VALUE}
+      </span>
+    );
+  }
+
+  return (
+    <OverlayTrigger
+      trigger={['hover', 'focus']}
+      placement="top"
+      overlay={(
+        <Tooltip id={`program-description-tooltip-${row.original.id}`}>
+          {description}
+        </Tooltip>
+      )}
+    >
+      <span
+        className="report-description-cell"
+        // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex
+        tabIndex={0}
+        role="note"
+        aria-label={intl.formatMessage(messages.programDescriptionAria, {
+          program: row.original.program,
+          description,
+        })}
+      >
+        {description}
+      </span>
+    </OverlayTrigger>
+  );
+};
+
+DescriptionCell.propTypes = {
+  value: PropTypes.string,
+  row: PropTypes.shape({
+    original: PropTypes.shape({
+      id: PropTypes.string,
+      program: PropTypes.string,
+    }).isRequired,
+  }).isRequired,
+};
+
+DescriptionCell.defaultProps = { value: '' };
+
+const ProgramExpandCell = ({ value, row }) => {
+  const intl = useIntl();
+  const { onClick } = row.getToggleRowExpandedProps();
+
+  return (
+    <button
+      type="button"
+      className="report-expand-btn btn btn-link p-0 text-body text-left text-decoration-none report-text-cell--strong d-inline-flex align-items-center gap-2"
+      aria-expanded={row.isExpanded}
+      title={intl.formatMessage(messages.toggleProgramOverviewAria, { program: value })}
+      onClick={onClick}
+    >
+      <Icon src={row.isExpanded ? ExpandLess : ExpandMore} className="report-expand-btn__icon" />
+      <span>{value}</span>
+    </button>
+  );
+};
+
+ProgramExpandCell.propTypes = {
+  value: PropTypes.string.isRequired,
+  row: PropTypes.shape({
+    isExpanded: PropTypes.bool,
+    getToggleRowExpandedProps: PropTypes.func.isRequired,
+  }).isRequired,
 };
 
 const NumCell = ({ value }) => <span>{value}</span>;
@@ -112,49 +171,35 @@ PeopleCountCell.propTypes = {
   }).isRequired,
 };
 
-const ActionCell = ({ row }) => {
+const ActionCell = ({ row, column }) => {
   const intl = useIntl();
-  const { program, city, programKey } = row.original;
-  const [downloading, setDownloading] = useState(false);
-  const { data: people, isFetching } = useProgramPeople(programKey, { enabled: downloading });
+  const { program, programKey } = row.original;
+  const [isExporting, setIsExporting] = useState(false);
 
-  const fileName = useMemo(
-    () => `${program.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-')}-report.pdf`,
-    [program],
-  );
-
-  useEffect(() => {
-    if (!downloading || isFetching || !people) { return; }
-
-    const pdfDocument = (
-      <ProgramReportPdf
-        programName={program}
-        city={city}
-        instructors={people.instructors}
-        certificates={people.certified}
-        generatedOn={formatDate(new Date())}
-        instructorsEmptyText={intl.formatMessage(messages.instructorsEmptyState)}
-        certificatesEmptyText={intl.formatMessage(messages.certificatesEmptyState)}
-      />
-    );
-
-    pdf(pdfDocument).toBlob().then(blob => {
-      const objectUrl = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = objectUrl;
-      link.download = fileName;
-      link.click();
-      URL.revokeObjectURL(objectUrl);
-    }).finally(() => setDownloading(false));
-  }, [downloading, isFetching, people, program, city, fileName, intl]);
+  const handleDownload = async () => {
+    if (isExporting) { return; }
+    setIsExporting(true);
+    try {
+      const { blob, filename } = await exportProgramPeople(programKey);
+      downloadBlob(blob, filename);
+      column.onExportError('');
+    } catch (exportRequestError) {
+      column.onExportError(
+        exportRequestError?.response?.data?.detail || intl.formatMessage(messages.exportError),
+      );
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   return (
     <IconButton
       src={Download}
       size="inline"
-      alt={intl.formatMessage(messages.downloadPdfAria, { program })}
-      className={`report-download-pdf-btn${downloading ? ' report-download-pdf-btn--loading' : ''}`}
-      onClick={() => setDownloading(true)}
+      alt={intl.formatMessage(messages.downloadCsvAria, { program })}
+      className={`report-download-btn${isExporting ? ' report-download-btn--loading' : ''}`}
+      disabled={isExporting}
+      onClick={handleDownload}
     />
   );
 };
@@ -163,18 +208,21 @@ ActionCell.propTypes = {
   row: PropTypes.shape({
     original: PropTypes.shape({
       program: PropTypes.string,
-      city: PropTypes.string,
       programKey: PropTypes.string,
     }),
   }).isRequired,
+  column: PropTypes.shape({ onExportError: PropTypes.func.isRequired }).isRequired,
 };
 
 const CELL_RENDERERS = {
   text: TextCell,
   num: NumCell,
+  date: DateCell,
+  description: DescriptionCell,
   status: StatusCell,
   peopleCount: PeopleCountCell,
   action: ActionCell,
+  programExpand: ProgramExpandCell,
 };
 
 const ReportDataTable = ({
@@ -184,6 +232,10 @@ const ReportDataTable = ({
   const [sheet, setSheet] = useState({
     show: false, kind: null, programKey: '', program: '',
   });
+  const [traineeSheet, setTraineeSheet] = useState({
+    show: false, trainee: null, program: '', programKey: '',
+  });
+  const [exportError, setExportError] = useState('');
 
   const pageCount = Math.max(1, Math.ceil(count / pageSize));
   const firstRow = rows.length ? (page - 1) * pageSize + 1 : 0;
@@ -199,29 +251,39 @@ const ReportDataTable = ({
     setSheet(previous => ({ ...previous, show: false }));
   }, []);
 
+  const openTraineeSheet = useCallback((trainee, program, programKey) => {
+    setTraineeSheet({
+      show: true, trainee, program, programKey,
+    });
+  }, []);
+
+  const closeTraineeSheet = useCallback(() => {
+    setTraineeSheet(previous => ({ ...previous, show: false }));
+  }, []);
+
+  const renderRowSubComponent = useCallback(({ row }) => (
+    <ProgramOverviewPanel
+      programKey={row.original.programKey}
+      onViewTrainee={(trainee) => openTraineeSheet(trainee, row.original.program, row.original.programKey)}
+    />
+  ), [openTraineeSheet]);
+
   const columns = useMemo(() => PROGRAM_COLUMNS.map(column => {
     const isPeopleCount = column.kind === 'peopleCount';
     const peopleConfig = isPeopleCount ? PEOPLE_SHEET_CONFIG[column.key] : undefined;
     const label = intl.formatMessage(messages[COLUMN_LABEL_MESSAGE_KEYS[column.key]]);
-    const tooltipKey = COLUMN_TOOLTIP_MESSAGE_KEYS[column.key];
 
     return {
-      Header: tooltipKey ? makeHeaderRenderer(
-        <ColumnHeaderWithTooltip
-          label={label}
-          tooltipText={intl.formatMessage(messages[tooltipKey])}
-          tooltipAlt={intl.formatMessage(messages[`${tooltipKey}Alt`])}
-        />,
-        column.key,
-      ) : label,
+      Header: label,
       id: column.key,
       accessor: isPeopleCount ? column.countKey : column.key,
       strong: column.strong,
       dataKey: isPeopleCount ? column.countKey : undefined,
       ariaMessage: isPeopleCount ? messages[peopleConfig.ariaKey] : undefined,
       onOpenSheet: isPeopleCount ? openSheet(column.key) : undefined,
+      onExportError: column.kind === 'action' ? setExportError : undefined,
       // The Action column has nothing meaningful to sort by - it just
-      // renders the per-row Download PDF button.
+      // renders the per-row Download CSV button.
       disableSortBy: column.kind === 'action',
       Cell: CELL_RENDERERS[column.kind],
     };
@@ -235,8 +297,12 @@ const ReportDataTable = ({
 
   return (
     <div className="report-data-table">
+      {exportError && <Alert variant="danger" className="mb-3">{exportError}</Alert>}
+
       <DataTable
         isSortable
+        isExpandable
+        renderRowSubComponent={renderRowSubComponent}
         isLoading={isLoading}
         data={rows}
         columns={columns}
@@ -276,6 +342,16 @@ const ReportDataTable = ({
           onClose={closeSheet}
         />
       )}
+
+      <TraineeProgressSheet
+        show={traineeSheet.show}
+        trainee={traineeSheet.trainee?.name ?? ''}
+        email={traineeSheet.trainee?.email ?? ''}
+        program={traineeSheet.program}
+        traineeId={traineeSheet.trainee?.id ?? null}
+        programKey={traineeSheet.programKey}
+        onClose={closeTraineeSheet}
+      />
     </div>
   );
 };

@@ -61,6 +61,21 @@ const messages = defineMessages({
     defaultMessage: 'End date',
     description: 'Accessible label for the Date Range filter\'s end date input.',
   },
+  downloadCsv: {
+    id: 'fbrAdmin.reports.downloadCsv',
+    defaultMessage: 'Download CSV',
+    description: 'Button label for exporting the Program Report table as a CSV file.',
+  },
+  downloadingCsv: {
+    id: 'fbrAdmin.reports.downloadingCsv',
+    defaultMessage: 'Downloading\u2026',
+    description: 'Button label shown while the Program Report CSV export is in progress.',
+  },
+  exportError: {
+    id: 'fbrAdmin.reports.exportError',
+    defaultMessage: 'Something went wrong while exporting the report. Please try again.',
+    description: 'Error message shown when the Program Report CSV export fails.',
+  },
   applyFilters: {
     id: 'fbrAdmin.reports.filter.apply',
     defaultMessage: 'Apply Filters',
@@ -88,38 +103,33 @@ const messages = defineMessages({
   },
   colEnrolled: {
     id: 'fbrAdmin.reports.col.enrolled',
-    defaultMessage: 'Enrolled',
+    defaultMessage: 'No. of Participants',
     description: 'Report table column header for enrolled learner count.',
   },
-  colCompleted: {
-    id: 'fbrAdmin.reports.col.completed',
-    defaultMessage: 'Finalized',
-    description: 'Report table column header for finalized learner count.',
+  colDescription: {
+    id: 'fbrAdmin.reports.col.description',
+    defaultMessage: 'Description',
+    description: 'Report table column header for the program description.',
   },
-  colCompletedTooltip: {
-    id: 'fbrAdmin.reports.col.completed.tooltip',
-    defaultMessage: 'How many enrolled trainees have had their manual program grading finalized (final result locked by an admin). Trainees still being graded are not counted yet.',
-    description: 'Tooltip explaining what the Finalized column count represents.',
+  colStartDate: {
+    id: 'fbrAdmin.reports.col.startDate',
+    defaultMessage: 'Start Date',
+    description: 'Report table column header for the program start date.',
   },
-  colCompletedTooltipAlt: {
-    id: 'fbrAdmin.reports.col.completed.tooltipAlt',
-    defaultMessage: 'More information about the Finalized column',
-    description: 'Accessible label for the info icon next to the Finalized column header.',
+  colEndDate: {
+    id: 'fbrAdmin.reports.col.endDate',
+    defaultMessage: 'End Date',
+    description: 'Report table column header for the program end date.',
   },
-  colAvgScore: {
-    id: 'fbrAdmin.reports.col.avgScore',
-    defaultMessage: 'Avg. Score',
-    description: 'Report table column header for average assessment score.',
+  programDescriptionAria: {
+    id: 'fbrAdmin.reports.col.description.aria',
+    defaultMessage: '{program} description: {description}',
+    description: 'Accessible label for the truncated program description cell, which reveals the full text in a tooltip.',
   },
-  colAvgScoreTooltip: {
-    id: 'fbrAdmin.reports.col.avgScore.tooltip',
-    defaultMessage: "The average final score of trainees whose manual grading is finalized, shown as a percentage of the program's total possible marks. Trainees not yet finalized are excluded.",
-    description: 'Tooltip explaining what the Avg. Score column represents.',
-  },
-  colAvgScoreTooltipAlt: {
-    id: 'fbrAdmin.reports.col.avgScore.tooltipAlt',
-    defaultMessage: 'More information about the Avg. Score column',
-    description: 'Accessible label for the info icon next to the Avg. Score column header.',
+  programDescriptionEmpty: {
+    id: 'fbrAdmin.reports.col.description.empty',
+    defaultMessage: 'No description',
+    description: 'Accessible label for a program description cell when the program has no description.',
   },
   colCertificate: {
     id: 'fbrAdmin.reports.col.certificate',
@@ -136,10 +146,10 @@ const messages = defineMessages({
     defaultMessage: 'Action',
     description: 'Report table column header for the program action.',
   },
-  downloadPdfAria: {
-    id: 'fbrAdmin.reports.action.downloadPdf.aria',
-    defaultMessage: 'Download PDF report for {program}',
-    description: 'Accessible label for the Download PDF button in the Program Report table.',
+  downloadCsvAria: {
+    id: 'fbrAdmin.reports.action.downloadCsv.aria',
+    defaultMessage: 'Download CSV report for {program}',
+    description: 'Accessible label for the per-row Download CSV button in the Program Report table.',
   },
   statusActive: {
     id: 'fbrAdmin.reports.status.active',
@@ -230,6 +240,86 @@ const messages = defineMessages({
     id: 'fbrAdmin.reports.loadError',
     defaultMessage: 'Something went wrong while loading the report. Please try again.',
     description: 'Fallback error message shown when the Program Report fails to load.',
+  },
+  toggleProgramOverviewAria: {
+    id: 'fbrAdmin.reports.overview.toggle.aria',
+    defaultMessage: 'Toggle program overview for {program}',
+    description: 'Accessible name for the expand/collapse control on a Program Report row.',
+  },
+  overviewLoading: {
+    id: 'fbrAdmin.reports.overview.loading',
+    defaultMessage: 'Loading program overview…',
+    description: 'Loading state shown in the expanded Program Report row while its overview data is fetched.',
+  },
+  overviewLoadError: {
+    id: 'fbrAdmin.reports.overview.loadError',
+    defaultMessage: 'Something went wrong while loading the program overview. Please try again.',
+    description: 'Error state shown in the expanded Program Report row when its overview data fails to load.',
+  },
+  overviewTraineesHeading: {
+    id: 'fbrAdmin.reports.overview.trainees.heading',
+    defaultMessage: '{count, plural, one {# Trainee} other {# Trainees}}',
+    description: 'Heading for the trainee roster in the expanded Program Report row.',
+  },
+  overviewTraineesEmpty: {
+    id: 'fbrAdmin.reports.overview.trainees.empty',
+    defaultMessage: 'No trainees are enrolled in this program yet.',
+    description: 'Empty state for the trainee roster in the expanded Program Report row.',
+  },
+  viewTraineeProgressAria: {
+    id: 'fbrAdmin.reports.overview.viewTraineeProgress.aria',
+    defaultMessage: 'View trainee progress for {trainee}',
+    description: 'Accessible label for the button that opens a trainee\'s progress sheet.',
+  },
+  traineeProgressSheetEyebrow: {
+    id: 'fbrAdmin.reports.traineeProgressSheet.eyebrow',
+    defaultMessage: 'Trainee Progress',
+    description: 'Small eyebrow label shown above the trainee name in the trainee progress sheet.',
+  },
+  closeTraineeProgressSheet: {
+    id: 'fbrAdmin.reports.traineeProgressSheet.close',
+    defaultMessage: 'Close trainee progress panel',
+    description: 'Accessible label for the button that closes the trainee progress sheet.',
+  },
+  downloadTraineeProgressCsv: {
+    id: 'fbrAdmin.reports.traineeProgressSheet.downloadCsv',
+    defaultMessage: 'Download {trainee}\u2019s course progress as CSV',
+    description: 'Accessible label for the button that exports the trainee progress panel as a CSV file.',
+  },
+  traineeProgressLoading: {
+    id: 'fbrAdmin.reports.traineeProgressSheet.loading',
+    defaultMessage: 'Loading trainee progress…',
+    description: 'Loading state shown in the trainee progress sheet while its data is fetched.',
+  },
+  traineeProgressLoadError: {
+    id: 'fbrAdmin.reports.traineeProgressSheet.loadError',
+    defaultMessage: 'Something went wrong while loading this trainee\'s progress. Please try again.',
+    description: 'Error state shown in the trainee progress sheet when its data fails to load.',
+  },
+  traineeProgressEmptyState: {
+    id: 'fbrAdmin.reports.traineeProgressSheet.empty',
+    defaultMessage: 'This trainee is not enrolled in any courses yet.',
+    description: 'Empty state shown in the trainee progress sheet when the program has no courses.',
+  },
+  colGrade: {
+    id: 'fbrAdmin.reports.traineeProgressSheet.col.grade',
+    defaultMessage: 'Grade',
+    description: 'Column header for the trainee\'s grade in the trainee progress sheet.',
+  },
+  colCourseProgress: {
+    id: 'fbrAdmin.reports.traineeProgressSheet.col.progress',
+    defaultMessage: 'Progress',
+    description: 'Column header for the trainee\'s course completion progress in the trainee progress sheet.',
+  },
+  gradePassed: {
+    id: 'fbrAdmin.reports.traineeProgressSheet.grade.passed',
+    defaultMessage: 'Passed',
+    description: 'Label shown next to a course grade the trainee has passed.',
+  },
+  metricNotAvailable: {
+    id: 'fbrAdmin.reports.traineeProgressSheet.metric.notAvailable',
+    defaultMessage: 'Not available',
+    description: 'Fallback shown when a course\'s grade or progress could not be computed.',
   },
 });
 

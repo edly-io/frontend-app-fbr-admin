@@ -23,24 +23,9 @@ const DEFAULT_FILTERS = {
 const EMPTY_FILTER_OPTIONS = { programs: [], instructors: [], cities: [] };
 const EMPTY_KPIS = { instructors: 0, sessions: 0, hours: 0 };
 
-// Date range filter can't select the future, its end date can't precede its
-// start date, and the two dates can't be more than MAX_DATE_RANGE_MONTHS
-// apart - see the matching handlers below for the input-level bounds.
+// Date range filter can't select the future and its end date can't precede
+// its start date - see the matching handlers below for the input-level bounds.
 const getTodayIsoDate = () => new Date().toISOString().slice(0, 10);
-
-const MAX_DATE_RANGE_MONTHS = 6;
-
-const addMonthsIso = (isoDate, months) => {
-  const date = new Date(`${isoDate}T00:00:00`);
-  date.setMonth(date.getMonth() + months);
-  return date.toISOString().slice(0, 10);
-};
-
-const getEndDateMax = (startDate, today) => {
-  if (!startDate) { return today; }
-  const rangeMax = addMonthsIso(startDate, MAX_DATE_RANGE_MONTHS);
-  return rangeMax < today ? rangeMax : today;
-};
 
 const SessionsInstructorReportsPage = () => {
   const intl = useIntl();
@@ -105,12 +90,9 @@ const SessionsInstructorReportsPage = () => {
   const handleStartDateChange = (value) => {
     const startDate = value > today ? today : value;
     setDraftFilters(previous => {
-      const endDateMax = getEndDateMax(startDate, today);
       let { endDate } = previous;
       if (endDate && endDate < startDate) {
         endDate = startDate;
-      } else if (endDate && endDate > endDateMax) {
-        endDate = endDateMax;
       }
       return { ...previous, startDate, endDate };
     });
@@ -118,8 +100,7 @@ const SessionsInstructorReportsPage = () => {
 
   const handleEndDateChange = (value) => {
     setDraftFilters(previous => {
-      const endDateMax = getEndDateMax(previous.startDate, today);
-      let endDate = value > endDateMax ? endDateMax : value;
+      let endDate = value > today ? today : value;
       if (previous.startDate && endDate < previous.startDate) {
         endDate = previous.startDate;
       }
@@ -143,6 +124,9 @@ const SessionsInstructorReportsPage = () => {
 
   const isApplyDisabled = Object.keys(DEFAULT_FILTERS)
     .every(key => draftFilters[key] === appliedFilters[key]);
+
+  const isDownloadDisabled = appliedFilters.program === DEFAULT_FILTERS.program
+    && appliedFilters.instructor === DEFAULT_FILTERS.instructor;
 
   const filterConfig = [
     {
@@ -187,8 +171,7 @@ const SessionsInstructorReportsPage = () => {
       onEndChange: handleEndDateChange,
       startMax: today,
       endMin: draftFilters.startDate || undefined,
-      endMax: getEndDateMax(draftFilters.startDate, today),
-      caption: intl.formatMessage(messages.filterDateRangeMaxRangeCaption),
+      endMax: today,
     },
   ];
 
@@ -240,7 +223,12 @@ const SessionsInstructorReportsPage = () => {
         clearAllLabel={intl.formatMessage(messages.clearAllFilters)}
         isClearAllDisabled={isClearAllDisabled}
         trailingActions={(
-          <Button variant="outline-primary" iconBefore={Download} onClick={handleDownloadCsv} disabled={isExporting}>
+          <Button
+            variant="outline-primary"
+            iconBefore={Download}
+            onClick={handleDownloadCsv}
+            disabled={isExporting || isDownloadDisabled}
+          >
             {isExporting ? intl.formatMessage(messages.downloadingCsv) : intl.formatMessage(messages.downloadCsv)}
           </Button>
         )}

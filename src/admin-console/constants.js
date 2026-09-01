@@ -1,5 +1,6 @@
 import {
-  faTachometerAlt, faUsers, faUserCheck, faPen, faChartLine, faIdBadge, faBullhorn, faFileAlt,
+  faTachometerAlt, faUsers, faUserCheck, faPen, faChartLine, faChartBar, faChartPie, faIdBadge,
+  faBullhorn, faFileAlt,
 } from '@fortawesome/free-solid-svg-icons';
 
 // ─── Nav config ───────────────────────────────────────────────────────────────
@@ -56,10 +57,10 @@ export const NAV_SECTIONS = [
         id: 'program', path: 'program-reports', icon: faChartLine, capabilityKey: 'canAccessPrograms',
       },
       {
-        id: 'sessions-instructor', path: 'sessions-reports', icon: faChartLine, capabilityKey: 'canAccessSessions',
+        id: 'sessions-instructor', path: 'sessions-reports', icon: faChartBar, capabilityKey: 'canAccessSessions',
       },
       {
-        id: 'attendance', path: 'attendance-reports', icon: faChartLine, capabilityKey: 'canAccessAttendance',
+        id: 'attendance', path: 'attendance-reports', icon: faChartPie, capabilityKey: 'canAccessAttendance',
       },
     ],
   },
