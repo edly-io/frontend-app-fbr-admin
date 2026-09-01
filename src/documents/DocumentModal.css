@@ -113,3 +113,55 @@
   transition: color 0.12s, background 0.12s;
 }
 .doc-upload-clear:hover { color: #ef4444; background: #fef2f2; }
+
+/* ── Visibility toggle ──────────────────────────────────────────────────── */
+.doc-modal-visibility { margin-bottom: 4px; }
+
+.doc-visibility-toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.doc-visibility-label {
+  font-size: 0.875rem;
+  color: #9ca3af;
+  font-weight: 500;
+  transition: color 0.15s;
+}
+.doc-visibility-label--active { color: #111827; }
+
+.doc-visibility-switch {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  border-radius: 12px;
+  border: none;
+  background: #d1d5db;
+  cursor: pointer;
+  padding: 0;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+.doc-visibility-switch--on { background: #16a34a; }
+
+.doc-visibility-knob {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 0.2s;
+  display: block;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+.doc-visibility-switch--on .doc-visibility-knob { transform: translateX(20px); }
+
+.doc-visibility-hint {
+  margin: 6px 0 0;
+  font-size: 0.8rem;
+  color: #6b7280;
+  line-height: 1.4;
+}

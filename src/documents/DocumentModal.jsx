@@ -34,6 +34,7 @@ const DocumentModal = ({ document, onClose, onSaved }) => {
       ? { value: document.document_type, label: document.document_type_name }
       : null,
   );
+  const [isPublic, setIsPublic] = useState(document?.is_public ?? false);
   const [file, setFile] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState('');
@@ -74,7 +75,7 @@ const DocumentModal = ({ document, onClose, onSaved }) => {
     setIsSaving(true);
     try {
       if (isEdit) {
-        const payload = { title: title.trim(), description };
+        const payload = { title: title.trim(), description, is_public: isPublic };
         payload.document_type = selectedType ? selectedType.value : null;
         await updateDocument(document.id, payload);
       } else {
@@ -82,6 +83,7 @@ const DocumentModal = ({ document, onClose, onSaved }) => {
         formData.append('title', title.trim());
         formData.append('file', file);
         formData.append('description', description);
+        formData.append('is_public', isPublic);
         if (selectedType) { formData.append('document_type', selectedType.value); }
         await uploadDocument(formData);
       }
@@ -211,6 +213,29 @@ const DocumentModal = ({ document, onClose, onSaved }) => {
               />
             </Form.Group>
           </div>
+
+          {/* ── Visibility ── */}
+          <div className="doc-modal-section doc-modal-visibility">
+            <div className="doc-visibility-toggle-row">
+              <span className={`doc-visibility-label${!isPublic ? ' doc-visibility-label--active' : ''}`}>Private</span>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={isPublic}
+                aria-label={isPublic ? 'Set to private' : 'Set to public'}
+                className={`doc-visibility-switch${isPublic ? ' doc-visibility-switch--on' : ''}`}
+                onClick={() => setIsPublic((v) => !v)}
+              >
+                <span className="doc-visibility-knob" />
+              </button>
+              <span className={`doc-visibility-label${isPublic ? ' doc-visibility-label--active' : ''}`}>Public</span>
+            </div>
+            <p className="doc-visibility-hint">
+              {isPublic
+                ? 'Anyone with the link can view this document without logging in.'
+                : 'Only FBR users (admins, instructors, trainees) can view this document after logging in.'}
+            </p>
+          </div>
         </Form>
       </ModalDialog.Body>
 
@@ -238,6 +263,7 @@ DocumentModal.propTypes = {
     description: PropTypes.string,
     document_type: PropTypes.string,
     document_type_name: PropTypes.string,
+    is_public: PropTypes.bool,
   }),
   onClose: PropTypes.func.isRequired,
   onSaved: PropTypes.func.isRequired,
