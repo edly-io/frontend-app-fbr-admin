@@ -2,8 +2,12 @@
 // src/assets/scss/reports-styles.scss for the shared `.reports-page` chrome.
 
 .reports-page {
-  .report-download-pdf-btn--loading {
+  .report-download-btn--loading {
     opacity: 0.5;
+  }
+
+  .pgn__data-table-layout-wrapper {
+    overflow-x: auto;
   }
 
   .report-expand-btn {
@@ -20,6 +24,39 @@
 
   .report-expand-btn__icon {
     flex-shrink: 0;
+  }
+
+  // A program description can be arbitrarily long, so the column is capped
+  // and the text clamped to two compact lines - the row height stays fixed
+  // whatever the description, and the full text lives in the Tooltip.
+  // `-webkit-line-clamp` puts the ellipsis at the end of the second line;
+  // `max-height` keeps the two-line box intact in the rare engine that
+  // doesn't support the clamp, so a long description can never grow the row.
+  .report-description-cell {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    max-width: 240px;
+    max-height: 2.25rem;
+    font-size: 0.9rem;
+    line-height: 1.125rem;
+    color: var(--pgn-color-text-light);
+    white-space: normal;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    overflow-wrap: anywhere;
+
+    // The truncated text is a tabbable Tooltip trigger, so its focus ring has
+    // to be visible on its own (a bare span gets no browser default here).
+    &:focus {
+      outline: 2px solid var(--pgn-color-primary-base);
+      outline-offset: 2px;
+      border-radius: 2px;
+    }
+  }
+
+  .report-date-cell {
+    white-space: nowrap;
   }
 
   // Left accent ties the expanded content back to the program row it
@@ -55,6 +92,12 @@
 }
 
 @media (--pgn-size-breakpoint-max-width-sm) {
+  // Even less room for the description on a phone - the Tooltip still carries
+  // the full text, so truncate harder rather than widening the table.
+  .reports-page .report-description-cell {
+    max-width: 140px;
+  }
+
   // Too narrow for three side-by-side columns - keep the identity + action
   // on one row (so the action stays reachable next to the trainee it acts
   // on) and drop the email/batch meta to a second row underneath.
@@ -131,6 +174,12 @@
   height: 100%;
   overflow-y: auto;
 
+  // Paragon's Bootstrap 4 base has no .gap-* utilities (added in Bootstrap 5).
+  .trainee-progress-sheet__header-actions {
+    gap: 0.25rem;
+    flex-shrink: 0;
+  }
+
   .trainee-progress-sheet__eyebrow {
     font-size: 11px;
     font-weight: 700;
@@ -161,4 +210,13 @@
   .trainee-progress-sheet__empty {
     margin-top: 1.5rem;
   }
+}
+
+// Paragon's Tooltip renders in a portal outside `.reports-page`, so the
+// program description's tooltip is widened here rather than in the page
+// block - Bootstrap's 200px default turns a long description into a very
+// tall, very narrow column of text.
+[id^='program-description-tooltip-'] .tooltip-inner {
+  max-width: 320px;
+  text-align: left;
 }

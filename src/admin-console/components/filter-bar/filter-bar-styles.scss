@@ -1,10 +1,29 @@
 .filter-bar {
   .filter-bar__row {
+    // Paragon's Bootstrap 4 base has no .gap-* utilities (added in Bootstrap 5).
     row-gap: 1rem;
   }
 
   .filter-bar__group {
     min-width: 160px;
+  }
+
+  // A native select is as wide as its widest option, so long program titles
+  // and instructor names stretched those filters past the rest of the row.
+  // Give those two a set width and ellipsize anything longer; City and the
+  // date range keep sizing to their own content.
+  .filter-bar__group--program select,
+  .filter-bar__group--instructor select {
+    max-width: 100%;
+    text-overflow: ellipsis;
+  }
+
+  .filter-bar__group--program select {
+    width: 350px;
+  }
+
+  .filter-bar__group--instructor select {
+    width: 220px;
   }
 
   .filter-bar__label {

@@ -61,11 +61,6 @@ const messages = defineMessages({
     defaultMessage: 'End date',
     description: 'Accessible label for the Date Range filter\'s end date input.',
   },
-  filterDateRangeMaxRangeCaption: {
-    id: 'fbrAdmin.attendanceReports.filter.dateRange.maxRangeCaption',
-    defaultMessage: 'You can select a maximum date range of 6 months.',
-    description: 'Helper caption below the Date Range filter explaining the maximum selectable range.',
-  },
   downloadCsv: {
     id: 'fbrAdmin.attendanceReports.downloadCsv',
     defaultMessage: 'Download CSV',
