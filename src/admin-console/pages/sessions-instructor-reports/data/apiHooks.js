@@ -20,9 +20,13 @@ export const useSessionsInstructorReports = ({
 });
 
 export const useInstructorSessionDetails = ({
-  instructorId, programKey,
+  instructorId, programKey, startDate, endDate,
 }, { enabled = true } = {}) => useQuery({
-  queryKey: sessionsReportQueryKeys.sessionDetails({ instructorId, programKey }),
-  queryFn: () => getInstructorSessionDetails({ instructorId, programKey }),
+  queryKey: sessionsReportQueryKeys.sessionDetails({
+    instructorId, programKey, startDate, endDate,
+  }),
+  queryFn: () => getInstructorSessionDetails({
+    instructorId, programKey, startDate, endDate,
+  }),
   enabled: enabled && !!instructorId,
 });

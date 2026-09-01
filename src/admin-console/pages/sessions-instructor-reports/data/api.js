@@ -84,11 +84,20 @@ export const mapCourseDetail = (course) => ({
  * Fetches the courses (and each course's sessions) behind one instructor's
  * session count for a given program row. Backs the right-side
  * `SessionDetailsSheet`.
+ *
+ * `startDate`/`endDate` are the *applied* date-range filter and go out as the
+ * same `from`/`to` params the listing and the export send, so the sheet lists
+ * the sessions the filtered row counted rather than the instructor's whole
+ * history. Either bound may stand alone; omitting both means "everything".
  */
-export const getInstructorSessionDetails = async ({ instructorId, programKey } = {}) => {
+export const getInstructorSessionDetails = async ({
+  instructorId, programKey, startDate, endDate,
+} = {}) => {
   const params = new URLSearchParams();
   if (programKey) { params.set('program', programKey); }
   if (instructorId) { params.set('instructor', instructorId); }
+  if (startDate) { params.set('from', startDate); }
+  if (endDate) { params.set('to', endDate); }
 
   const { data } = await getAuthenticatedHttpClient().get(
     `${getInstructorReportDetailUrl()}?${params.toString()}`,

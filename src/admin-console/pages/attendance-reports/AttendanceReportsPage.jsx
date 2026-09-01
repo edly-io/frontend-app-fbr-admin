@@ -249,6 +249,8 @@ const AttendanceReportsPage = () => {
         page={page}
         onPageChange={setPage}
         isLoading={isFetching}
+        startDate={appliedFilters.startDate}
+        endDate={appliedFilters.endDate}
       />
     </div>
   );

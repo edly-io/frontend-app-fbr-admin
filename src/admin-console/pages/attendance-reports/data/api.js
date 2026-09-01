@@ -87,11 +87,21 @@ export const mapAttendanceSummary = (summary = {}) => ({
  * Leave/Pending attendance status) behind one learner's attendance count for
  * a given program row, plus the aggregate `summary` counts shown above the
  * course list. Backs the right-side `AttendanceDetailsSheet`.
+ *
+ * `startDate`/`endDate` are the *applied* date-range filter and go out as the
+ * same `from`/`to` params the listing and the export send, so the sheet's
+ * sessions - and the `summary` the backend derives from them - cover the same
+ * range the filtered row counted. Either bound may stand alone; omitting both
+ * means "everything".
  */
-export const getAttendanceDetails = async ({ learnerId, programKey } = {}) => {
+export const getAttendanceDetails = async ({
+  learnerId, programKey, startDate, endDate,
+} = {}) => {
   const params = new URLSearchParams();
   if (programKey) { params.set('program', programKey); }
   if (learnerId) { params.set('trainee', learnerId); }
+  if (startDate) { params.set('from', startDate); }
+  if (endDate) { params.set('to', endDate); }
 
   const { data } = await getAuthenticatedHttpClient().get(
     `${getAttendanceReportDetailUrl()}?${params.toString()}`,
