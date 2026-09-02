@@ -22,8 +22,12 @@ $admin-nav-sheet-max-height: 85vh;
   top: 0;
   z-index: 3;
   padding: 12px 16px 8px;
-  // Matches the page so content scrolls out of sight behind the trigger.
-  background: var(--pgn-color-theme-bg-gray);
+  // Matches the page so content scrolls out of sight behind the trigger. The
+  // dark theme never defines `--pgn-color-theme-bg-gray`, which drops the whole
+  // declaration and leaves this sticky bar transparent - the page then scrolls
+  // straight through it - so the fallback names the surface the page falls back
+  // to itself.
+  background: var(--pgn-color-theme-bg-gray, var(--pgn-color-body-bg));
 
   .admin-nav-context-bar__trigger {
     // Paragon's Bootstrap 4 base has no .gap-* utilities (added in Bootstrap 5).
