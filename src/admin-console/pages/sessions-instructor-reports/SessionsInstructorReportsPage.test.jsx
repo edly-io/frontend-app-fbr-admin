@@ -86,3 +86,17 @@ describe('SessionsInstructorReportsPage date filters', () => {
     expect(lastTableProps()).toMatchObject({ startDate: '', endDate: '' });
   });
 });
+
+describe('SessionsInstructorReportsPage CSV export button', () => {
+  // The responsive pass sized this button down so it fits the filter bar on a
+  // phone, and the export work gated it on a chosen Program or Instructor. Both
+  // live on the same element, so it is worth pinning that neither was lost.
+  it('is small and starts gated on a Program or Instructor filter', () => {
+    renderPage();
+
+    const downloadButton = screen.getByRole('button', { name: 'Download CSV' });
+
+    expect(downloadButton).toBeDisabled();
+    expect(downloadButton.className).toContain('btn-sm');
+  });
+});
