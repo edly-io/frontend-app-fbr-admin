@@ -25,7 +25,7 @@ import DocumentsPage from './pages/documents/DocumentsPage';
 const AdminConsoleRoutes = () => (
   <Routes>
     <Route path="/" element={<AdminConsolePage />}>
-      <Route index element={<Navigate to="users" replace />} />
+      <Route index element={<Navigate to="dashboard" replace />} />
       <Route path="dashboard" element={<DashboardPage />} />
       <Route path="users" element={<UsersPage />} />
       <Route path="signup-approvals" element={<SignupApprovalsPage />} />
@@ -40,7 +40,7 @@ const AdminConsoleRoutes = () => (
       <Route path="audit-log" element={<AuditLogPage />} />
       <Route path="announcements" element={<AnnouncementsPage />} />
       <Route path="documents" element={<DocumentsPage />} />
-      <Route path="*" element={<Navigate to="users" replace />} />
+      <Route path="*" element={<Navigate to="dashboard" replace />} />
     </Route>
   </Routes>
 );
