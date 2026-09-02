@@ -66,7 +66,9 @@ $admin-nav-sheet-max-height: 85vh;
   .admin-nav-context-bar__page {
     font-size: 15px;
     font-weight: 700;
-    color: var(--pgn-color-gray-800);
+    // `text-base` rather than `gray-800`: it is one of the tokens the dark
+    // theme actually overrides, so the page label flips on its own.
+    color: var(--pgn-color-text-base);
     // Long labels ("Biodata Edit Request") truncate rather than push the badge
     // and chevron off the trigger.
     overflow: hidden;
@@ -205,5 +207,39 @@ $admin-nav-sheet-max-height: 85vh;
 
   .admin-nav-context-bar .admin-nav-context-bar__chevron {
     transition: none;
+  }
+}
+
+// ─── Dark variant ───────────────────────────────────────────────────────────
+// In the dark theme `--pgn-color-white` resolves to the body background, so the
+// trigger's card disappears into the page, and the numbered `gray-*`/`danger-*`
+// steps it uses for text keep their light-mode values. Neither can be fixed by
+// swapping in another token - there is no dark-aware "raised surface" step in
+// the palette - so this block restates them as translucent ink over whatever
+// surface the page provides.
+[data-paragon-theme-variant="dark"] {
+  .admin-nav-context-bar {
+    .admin-nav-context-bar__trigger {
+      border-color: rgba(248, 248, 248, 0.16);
+      background: rgba(248, 248, 248, 0.06);
+    }
+
+    .admin-nav-context-bar__menu-icon,
+    .admin-nav-context-bar__section,
+    .admin-nav-context-bar__divider,
+    .admin-nav-context-bar__chevron {
+      color: rgba(248, 248, 248, 0.66);
+    }
+
+    .admin-nav-context-bar__badge {
+      background-color: rgba(255, 138, 128, 0.16);
+      color: #FFB3A7;
+    }
+  }
+
+  // `--pgn-color-border` resolves to `--pgn-color-text-base` in the dark theme,
+  // which draws this divider as a full-strength white rule.
+  .sheet-container.admin-nav-sheet-container .admin-nav-sheet__header {
+    border-bottom-color: rgba(248, 248, 248, 0.14);
   }
 }

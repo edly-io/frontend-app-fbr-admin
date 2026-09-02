@@ -50,3 +50,21 @@
     color: var(--pgn-color-primary-base);
   }
 }
+
+// ─── Dark variant ───────────────────────────────────────────────────────────
+// The theme's dark override set redefines the semantic tokens (`text-base`,
+// `body-bg`, `primary-base`, `primary-light`) but leaves most numbered `gray-*`
+// steps at their light values, so the greys below stay dark-on-dark unless they
+// are restated here. The active row needs nothing: both of its tokens flip.
+[data-paragon-theme-variant="dark"] {
+  .admin-sidebar,
+  .admin-nav-sheet__nav {
+    .admin-sidebar__section-title {
+      color: rgba(248, 248, 248, 0.5);
+    }
+
+    .admin-sidebar__nav-link {
+      color: rgba(248, 248, 248, 0.82);
+    }
+  }
+}
