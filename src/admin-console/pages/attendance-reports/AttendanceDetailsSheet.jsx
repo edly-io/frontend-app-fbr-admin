@@ -17,18 +17,23 @@ import messages from './messages';
  * attendance count for one program row. Opened from the clickable
  * attendance count cell in `ReportDataTable`. `learner`/`program` (the
  * row's own display labels) render immediately in the header;
- * `learnerId`/`programKey` drive a fetch of the (future) Detail API for
- * the body. Mirrors `SessionDetailsSheet`'s layout, swapping the
- * Duration meta item for a per-session attendance status badge since
- * duration isn't the salient metric for this report.
+ * `learnerId`/`programKey` drive a fetch of the Detail API for the body,
+ * and `startDate`/`endDate` - the report's *applied* date range - narrow
+ * that fetch to the same sessions the row counted, so the sheet never
+ * lists sessions the filtered table excluded. Mirrors
+ * `SessionDetailsSheet`'s layout, swapping the Duration meta item for a
+ * per-session attendance status badge since duration isn't the salient
+ * metric for this report.
  */
 const AttendanceDetailsSheet = ({
-  show, learner, program, learnerId, programKey, onClose,
+  show, learner, program, learnerId, programKey, startDate, endDate, onClose,
 }) => {
   const intl = useIntl();
 
   const { data, isLoading, isError } = useAttendanceDetails(
-    { learnerId, programKey },
+    {
+      learnerId, programKey, startDate, endDate,
+    },
     { enabled: show },
   );
   const courses = data?.courses || [];
@@ -115,12 +120,16 @@ AttendanceDetailsSheet.propTypes = {
   program: PropTypes.string.isRequired,
   learnerId: PropTypes.string,
   programKey: PropTypes.string,
+  startDate: PropTypes.string,
+  endDate: PropTypes.string,
   onClose: PropTypes.func.isRequired,
 };
 
 AttendanceDetailsSheet.defaultProps = {
   learnerId: null,
   programKey: null,
+  startDate: '',
+  endDate: '',
 };
 
 export default AttendanceDetailsSheet;

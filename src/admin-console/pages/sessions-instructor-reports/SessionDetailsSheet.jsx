@@ -19,17 +19,22 @@ import messages from './messages';
  * render immediately in the header; `instructorId`/`programKey` drive a
  * fetch of the Detail API (Program Key + Instructor ID in, all courses and
  * each course's sessions - Session Title, Duration, Session Start Date -
- * out) for the body. Each course renders as a static heading followed by
- * its sessions as a plain, separator-divided list - the Sheet is too
- * narrow for a table or the extra interaction of expand/collapse.
+ * out) for the body. `startDate`/`endDate` are the report's *applied* date
+ * range and narrow that fetch to the same sessions the row counted, so the
+ * sheet never lists sessions the filtered table excluded. Each course
+ * renders as a static heading followed by its sessions as a plain,
+ * separator-divided list - the Sheet is too narrow for a table or the extra
+ * interaction of expand/collapse.
  */
 const SessionDetailsSheet = ({
-  show, instructor, program, instructorId, programKey, onClose,
+  show, instructor, program, instructorId, programKey, startDate, endDate, onClose,
 }) => {
   const intl = useIntl();
 
   const { data, isLoading, isError } = useInstructorSessionDetails(
-    { instructorId, programKey },
+    {
+      instructorId, programKey, startDate, endDate,
+    },
     { enabled: show },
   );
   const courses = data?.courses || [];
@@ -111,12 +116,16 @@ SessionDetailsSheet.propTypes = {
   program: PropTypes.string.isRequired,
   instructorId: PropTypes.string,
   programKey: PropTypes.string,
+  startDate: PropTypes.string,
+  endDate: PropTypes.string,
   onClose: PropTypes.func.isRequired,
 };
 
 SessionDetailsSheet.defaultProps = {
   instructorId: null,
   programKey: null,
+  startDate: '',
+  endDate: '',
 };
 
 export default SessionDetailsSheet;

@@ -20,9 +20,13 @@ export const useAttendanceReports = ({
 });
 
 export const useAttendanceDetails = ({
-  learnerId, programKey,
+  learnerId, programKey, startDate, endDate,
 }, { enabled = true } = {}) => useQuery({
-  queryKey: attendanceReportQueryKeys.attendanceDetails({ learnerId, programKey }),
-  queryFn: () => getAttendanceDetails({ learnerId, programKey }),
+  queryKey: attendanceReportQueryKeys.attendanceDetails({
+    learnerId, programKey, startDate, endDate,
+  }),
+  queryFn: () => getAttendanceDetails({
+    learnerId, programKey, startDate, endDate,
+  }),
   enabled: enabled && !!learnerId,
 });

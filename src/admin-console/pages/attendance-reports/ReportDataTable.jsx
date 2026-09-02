@@ -201,7 +201,7 @@ const AttendanceBreakdownLegend = () => {
 };
 
 const ReportDataTable = ({
-  rows, count, pageSize, page, onPageChange, isLoading,
+  rows, count, pageSize, page, onPageChange, isLoading, startDate, endDate,
 }) => {
   const intl = useIntl();
   const [sheet, setSheet] = useState({ show: false, row: null });
@@ -281,6 +281,8 @@ const ReportDataTable = ({
           program={sheet.row.program}
           learnerId={sheet.row.learnerId}
           programKey={sheet.row.programKey}
+          startDate={startDate}
+          endDate={endDate}
           onClose={closeSheet}
         />
       )}
@@ -295,10 +297,16 @@ ReportDataTable.propTypes = {
   page: PropTypes.number.isRequired,
   onPageChange: PropTypes.func.isRequired,
   isLoading: PropTypes.bool,
+  // The report's applied date range, handed to the attendance details Sheet
+  // so its request matches the filtered rows.
+  startDate: PropTypes.string,
+  endDate: PropTypes.string,
 };
 
 ReportDataTable.defaultProps = {
   isLoading: false,
+  startDate: '',
+  endDate: '',
 };
 
 export default ReportDataTable;
