@@ -93,7 +93,7 @@ const SignupApprovalsPage = () => {
       {activeView === 'audit-log' ? (
         <AuditLogTable
           appLabel="biodata"
-          models={["fbrprofile"]}
+          models={['fbrprofile']}
           recordFilter={recordFilter}
           onClearFilter={handleClearFilter}
         />
