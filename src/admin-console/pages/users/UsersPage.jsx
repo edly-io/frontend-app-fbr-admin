@@ -13,6 +13,7 @@ import UsersTable from './UsersTable';
 import AddUserModal from '../../components/user-modals/AddUserModal';
 import BulkImportUsersModal from '../../components/user-modals/BulkImportUsersModal';
 import ViewUserModal from '../../components/user-modals/ViewUserModal';
+import AuditLogTable from '../../../shared/AuditLogTable';
 import messages from './messages';
 
 const TAB_LABEL_MESSAGES = {
@@ -54,6 +55,27 @@ const UsersPage = () => {
   const [assignmentUser, setAssignmentUser] = useState(null);
   const [viewingUser, setViewingUser] = useState(null);
   const [viewSourceTab, setViewSourceTab] = useState('all');
+
+  const activeView = searchParams.get('view') || 'list';
+  const recordFilter = searchParams.get('record_id') || undefined;
+  const handleViewChange = (view) => {
+    const next = new URLSearchParams(searchParams);
+    next.set('view', view);
+    if (view !== 'audit-log') { next.delete('record_id'); }
+    setSearchParams(next, { replace: true });
+  };
+  const handleClearFilter = () => {
+    const next = new URLSearchParams(searchParams);
+    next.delete('record_id');
+    setSearchParams(next, { replace: true });
+  };
+  const handleAuditHistory = (user) => {
+    setViewingUser(null);
+    const next = new URLSearchParams(searchParams);
+    next.set('view', 'audit-log');
+    next.set('record_id', String(user.id));
+    setSearchParams(next, { replace: true });
+  };
 
   const { canViewSuperAdminTabs } = useSuperAdminAccessProbe();
   const userDetailMutation = useUserDetailMutation();
@@ -156,40 +178,63 @@ const UsersPage = () => {
 
   return (
     <>
-      <UsersToolbar onImport={handleImport} onAdd={handleAdd} />
+      <div className="page-view-toggle">
+        {['list', 'audit-log'].map(view => (
+          <button
+            key={view}
+            type="button"
+            onClick={() => handleViewChange(view)}
+            className={`page-view-toggle__tab${activeView === view ? ' page-view-toggle__tab--active' : ''}`}
+          >
+            {view === 'list' ? 'Users' : 'Audit Log'}
+          </button>
+        ))}
+      </div>
 
-      <UsersFilters
-        visibleTabs={visibleTabs}
-        activeTab={activeTab}
-        tabCounts={tabCounts}
-        onTabChange={handleTabChange}
-        search={search}
-        onSearchChange={handleSearchChange}
-        statusFilter={statusFilter}
-        onStatusFilterChange={handleStatusFilterChange}
-        countLabel={countLabel}
-      />
+      {activeView === 'audit-log' ? (
+        <AuditLogTable
+          appLabel="biodata"
+          recordFilter={recordFilter}
+          onClearFilter={handleClearFilter}
+        />
+      ) : (
+        <>
+          <UsersToolbar onImport={handleImport} onAdd={handleAdd} />
 
-      {errorMessage && <Alert variant="danger" className="mb-3">{errorMessage}</Alert>}
+          <UsersFilters
+            visibleTabs={visibleTabs}
+            activeTab={activeTab}
+            tabCounts={tabCounts}
+            onTabChange={handleTabChange}
+            search={search}
+            onSearchChange={handleSearchChange}
+            statusFilter={statusFilter}
+            onStatusFilterChange={handleStatusFilterChange}
+            countLabel={countLabel}
+          />
 
-      <UsersTable
-        isLoading={isLoading}
-        pageUsers={pageUsers}
-        rowNumberOffset={(page - 1) * rowsPerPage}
-        openMenuId={openMenuId}
-        setOpenMenuId={setOpenMenuId}
-        onView={handleView}
-        onEdit={handleEdit}
-        onDeactivate={handleDeactivate}
-        page={page}
-        totalPages={totalPages}
-        start={start}
-        end={end}
-        total={totalUsers}
-        rowsPerPage={rowsPerPage}
-        onPageChange={setCurrentPage}
-        onRowsPerPageChange={(value) => { setRowsPerPage(value); setCurrentPage(1); }}
-      />
+          {errorMessage && <Alert variant="danger" className="mb-3">{errorMessage}</Alert>}
+
+          <UsersTable
+            isLoading={isLoading}
+            pageUsers={pageUsers}
+            rowNumberOffset={(page - 1) * rowsPerPage}
+            openMenuId={openMenuId}
+            setOpenMenuId={setOpenMenuId}
+            onView={handleView}
+            onEdit={handleEdit}
+            onDeactivate={handleDeactivate}
+            page={page}
+            totalPages={totalPages}
+            start={start}
+            end={end}
+            total={totalUsers}
+            rowsPerPage={rowsPerPage}
+            onPageChange={setCurrentPage}
+            onRowsPerPageChange={(value) => { setRowsPerPage(value); setCurrentPage(1); }}
+          />
+        </>
+      )}
 
       {showAddModal && (
         <AddUserModal
@@ -206,6 +251,7 @@ const UsersPage = () => {
           sourceTab={viewSourceTab}
           onClose={() => setViewingUser(null)}
           onEdit={(user) => { setViewingUser(null); handleEdit(user); }}
+          onAuditHistory={handleAuditHistory}
         />
       )}
     </>
