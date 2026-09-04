@@ -90,7 +90,7 @@ const getInitialProfileTab = (user, sourceTab) => {
  * both, in which case a tab switcher is shown).
  */
 const ViewUserModal = ({
-  user, onClose, onEdit, sourceTab,
+  user, onClose, onEdit, sourceTab, onAuditHistory,
 }) => {
   const intl = useIntl();
 
@@ -161,6 +161,15 @@ const ViewUserModal = ({
               size="large"
               showAvatar={false}
             />
+            {onAuditHistory && (
+              <button
+                type="button"
+                className="view-user-modal__audit-link"
+                onClick={() => onAuditHistory(user)}
+              >
+                Audit history →
+              </button>
+            )}
           </div>
 
           {showProfileTabs && (
@@ -278,11 +287,13 @@ ViewUserModal.propTypes = {
   onClose: PropTypes.func.isRequired,
   onEdit: PropTypes.func.isRequired,
   sourceTab: PropTypes.string,
+  onAuditHistory: PropTypes.func,
 };
 
 ViewUserModal.defaultProps = {
   user: null,
   sourceTab: 'all',
+  onAuditHistory: null,
 };
 
 export default ViewUserModal;

@@ -20,6 +20,7 @@ const BiodataEditRequestsTable = ({
   onAdminNoteChange,
   resolvingId,
   onResolve,
+  onAuditHistory,
   page,
   totalPages,
   start,
@@ -128,6 +129,13 @@ const BiodataEditRequestsTable = ({
                     })}
                   </span>
                 )}
+                <button
+                  type="button"
+                  className="biodata-edit-requests-table__history-link"
+                  onClick={() => onAuditHistory(request.id)}
+                >
+                  History →
+                </button>
               </td>
             </tr>
           ))}
@@ -157,6 +165,7 @@ BiodataEditRequestsTable.propTypes = {
   onAdminNoteChange: PropTypes.func.isRequired,
   resolvingId: PropTypes.number,
   onResolve: PropTypes.func.isRequired,
+  onAuditHistory: PropTypes.func.isRequired,
   page: PropTypes.number.isRequired,
   totalPages: PropTypes.number.isRequired,
   start: PropTypes.number.isRequired,
