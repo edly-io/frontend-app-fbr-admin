@@ -113,7 +113,7 @@ const BiodataEditRequestsPage = () => {
       {activeView === 'audit-log' ? (
         <AuditLogTable
           appLabel="biodata"
-          models={["biodataeditrequest"]}
+          models={['biodataeditrequest']}
           recordFilter={recordFilter}
           onClearFilter={handleClearFilter}
         />
