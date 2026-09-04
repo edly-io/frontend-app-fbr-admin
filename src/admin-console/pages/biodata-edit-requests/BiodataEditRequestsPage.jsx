@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Alert, Dropdown, Toast } from '@openedx/paragon';
 import { useIntl } from '@edx/frontend-platform/i18n';
 import { useBiodataEditRequests, useResolveEditRequest } from './data/apiHooks';
 import BiodataEditRequestsToolbar from './BiodataEditRequestsToolbar';
 import BiodataEditRequestsTable from './BiodataEditRequestsTable';
+import AuditLogTable from '../../../shared/AuditLogTable';
 import messages from './messages';
 import './biodata-edit-requests-styles.scss';
 
@@ -24,7 +26,27 @@ const STATUS_FILTER_OPTIONS = ['pending', 'resolved', 'all'];
  */
 const BiodataEditRequestsPage = () => {
   const intl = useIntl();
+  const [searchParams, setSearchParams] = useSearchParams();
 
+  const activeView = searchParams.get('view') || 'list';
+  const recordFilter = searchParams.get('record_id') || undefined;
+  const handleViewChange = (view) => {
+    const next = new URLSearchParams(searchParams);
+    next.set('view', view);
+    if (view !== 'audit-log') { next.delete('record_id'); }
+    setSearchParams(next);
+  };
+  const handleClearFilter = () => {
+    const next = new URLSearchParams(searchParams);
+    next.delete('record_id');
+    setSearchParams(next);
+  };
+  const handleAuditHistory = (requestId) => {
+    const next = new URLSearchParams(searchParams);
+    next.set('view', 'audit-log');
+    next.set('record_id', String(requestId));
+    setSearchParams(next);
+  };
   const [statusFilter, setStatusFilter] = useState('pending');
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(ROWS_PER_PAGE);
@@ -75,50 +97,75 @@ const BiodataEditRequestsPage = () => {
 
   return (
     <div className="biodata-edit-requests-page">
-      <BiodataEditRequestsToolbar onRefresh={() => refetch()} />
-
-      <div className="biodata-edit-requests-page__filter-row">
-        <Dropdown>
-          <Dropdown.Toggle
-            variant="outline-secondary"
-            id="edit-request-status-filter"
-            className="biodata-edit-requests-page__filter-toggle"
+      <div className="page-view-toggle">
+        {['list', 'audit-log'].map(view => (
+          <button
+            key={view}
+            type="button"
+            onClick={() => handleViewChange(view)}
+            className={`page-view-toggle__tab${activeView === view ? ' page-view-toggle__tab--active' : ''}`}
           >
-            {intl.formatMessage(messages.statusFilterLabel, {
-              status: intl.formatMessage(STATUS_FILTER_MESSAGES[statusFilter]),
-            })}
-          </Dropdown.Toggle>
-          <Dropdown.Menu>
-            {STATUS_FILTER_OPTIONS.map(value => (
-              <Dropdown.Item key={value} onClick={() => handleStatusFilterChange(value)}>
-                {intl.formatMessage(STATUS_FILTER_MESSAGES[value])}
-              </Dropdown.Item>
-            ))}
-          </Dropdown.Menu>
-        </Dropdown>
-        <span className="biodata-edit-requests-page__count">
-          {intl.formatMessage(messages.requestsCount, { count: totalRequests })}
-        </span>
+            {view === 'list' ? 'Edit Requests' : 'Audit Log'}
+          </button>
+        ))}
       </div>
 
-      {errorMessage && <Alert variant="danger" className="mb-3">{errorMessage}</Alert>}
+      {activeView === 'audit-log' ? (
+        <AuditLogTable
+          appLabel="biodata"
+          models={['biodataeditrequest']}
+          recordFilter={recordFilter}
+          onClearFilter={handleClearFilter}
+        />
+      ) : (
+        <>
+          <BiodataEditRequestsToolbar onRefresh={() => refetch()} />
 
-      <BiodataEditRequestsTable
-        isLoading={isLoading}
-        requests={requests}
-        adminNotes={adminNotes}
-        onAdminNoteChange={handleAdminNoteChange}
-        resolvingId={resolveMutation.isPending ? resolveMutation.variables?.requestId : null}
-        onResolve={handleResolve}
-        page={page}
-        totalPages={totalPages}
-        start={start}
-        end={end}
-        total={totalRequests}
-        rowsPerPage={rowsPerPage}
-        onPageChange={setCurrentPage}
-        onRowsPerPageChange={(value) => { setRowsPerPage(value); setCurrentPage(1); }}
-      />
+          <div className="biodata-edit-requests-page__filter-row">
+            <Dropdown>
+              <Dropdown.Toggle
+                variant="outline-secondary"
+                id="edit-request-status-filter"
+                className="biodata-edit-requests-page__filter-toggle"
+              >
+                {intl.formatMessage(messages.statusFilterLabel, {
+                  status: intl.formatMessage(STATUS_FILTER_MESSAGES[statusFilter]),
+                })}
+              </Dropdown.Toggle>
+              <Dropdown.Menu>
+                {STATUS_FILTER_OPTIONS.map(value => (
+                  <Dropdown.Item key={value} onClick={() => handleStatusFilterChange(value)}>
+                    {intl.formatMessage(STATUS_FILTER_MESSAGES[value])}
+                  </Dropdown.Item>
+                ))}
+              </Dropdown.Menu>
+            </Dropdown>
+            <span className="biodata-edit-requests-page__count">
+              {intl.formatMessage(messages.requestsCount, { count: totalRequests })}
+            </span>
+          </div>
+
+          {errorMessage && <Alert variant="danger" className="mb-3">{errorMessage}</Alert>}
+
+          <BiodataEditRequestsTable
+            isLoading={isLoading}
+            requests={requests}
+            adminNotes={adminNotes}
+            onAdminNoteChange={handleAdminNoteChange}
+            resolvingId={resolveMutation.isPending ? resolveMutation.variables?.requestId : null}
+            onResolve={handleResolve}
+            onAuditHistory={handleAuditHistory}
+            page={page}
+            totalPages={totalPages}
+            start={start}
+            end={end}
+            total={totalRequests}
+            rowsPerPage={rowsPerPage}
+            onPageChange={setCurrentPage}
+            onRowsPerPageChange={(value) => { setRowsPerPage(value); setCurrentPage(1); }}
+          />
+        </>
+      )}
 
       <Toast show={showToast} onClose={() => setShowToast(false)}>
         {toastMessage}

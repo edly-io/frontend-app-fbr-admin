@@ -1,3 +1,32 @@
+.audit-log-view {
+  padding: 0 1rem 1rem;
+}
+
+.page-view-toggle {
+  display: flex;
+  margin-bottom: 20px;
+  border-bottom: 2px solid var(--pgn-color-border);
+
+  &__tab {
+    padding: 8px 16px;
+    margin-bottom: -2px;
+    border: none;
+    border-bottom: 2px solid transparent;
+    background: transparent;
+    color: var(--pgn-color-text-light);
+    font-size: 13.5px;
+    font-weight: 400;
+    white-space: nowrap;
+    cursor: pointer;
+
+    &--active {
+      color: var(--pgn-color-primary-base);
+      font-weight: 600;
+      border-bottom-color: var(--pgn-color-primary-base);
+    }
+  }
+}
+
 .admin-console-page {
   display: flex;
   background: var(--pgn-color-theme-bg-gray);
