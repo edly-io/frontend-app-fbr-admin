@@ -162,13 +162,13 @@ const ViewUserModal = ({
               showAvatar={false}
             />
             {onAuditHistory && (
-              <button
-                type="button"
+              <Button
+                variant="link"
                 className="view-user-modal__audit-link"
                 onClick={() => onAuditHistory(user)}
               >
                 Audit history →
-              </button>
+              </Button>
             )}
           </div>
 
