@@ -21,6 +21,23 @@ const DEFAULT_TRAINEE_PROGRESS_EXPORT_FILENAME = 'trainee-progress.csv';
 const DEFAULT_PROGRAM_PEOPLE_EXPORT_FILENAME = 'program-summary.csv';
 
 /**
+ * The picked range as the `from`/`to` pair the endpoint expects, low bound
+ * first.
+ *
+ * The filter inputs are deliberately unbounded, so the user can pick the two
+ * dates in either order. `from` is the *lower* bound of the backend's
+ * run-window overlap, so a reversed pair (end before start) would otherwise ask
+ * for programs spanning the whole gap rather than the range the user drew - it
+ * is swapped here, at submit time, instead of being blocked in the UI. A
+ * one-sided range keeps its side, and two equal dates need no reordering.
+ */
+const orderedRange = (startDate, endDate) => (
+  startDate && endDate && endDate < startDate
+    ? { from: endDate, to: startDate }
+    : { from: startDate, to: endDate }
+);
+
+/**
  * The report endpoint's query params for a filter selection. `program`/`city`/
  * `instructor` map onto the backend's exact-match params ('all' is the
  * dropdowns' own "unset" sentinel and is simply omitted); `startDate`/`endDate`
@@ -35,8 +52,9 @@ const programReportParams = ({
   if (program && program !== 'all') { params.set('program', program); }
   if (city && city !== 'all') { params.set('city', city); }
   if (instructor && instructor !== 'all') { params.set('instructor', instructor); }
-  if (startDate) { params.set('from', startDate); }
-  if (endDate) { params.set('to', endDate); }
+  const { from, to } = orderedRange(startDate, endDate);
+  if (from) { params.set('from', from); }
+  if (to) { params.set('to', to); }
   return params;
 };
 

@@ -25,9 +25,11 @@ const DEFAULT_FILTERS = {
 const EMPTY_FILTER_OPTIONS = { programs: [], instructors: [], cities: [] };
 const EMPTY_KPIS = { programCount: 0, certificatesAwarded: 0 };
 
-// Date range filter can't select the future, and its end date can't precede
-// its start date - see the matching handlers below for the input-level bounds.
-const getTodayIsoDate = () => new Date().toISOString().slice(0, 10);
+// The date range filter puts no bounds on either input: programs are scheduled
+// ahead of time and the report lists future ones, and picking the two dates in
+// either order is a legitimate selection. A reversed pair is put the right way
+// round when the request is built (see `programReportParams` in ./data/api),
+// not by blocking the pick here.
 
 /**
  * Program Report page: a Program/Instructor/City filter row driving a
@@ -51,7 +53,6 @@ const ProgramReportsPage = () => {
   const [page, setPage] = useState(1);
   const [isExporting, setIsExporting] = useState(false);
   const [exportError, setExportError] = useState('');
-  const today = getTodayIsoDate();
 
   const isAccessReady = !isAccessLoading && capabilities.canAccessPrograms;
 
@@ -81,25 +82,6 @@ const ProgramReportsPage = () => {
 
   const handleFilterChange = (key) => (value) => {
     setDraftFilters(previous => ({ ...previous, [key]: value }));
-  };
-
-  const handleStartDateChange = (value) => {
-    const startDate = value > today ? today : value;
-    setDraftFilters(previous => ({
-      ...previous,
-      startDate,
-      endDate: previous.endDate && previous.endDate < startDate ? startDate : previous.endDate,
-    }));
-  };
-
-  const handleEndDateChange = (value) => {
-    setDraftFilters(previous => {
-      const endDate = value > today ? today : value;
-      return {
-        ...previous,
-        endDate: previous.startDate && endDate < previous.startDate ? previous.startDate : endDate,
-      };
-    });
   };
 
   // The backend builds and streams the CSV over the *applied* filters, so the
@@ -175,11 +157,8 @@ const ProgramReportsPage = () => {
       endValue: draftFilters.endDate,
       startLabel: intl.formatMessage(messages.filterDateRangeStart),
       endLabel: intl.formatMessage(messages.filterDateRangeEnd),
-      onStartChange: handleStartDateChange,
-      onEndChange: handleEndDateChange,
-      startMax: today,
-      endMin: draftFilters.startDate || undefined,
-      endMax: today,
+      onStartChange: handleFilterChange('startDate'),
+      onEndChange: handleFilterChange('endDate'),
     },
   ];
 
