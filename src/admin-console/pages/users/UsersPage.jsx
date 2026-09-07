@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Alert } from '@openedx/paragon';
+import { Alert, Button } from '@openedx/paragon';
 import { useIntl } from '@edx/frontend-platform/i18n';
 import { getProfileMfeUserUrl } from '../../data/api';
 import {
@@ -180,14 +180,14 @@ const UsersPage = () => {
     <>
       <div className="page-view-toggle">
         {['list', 'audit-log'].map(view => (
-          <button
+          <Button
             key={view}
-            type="button"
+            variant="tertiary"
             onClick={() => handleViewChange(view)}
             className={`page-view-toggle__tab${activeView === view ? ' page-view-toggle__tab--active' : ''}`}
           >
             {view === 'list' ? 'Users' : 'Audit Log'}
-          </button>
+          </Button>
         ))}
       </div>
 
