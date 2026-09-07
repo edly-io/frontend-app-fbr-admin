@@ -33,7 +33,7 @@ const PaginationFooter = ({
   const intl = useIntl();
 
   return (
-    <div className="pagination-footer">
+    <div className="pagination-footer d-flex flex-column flex-lg-row align-items-start align-items-lg-center justify-content-lg-between">
       <span className="pagination-footer__summary">
         {intl.formatMessage(messages.paginationShowing, {
           start,
@@ -42,7 +42,7 @@ const PaginationFooter = ({
           strong: renderStrong,
         })}
       </span>
-      <div className="pagination-footer__controls">
+      <div className="pagination-footer__controls d-flex flex-wrap align-items-center">
         <Button
           variant="outline-secondary"
           size="sm"
@@ -67,7 +67,7 @@ const PaginationFooter = ({
           <FontAwesomeIcon icon={faChevronRight} className="pagination-footer__nav-icon" />
         </Button>
       </div>
-      <div className="pagination-footer__rows-per-page">
+      <div className="pagination-footer__rows-per-page d-flex align-items-center">
         {intl.formatMessage(messages.paginationRowsPerPage)}
         <Form.Control
           as="select"

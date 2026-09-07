@@ -1,19 +1,26 @@
 // Styles specific to the Program report page - see
 // src/assets/scss/reports-styles.scss for the shared `.reports-page` chrome.
 
+// `postcss-custom-media` runs per stylesheet with no shared import, so the
+// breakpoint definitions have to be pulled into this file or every query below
+// silently fails to compile.
+@use "@openedx/paragon/styles/css/core/custom-media-breakpoints" as paragonCustomMediaBreakpoints;
+
 .reports-page {
   .report-download-btn--loading {
     opacity: 0.5;
-  }
-
-  .pgn__data-table-layout-wrapper {
-    overflow-x: auto;
   }
 
   .report-expand-btn {
     // Paragon's Bootstrap 4 base has no .gap-* utilities (added in Bootstrap 5).
     gap: 0.5rem;
     max-width: 100%;
+    // `.btn` pins its own font size, which would keep the program name at
+    // desktop size after the rest of the grid has scaled down.
+    font-size: inherit;
+    // Matches the chevron's 1.5rem box, so it stays on the first line of a
+    // title that wraps rather than drifting to the middle of the block.
+    line-height: 1.5rem;
 
     &:hover,
     &:focus {
@@ -203,12 +210,37 @@
     min-width: 0;
   }
 
+  // Paragon's `.progress` is 1rem tall with a 1px border - twice the weight of
+  // the breakdown bars on the report tables. Matching their height and track
+  // keeps every progress indicator across the reports consistent.
+  .trainee-progress-sheet__metric .progress {
+    height: 8px;
+    border: 0;
+    background: var(--pgn-color-light-400);
+  }
+
+  .trainee-progress-sheet__metric {
+    font-size: 14px;
+  }
+
   .trainee-progress-sheet__metric-divider {
     border-bottom: 1px dashed var(--pgn-color-gray-300, #d1d5db);
   }
 
   .trainee-progress-sheet__empty {
     margin-top: 1.5rem;
+  }
+}
+
+@media (--pgn-size-breakpoint-max-width-sm) {
+  .pgn__sheet-component.trainee-progress-sheet.right {
+    .trainee-progress-sheet__course-title {
+      font-size: 13px;
+    }
+
+    .trainee-progress-sheet__metric {
+      font-size: 13px;
+    }
   }
 }
 

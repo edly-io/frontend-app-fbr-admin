@@ -100,7 +100,7 @@ const ProgramExpandCell = ({ value, row }) => {
   return (
     <button
       type="button"
-      className="report-expand-btn btn btn-link p-0 text-body text-left text-decoration-none report-text-cell--strong d-inline-flex align-items-center gap-2"
+      className="report-expand-btn btn btn-link p-0 text-body text-left text-decoration-none report-text-cell--strong d-inline-flex align-items-start gap-2"
       aria-expanded={row.isExpanded}
       title={intl.formatMessage(messages.toggleProgramOverviewAria, { program: value })}
       onClick={onClick}
@@ -214,6 +214,11 @@ ActionCell.propTypes = {
   column: PropTypes.shape({ onExportError: PropTypes.func.isRequired }).isRequired,
 };
 
+// Column width floors, defined in `assets/scss/reports-styles.scss`.
+const CELL_CLASS_NAMES = {
+  programExpand: 'report-cell--identity',
+};
+
 const CELL_RENDERERS = {
   text: TextCell,
   num: NumCell,
@@ -285,6 +290,7 @@ const ReportDataTable = ({
       // The Action column has nothing meaningful to sort by - it just
       // renders the per-row Download CSV button.
       disableSortBy: column.kind === 'action',
+      cellClassName: CELL_CLASS_NAMES[column.kind],
       Cell: CELL_RENDERERS[column.kind],
     };
   }), [intl, openSheet]);

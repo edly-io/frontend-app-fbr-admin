@@ -177,6 +177,13 @@ AttendanceBreakdownCell.propTypes = {
   }).isRequired,
 };
 
+// Column width floors, defined in `assets/scss/reports-styles.scss`.
+const CELL_CLASS_NAMES = {
+  learner: 'report-cell--identity',
+  text: 'report-cell--text',
+  attendanceBreakdownBar: 'report-cell--bar',
+};
+
 const CELL_RENDERERS = {
   text: TextCell,
   learner: LearnerCell,
@@ -235,6 +242,7 @@ const ReportDataTable = ({
       accessor: column.key,
       strong: column.strong,
       onOpenSheet: column.kind === 'attendanceRatio' ? openSheet : undefined,
+      cellClassName: CELL_CLASS_NAMES[column.kind],
       Cell: CELL_RENDERERS[column.kind],
       // The stepped breakdown bar has nothing meaningful to sort by.
       disableSortBy: column.kind === 'attendanceBreakdownBar',

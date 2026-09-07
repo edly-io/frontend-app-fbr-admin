@@ -2,15 +2,32 @@
 // Biodata Edit Requests and Signup Approvals tables. These tables predate
 // Paragon's `DataTable` usage in the reports pages, so they get their own
 // lightweight, hand-rolled table chrome here instead.
-.admin-table__wrapper {
-  overflow: auto;
-  background: #fff;
+
+// `postcss-custom-media` runs per stylesheet with no shared import, so the
+// breakpoint definitions have to be pulled into this file or the query below
+// silently fails to compile.
+@use "@openedx/paragon/styles/css/core/custom-media-breakpoints" as paragonCustomMediaBreakpoints;
+
+// Only the table inside the card scrolls sideways, so anything else the card
+// holds - the pagination footer - stays put instead of sliding off with the
+// columns.
+.admin-table__card {
+  background: var(--pgn-color-white);
   border: 1px solid var(--pgn-color-border);
   border-radius: 10px;
+  overflow: hidden;
 }
 
-.admin-table__wrapper--clip {
-  overflow: auto;
+.admin-table__scroll {
+  overflow-x: auto;
+}
+
+// Below `lg`, scrolling a table that keeps a workable width reads better than
+// crushing names and emails into two-character columns.
+@media (--pgn-size-breakpoint-max-width-md) {
+  .admin-table__scroll .admin-table {
+    min-width: 720px;
+  }
 }
 
 .admin-table {
@@ -84,6 +101,11 @@
 
 .admin-table__cell--wrap {
   white-space: pre-wrap;
+}
+
+// For values that are meaningless once broken across lines.
+.admin-table__cell--nowrap {
+  white-space: nowrap;
 }
 
 .admin-table__cell--center {
