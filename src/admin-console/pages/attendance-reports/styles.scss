@@ -1,6 +1,11 @@
 // Styles specific to the Attendance report page - see
 // src/assets/scss/reports-styles.scss for the shared `.reports-page` chrome.
 
+// `postcss-custom-media` runs per stylesheet with no shared import, so the
+// breakpoint definitions have to be pulled into this file or every query below
+// silently fails to compile.
+@use "@openedx/paragon/styles/css/core/custom-media-breakpoints" as paragonCustomMediaBreakpoints;
+
 .reports-page {
   .report-stat-card {
     margin-bottom: 1rem;
@@ -26,6 +31,7 @@
 
   .report-attendance-breakdown-bar {
     min-width: 120px;
+    max-width: 100%;
     cursor: help;
 
     &:focus {
@@ -118,5 +124,14 @@
 @media (--pgn-size-breakpoint-max-width-sm) {
   .attendance-details-sheet {
     max-width: 100%;
+
+    .attendance-details-sheet__course-name,
+    .attendance-details-sheet__session-title {
+      font-size: 13px;
+    }
+
+    .attendance-details-sheet__session-meta {
+      font-size: 12px;
+    }
   }
 }

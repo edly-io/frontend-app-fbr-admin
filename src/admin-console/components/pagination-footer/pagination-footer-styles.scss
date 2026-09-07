@@ -1,7 +1,7 @@
+// Flex direction, wrapping and alignment come from the utility classes on the
+// elements; the gaps stay here because Bootstrap 4 has no `.gap-*` utilities.
 .pagination-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  gap: 8px 12px;
   padding: 12px 16px;
   border-top: 1px solid var(--pgn-color-gray-100);
   background: var(--pgn-color-gray-100);
@@ -12,8 +12,6 @@
   }
 
   .pagination-footer__controls {
-    display: flex;
-    align-items: center;
     gap: 4px;
   }
 
@@ -22,8 +20,6 @@
   }
 
   .pagination-footer__rows-per-page {
-    display: flex;
-    align-items: center;
     gap: 8px;
     font-size: 13px;
     color: var(--pgn-color-text-light);

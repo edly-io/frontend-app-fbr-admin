@@ -1,3 +1,8 @@
+/* `postcss-custom-media` runs per stylesheet with no shared import, so the
+   breakpoint definitions have to be pulled into this file or the query below
+   silently fails to compile. */
+@use "@openedx/paragon/styles/css/core/custom-media-breakpoints" as paragonCustomMediaBreakpoints;
+
 /* ── Breadcrumb ─────────────────────────────────────────────────────────── */
 .docs-breadcrumb {
   font-size: 0.78rem;
@@ -12,10 +17,7 @@
 
 /* ── Page header ────────────────────────────────────────────────────────── */
 .docs-page-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 24px;
+  gap: 12px 24px;
   margin-bottom: 24px;
 }
 .docs-page-header > div:first-child {
@@ -29,7 +31,11 @@
   margin: 0 0 6px;
   line-height: 1.2;
 }
-.docs-create-btn { white-space: nowrap; flex-shrink: 0; margin-top: 28px; }
+.docs-create-btn { white-space: nowrap; flex-shrink: 0; }
+/* Lines the button up with the heading once the two sit side by side. */
+@media (--pgn-size-breakpoint-min-width-md) {
+  .docs-create-btn { margin-top: 28px; }
+}
 .docs-create-btn-icon { margin-right: 7px; }
 .docs-view-desc {
   color: #6b7280;
@@ -49,7 +55,6 @@
 .docs-type-filter {
   min-width: 150px;
   max-width: 200px;
-  height: 38px;
   font-size: 0.875rem;
   border-radius: 6px;
 }

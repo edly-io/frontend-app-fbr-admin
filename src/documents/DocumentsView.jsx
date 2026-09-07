@@ -15,7 +15,7 @@ import {
 } from './api';
 import DocumentModal from './DocumentModal';
 import DebouncedSearchInput from '../admin-console/components/debounced-search-input/DebouncedSearchInput';
-import './DocumentsView.css';
+import './DocumentsView.scss';
 
 const BADGE_PALETTES = [
   { background: '#dbeafe', color: '#1e40af' }, // blue
@@ -187,7 +187,7 @@ const DocumentsView = () => {
   return (
     <>
       {/* ── Page header ── */}
-      <div className="docs-page-header">
+      <div className="docs-page-header d-flex flex-column flex-md-row align-items-start justify-content-md-between">
         <div>
           <p className="docs-breadcrumb">
             <span>Communications</span>

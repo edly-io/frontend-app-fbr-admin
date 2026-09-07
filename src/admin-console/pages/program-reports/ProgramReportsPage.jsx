@@ -233,6 +233,7 @@ const ProgramReportsPage = () => {
         trailingActions={(
           <Button
             variant="outline-primary"
+            size="sm"
             iconBefore={Download}
             onClick={handleDownloadCsv}
             disabled={isExporting || count === 0}

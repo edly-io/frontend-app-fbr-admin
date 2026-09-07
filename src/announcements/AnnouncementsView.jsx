@@ -229,7 +229,7 @@ const AnnouncementsView = ({ sectionLabel }) => {
         <span className="ann-breadcrumb-active">Announcements</span>
       </p>
 
-      <div className="ann-view-header">
+      <div className="ann-view-header d-flex flex-column flex-md-row align-items-start justify-content-md-between">
         <h1 className="ann-view-title">Announcements</h1>
         <Button variant="primary" size="sm" onClick={() => setShowCreate(true)} className="ann-create-btn">
           <FontAwesomeIcon icon={faPlus} className="ann-create-btn-icon" />

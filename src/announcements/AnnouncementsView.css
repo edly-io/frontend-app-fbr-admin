@@ -143,9 +143,7 @@
   font-weight: 500;
 }
 .ann-view-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
+  gap: 10px;
   margin-bottom: 6px;
 }
 .ann-view-title {
@@ -178,7 +176,7 @@
   background: #fff;
   border-radius: 10px;
   border: 1px solid var(--pgn-color-border);
-  overflow: hidden;
+  overflow-x: auto;
 }
 .ann-table {
   width: 100%;

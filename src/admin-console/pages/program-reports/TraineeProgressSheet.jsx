@@ -147,7 +147,7 @@ const TraineeProgressSheet = ({
         return (
           <div key={course.courseId} className="trainee-progress-sheet__course mb-3">
             <div className={`d-flex align-items-center p-2 rounded-lg bg-${variant}-100`}>
-              <div className="trainee-progress-sheet__course-title h4 font-weight-bold flex-grow-1 mb-0">
+              <div className="trainee-progress-sheet__course-title h6 font-weight-bold flex-grow-1 mb-0">
                 {course.courseTitle}
               </div>
               {course.grade.available && course.grade.passed && (

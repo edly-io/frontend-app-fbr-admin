@@ -3,6 +3,11 @@
 // column header info icons. Styles specific to a single report (breakdown
 // bars, detail sheets, etc.) stay in that page's own local stylesheet.
 
+// `postcss-custom-media` runs per stylesheet with no shared import, so the
+// breakpoint definitions have to be pulled into this file or the query at the
+// foot of it silently fails to compile.
+@use "@openedx/paragon/styles/css/core/custom-media-breakpoints" as paragonCustomMediaBreakpoints;
+
 .reports-page {
   .reports-page__subtitle {
     color: var(--pgn-color-text-light);
@@ -35,6 +40,33 @@
   }
 
   // Tables
+  //
+  // Paragon caps every DataTable cell at `max-width: 20vw`, which is ~280px on
+  // a desktop but only ~75px on a phone - narrow enough to break a name into
+  // one word per line and to squeeze the breakdown bars out of their cells. A
+  // fixed cap plus a scrolling table gives cells a readable width at every
+  // viewport instead.
+  .pgn__data-table-layout-wrapper {
+    overflow-x: auto;
+  }
+
+  .pgn__data-table-cell-wrap {
+    max-width: 20rem;
+  }
+
+  // Per-column floors, applied through each column's `cellClassName`.
+  .report-cell--identity {
+    min-width: 12.5rem;
+  }
+
+  .report-cell--text {
+    min-width: 10rem;
+  }
+
+  .report-cell--bar {
+    min-width: 9rem;
+  }
+
   .report-text-cell--strong {
     font-weight: 600;
     color: var(--pgn-color-text-base);
@@ -62,6 +94,29 @@
     &:hover,
     &:focus {
       color: var(--pgn-color-text-base);
+    }
+  }
+}
+
+// Paragon's `DataTable` inherits its type from the page, which is far too big
+// for a grid on a phone.
+@media (--pgn-size-breakpoint-max-width-sm) {
+  .reports-page {
+    .report-data-table {
+      font-size: 13px;
+    }
+
+    .pgn__data-table th,
+    .pgn__data-table td {
+      padding: 0.625rem 0.75rem;
+    }
+
+    .report-cell--identity {
+      min-width: 11rem;
+    }
+
+    .report-cell--text {
+      min-width: 8.5rem;
     }
   }
 }

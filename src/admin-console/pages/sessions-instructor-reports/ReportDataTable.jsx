@@ -165,6 +165,13 @@ HoursBreakdownCell.propTypes = {
   }).isRequired,
 };
 
+// Column width floors, defined in `assets/scss/reports-styles.scss`.
+const CELL_CLASS_NAMES = {
+  instructor: 'report-cell--identity',
+  text: 'report-cell--text',
+  hoursBar: 'report-cell--bar',
+};
+
 const CELL_RENDERERS = {
   text: TextCell,
   num: NumCell,
@@ -242,6 +249,7 @@ const ReportDataTable = ({
       accessor: column.key,
       strong: column.strong,
       onOpenSheet: column.kind === 'sessionCount' ? openSheet : undefined,
+      cellClassName: CELL_CLASS_NAMES[column.kind],
       Cell: CELL_RENDERERS[column.kind],
       // The stepped hours bar has nothing meaningful to sort by.
       disableSortBy: column.kind === 'hoursBar',
