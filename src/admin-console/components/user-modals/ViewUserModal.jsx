@@ -90,7 +90,7 @@ const getInitialProfileTab = (user, sourceTab) => {
  * both, in which case a tab switcher is shown).
  */
 const ViewUserModal = ({
-  user, onClose, onEdit, sourceTab,
+  user, onClose, onEdit, sourceTab, onAuditHistory,
 }) => {
   const intl = useIntl();
 
@@ -132,13 +132,13 @@ const ViewUserModal = ({
     >
       <div className="view-user-modal__panel">
         <div className="view-user-modal__header">
-          <button
-            type="button"
+          <Button
+            variant="tertiary"
             onClick={onClose}
             className="view-user-modal__close-btn"
           >
-            x
-          </button>
+            ×
+          </Button>
           <div
             className="view-user-modal__avatar"
             style={{ background: user.color || '#1B5E7A' }}
@@ -161,6 +161,15 @@ const ViewUserModal = ({
               size="large"
               showAvatar={false}
             />
+            {onAuditHistory && (
+              <Button
+                variant="link"
+                className="view-user-modal__audit-link"
+                onClick={() => onAuditHistory(user)}
+              >
+                Audit history →
+              </Button>
+            )}
           </div>
 
           {showProfileTabs && (
@@ -168,14 +177,14 @@ const ViewUserModal = ({
               {availableProfileTabs.map(tab => {
                 const isActive = activeProfileTab === tab.id;
                 return (
-                  <button
+                  <Button
                     key={tab.id}
-                    type="button"
+                    variant="tertiary"
                     onClick={() => setActiveProfileTab(tab.id)}
                     className={`view-user-modal__tab ${isActive ? 'view-user-modal__tab--active' : ''}`}
                   >
                     {tab.label}
-                  </button>
+                  </Button>
                 );
               })}
             </div>
@@ -278,11 +287,13 @@ ViewUserModal.propTypes = {
   onClose: PropTypes.func.isRequired,
   onEdit: PropTypes.func.isRequired,
   sourceTab: PropTypes.string,
+  onAuditHistory: PropTypes.func,
 };
 
 ViewUserModal.defaultProps = {
   user: null,
   sourceTab: 'all',
+  onAuditHistory: null,
 };
 
 export default ViewUserModal;
