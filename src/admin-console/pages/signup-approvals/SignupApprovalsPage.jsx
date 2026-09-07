@@ -63,7 +63,7 @@ const SignupApprovalsPage = () => {
     <div className="signup-approvals-page">
       <SignupApprovalsToolbar onRefresh={handleRefresh} />
 
-      <div className="signup-approvals-page__filter-row">
+      <div className="signup-approvals-page__filter-row d-flex flex-wrap align-items-center justify-content-between">
         <div className="signup-approvals-page__search-wrap">
           <DebouncedSearchInput
             value={search}

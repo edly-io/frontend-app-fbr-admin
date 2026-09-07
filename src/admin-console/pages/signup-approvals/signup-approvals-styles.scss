@@ -4,16 +4,14 @@
   }
 
   .signup-approvals-page__filter-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+    gap: 10px;
     margin-bottom: 1rem;
   }
 
   .signup-approvals-page__search-wrap {
-    display: flex;
-    align-items: center;
-    gap: 10px;
+    flex: 1 1 240px;
+    max-width: 340px;
+    min-width: 0;
   }
 
   .signup-approvals-page__count {

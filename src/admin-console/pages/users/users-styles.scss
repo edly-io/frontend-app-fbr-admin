@@ -12,6 +12,8 @@
   display: flex;
   margin-bottom: 20px;
   border-bottom: 2px solid var(--pgn-color-border);
+  overflow-x: auto;
+  overflow-y: hidden;
 }
 
 .users-filters__tab {
@@ -51,15 +53,21 @@
 }
 
 .users-filters__row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  gap: 10px;
   margin-bottom: 16px;
 }
 
-.users-filters__search-wrap {
-  display: flex;
-  align-items: center;
+// The two flex bases are what decide the breakpoint: once they no longer fit
+// side by side the search takes the row above, and the status filter and count
+// spread across the row below.
+.users-filters__search {
+  flex: 1 1 240px;
+  max-width: 340px;
+  min-width: 0;
+}
+
+.users-filters__controls {
+  flex: 1 1 220px;
   gap: 10px;
 }
 

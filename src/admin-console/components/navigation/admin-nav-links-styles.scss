@@ -1,0 +1,70 @@
+// Nav-list rules shared by the desktop sidebar and the nav sheet, kept as one
+// selector group so the sidebar's rules keep the specificity they had while
+// they lived in `sidebar-styles.scss`.
+.admin-sidebar,
+.admin-nav-sheet__nav {
+  .admin-sidebar__section-title {
+    font-size: 10.5px;
+    font-weight: 700;
+    color: var(--pgn-color-gray-400);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0 8px;
+    margin: 16px 0 6px;
+  }
+
+  .admin-sidebar__nav-icon {
+    width: 15px;
+    opacity: 0.8;
+    flex-shrink: 0;
+  }
+
+  .admin-sidebar__nav-label {
+    flex: 1;
+  }
+
+  .admin-sidebar__nav-link {
+    // Paragon's Bootstrap 4 base has no .gap-* utilities (added in Bootstrap 5).
+    gap: 10px;
+    width: 100%;
+    padding: 9px 10px;
+    margin-bottom: 2px;
+    border: none;
+    border-radius: 7px;
+    font-size: 13.5px;
+    font-weight: 400;
+    color: var(--pgn-color-gray-700);
+    background: transparent;
+    cursor: pointer;
+
+    &--active {
+      font-weight: 600;
+      color: var(--pgn-color-primary-base);
+      background: var(--pgn-color-primary-light);
+    }
+  }
+
+  .admin-sidebar__nav-active-icon {
+    width: 12px;
+    flex-shrink: 0;
+    color: var(--pgn-color-primary-base);
+  }
+}
+
+// ─── Dark variant ───────────────────────────────────────────────────────────
+// The theme's dark override set redefines the semantic tokens (`text-base`,
+// `body-bg`, `primary-base`, `primary-light`) but leaves most numbered `gray-*`
+// steps at their light values, so the greys below stay dark-on-dark unless they
+// are restated here. The active row needs nothing: both of its tokens flip.
+[data-paragon-theme-variant="dark"] {
+  .admin-sidebar,
+  .admin-nav-sheet__nav {
+    .admin-sidebar__section-title {
+      color: rgba(248, 248, 248, 0.5);
+    }
+
+    .admin-sidebar__nav-link {
+      color: rgba(248, 248, 248, 0.82);
+    }
+  }
+}

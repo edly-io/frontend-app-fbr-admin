@@ -1,11 +1,36 @@
+// `postcss-custom-media` runs per stylesheet with no shared import, so the
+// breakpoint definitions have to be pulled into this file or every
+// `--pgn-size-breakpoint-*` query below silently fails to compile.
+@use "@openedx/paragon/styles/css/core/custom-media-breakpoints" as paragonCustomMediaBreakpoints;
+
 .admin-console-page {
   display: flex;
-  background: var(--pgn-color-theme-bg-gray);
+  // `--pgn-color-theme-bg-gray` is light-theme-only; without the fallback the
+  // declaration is dropped under the dark theme and the page shows the body
+  // background instead. Naming it keeps the console and its sticky nav bar on
+  // the same surface in both themes.
+  background: var(--pgn-color-theme-bg-gray, var(--pgn-color-body-bg));
   min-height: 100vh;
 
   .admin-console-page__content {
     flex: 1;
     padding: 28px 36px;
     min-width: 0;
+  }
+}
+
+// Below `lg` the rail is replaced by the sticky context bar, which carries the
+// section/page trail itself - see `breadcrumb-styles.scss`.
+@media (--pgn-size-breakpoint-max-width-md) {
+  .admin-console-page {
+    display: block;
+
+    .admin-sidebar {
+      display: none;
+    }
+
+    .admin-console-page__content {
+      padding: 8px 16px 20px;
+    }
   }
 }

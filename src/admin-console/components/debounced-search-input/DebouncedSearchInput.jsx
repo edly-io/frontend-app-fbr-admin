@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
-import { Form } from '@openedx/paragon';
+import { Form, Icon } from '@openedx/paragon';
+import { Search } from '@openedx/paragon/icons';
 import { useIntl } from '@edx/frontend-platform/i18n';
 import messages from './messages';
 import './debounced-search-input-styles.scss';
@@ -28,20 +29,13 @@ const DebouncedSearchInput = ({
   }, [delay, localValue, onChange]);
 
   return (
-    <div className="debounced-search-input">
-      <span
-        aria-hidden="true"
-        className="debounced-search-input__icon"
-      >
-        <span className="debounced-search-input__icon-handle" />
-      </span>
+    <div className="debounced-search-input" style={{ maxWidth: width }}>
       <Form.Control
         type="text"
         placeholder={placeholder ?? intl.formatMessage(messages.defaultSearchPlaceholder)}
         value={localValue}
         onChange={event => setLocalValue(event.target.value)}
-        className="debounced-search-input__control"
-        style={{ width }}
+        leadingElement={<Icon src={Search} />}
       />
     </div>
   );
@@ -52,6 +46,7 @@ DebouncedSearchInput.propTypes = {
   onChange: PropTypes.func.isRequired,
   delay: PropTypes.number,
   placeholder: PropTypes.string,
+  /** Ceiling for the field, which otherwise fills the space it is given. */
   width: PropTypes.string,
 };
 

@@ -1,3 +1,8 @@
+// `postcss-custom-media` runs per stylesheet with no shared import, so the
+// breakpoint definitions have to be pulled into this file or the query below
+// silently fails to compile.
+@use "@openedx/paragon/styles/css/core/custom-media-breakpoints" as paragonCustomMediaBreakpoints;
+
 .admin-breadcrumb {
   font-size: 13px;
   color: var(--pgn-color-text-light);
@@ -9,5 +14,14 @@
   .admin-breadcrumb__leaf {
     color: var(--pgn-color-gray-800);
     font-weight: 500;
+  }
+}
+
+// The context bar that replaces the sidebar below `lg` already shows
+// "<section> / <page>" directly above the heading, so keeping this trail as well
+// reads as a duplicated breadcrumb.
+@media (--pgn-size-breakpoint-max-width-md) {
+  .admin-breadcrumb {
+    display: none;
   }
 }

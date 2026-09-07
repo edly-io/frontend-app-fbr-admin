@@ -52,66 +52,68 @@ const UsersTable = ({
   ];
 
   return (
-    <div className="admin-table__wrapper">
-      <table className="admin-table">
-        <thead>
-          <tr className="admin-table__head-row">
-            {columns.map(({ label, width }) => (
-              <th
-                key={label}
-                style={width ? { width } : undefined}
-                className={`admin-table__head-cell ${label === intl.formatMessage(messages.columnActions) ? 'admin-table__head-cell--center' : ''}`}
-              >
-                {label}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {isLoading && (
-            <tr><td colSpan={7} className="admin-table__empty-cell">{intl.formatMessage(messages.loading)}</td></tr>
-          )}
-          {!isLoading && pageUsers.length === 0 && (
-            <tr><td colSpan={7} className="admin-table__empty-cell">{intl.formatMessage(messages.emptyState)}</td></tr>
-          )}
-          {!isLoading && pageUsers.map((user, idx) => (
-            <tr key={user.id} className="admin-table__body-row">
-              <td className="admin-table__cell admin-table__cell--index">{rowNumberOffset + idx + 1}</td>
-              <td className="admin-table__cell">
-                <UserIdentity
-                  name={user.name}
-                  badges={[user.role].filter(Boolean)}
-                  size="compact"
-                  avatarValue={user.photo || user.initials}
-                />
-              </td>
-              <td className="admin-table__cell admin-table__cell--link">{user.email}</td>
-              <td className="admin-table__cell admin-table__cell--muted">{user.batchNo || intl.formatMessage(messages.emptyValue)}</td>
-              <td className="admin-table__cell admin-table__cell--muted">{user.mobile || intl.formatMessage(messages.emptyValue)}</td>
-              <td className="admin-table__cell"><StatusBadge status={user.status} /></td>
-              <td className="admin-table__cell">
-                <div className="admin-table__cell--actions">
-                  <Button variant="tertiary" size="sm" title={intl.formatMessage(messages.viewTooltip)} onClick={() => onView(user)}>
-                    <FontAwesomeIcon icon={faEye} />
-                  </Button>
-                  <Button variant="tertiary" size="sm" title={intl.formatMessage(messages.editTooltip)} onClick={() => onEdit(user)}>
-                    <FontAwesomeIcon icon={faPen} />
-                  </Button>
-                  <ActionMenu
-                    userId={user.id}
-                    userStatus={user.status}
-                    openId={openMenuId}
-                    setOpenId={setOpenMenuId}
-                    onView={() => onView(user)}
-                    onEdit={() => onEdit(user)}
-                    onDeactivate={() => onDeactivate(user)}
-                  />
-                </div>
-              </td>
+    <div className="admin-table__card">
+      <div className="admin-table__scroll">
+        <table className="admin-table">
+          <thead>
+            <tr className="admin-table__head-row">
+              {columns.map(({ label, width }) => (
+                <th
+                  key={label}
+                  style={width ? { width } : undefined}
+                  className={`admin-table__head-cell ${label === intl.formatMessage(messages.columnActions) ? 'admin-table__head-cell--center' : ''}`}
+                >
+                  {label}
+                </th>
+              ))}
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {isLoading && (
+              <tr><td colSpan={7} className="admin-table__empty-cell">{intl.formatMessage(messages.loading)}</td></tr>
+            )}
+            {!isLoading && pageUsers.length === 0 && (
+              <tr><td colSpan={7} className="admin-table__empty-cell">{intl.formatMessage(messages.emptyState)}</td></tr>
+            )}
+            {!isLoading && pageUsers.map((user, idx) => (
+              <tr key={user.id} className="admin-table__body-row">
+                <td className="admin-table__cell admin-table__cell--index">{rowNumberOffset + idx + 1}</td>
+                <td className="admin-table__cell">
+                  <UserIdentity
+                    name={user.name}
+                    badges={[user.role].filter(Boolean)}
+                    size="compact"
+                    avatarValue={user.photo || user.initials}
+                  />
+                </td>
+                <td className="admin-table__cell admin-table__cell--link admin-table__cell--nowrap">{user.email}</td>
+                <td className="admin-table__cell admin-table__cell--muted admin-table__cell--nowrap">{user.batchNo || intl.formatMessage(messages.emptyValue)}</td>
+                <td className="admin-table__cell admin-table__cell--muted admin-table__cell--nowrap">{user.mobile || intl.formatMessage(messages.emptyValue)}</td>
+                <td className="admin-table__cell"><StatusBadge status={user.status} /></td>
+                <td className="admin-table__cell">
+                  <div className="admin-table__cell--actions">
+                    <Button variant="tertiary" size="sm" title={intl.formatMessage(messages.viewTooltip)} onClick={() => onView(user)}>
+                      <FontAwesomeIcon icon={faEye} />
+                    </Button>
+                    <Button variant="tertiary" size="sm" title={intl.formatMessage(messages.editTooltip)} onClick={() => onEdit(user)}>
+                      <FontAwesomeIcon icon={faPen} />
+                    </Button>
+                    <ActionMenu
+                      userId={user.id}
+                      userStatus={user.status}
+                      openId={openMenuId}
+                      setOpenId={setOpenMenuId}
+                      onView={() => onView(user)}
+                      onEdit={() => onEdit(user)}
+                      onDeactivate={() => onDeactivate(user)}
+                    />
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
       <PaginationFooter
         page={page}

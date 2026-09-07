@@ -225,6 +225,7 @@ const SessionsInstructorReportsPage = () => {
         trailingActions={(
           <Button
             variant="outline-primary"
+            size="sm"
             iconBefore={Download}
             onClick={handleDownloadCsv}
             disabled={isExporting || isDownloadDisabled}

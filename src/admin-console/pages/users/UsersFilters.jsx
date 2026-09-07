@@ -56,13 +56,15 @@ const UsersFilters = ({
         })}
       </div>
 
-      <div className="users-filters__row">
-        <div className="users-filters__search-wrap">
+      <div className="users-filters__row d-flex flex-wrap align-items-center">
+        <div className="users-filters__search">
           <DebouncedSearchInput
             value={search}
             onChange={onSearchChange}
             placeholder={intl.formatMessage(messages.searchPlaceholder)}
           />
+        </div>
+        <div className="users-filters__controls d-flex align-items-center justify-content-between">
           <Dropdown>
             <Dropdown.Toggle variant="outline-secondary" id="status-filter" className="users-filters__status-toggle">
               {intl.formatMessage(messages.statusFilterLabel, { status: statusFilter })}
@@ -73,10 +75,10 @@ const UsersFilters = ({
               ))}
             </Dropdown.Menu>
           </Dropdown>
+          <span className="users-filters__count">
+            {countLabel}
+          </span>
         </div>
-        <span className="users-filters__count">
-          {countLabel}
-        </span>
       </div>
     </>
   );

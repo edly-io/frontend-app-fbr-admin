@@ -1,48 +1,9 @@
+// Desktop rail chrome only. The nav list inside it is styled by
+// `../navigation/admin-nav-links-styles.scss`, shared with the mobile sheet.
 .admin-sidebar {
   width: 240px;
   flex-shrink: 0;
   background: var(--pgn-color-white);
   border-right: 1px solid var(--pgn-color-border);
   padding: 24px 12px;
-
-  .admin-sidebar__section-title {
-    font-size: 10.5px;
-    font-weight: 700;
-    color: var(--pgn-color-gray-400);
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    padding: 0 8px;
-    margin: 16px 0 6px;
-  }
-
-  .admin-sidebar__nav-icon {
-    width: 15px;
-    opacity: 0.8;
-    flex-shrink: 0;
-  }
-
-  .admin-sidebar__nav-label {
-    flex: 1;
-  }
-
-  .admin-sidebar__nav-link {
-    // Paragon's Bootstrap 4 base has no .gap-* utilities (added in Bootstrap 5).
-    gap: 10px;
-    width: 100%;
-    padding: 9px 10px;
-    margin-bottom: 2px;
-    border: none;
-    border-radius: 7px;
-    font-size: 13.5px;
-    font-weight: 400;
-    color: var(--pgn-color-gray-700);
-    background: transparent;
-    cursor: pointer;
-
-    &--active {
-      font-weight: 600;
-      color: var(--pgn-color-primary-base);
-      background: var(--pgn-color-primary-light);
-    }
-  }
 }

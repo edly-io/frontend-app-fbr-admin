@@ -3,6 +3,10 @@
 @import "~@edx/frontend-component-header/dist/index";
 @import "~@edx/frontend-component-footer/dist/footer";
 
+body {
+  min-width: 320px;
+}
+
 // Move Paragon toast to top-right
 #toast-root.toast-container {
   top: 24px;
@@ -147,7 +151,10 @@
   color: var(--pgn-color-text-base);
   font-weight: 500;
   line-height: 1.2;
-  word-break: break-word;
+  // `word-break: break-word` split short names mid-word in narrow table
+  // columns; this wraps between words first and only breaks a word that
+  // genuinely cannot fit.
+  overflow-wrap: break-word;
 }
 
 .user-identity__role-label {
