@@ -47,6 +47,62 @@ describe('exportProgramReports', () => {
     expect(params.get('to')).toBe('2026-12-31');
   });
 
+  // The date inputs are unbounded, so the pair can arrive in either order; the
+  // endpoint reads `from` as the lower bound of a run-window overlap, so the
+  // request layer is what puts a reversed pair the right way round.
+  it.each([
+    ['start before end', '2026-09-10', '2026-09-20'],
+    ['end before start', '2026-09-20', '2026-09-10'],
+  ])('sends the range low bound first (%s)', async (_label, startDate, endDate) => {
+    const get = mockGet({ data: csvBlob(), headers: {} });
+
+    await exportProgramReports({ startDate, endDate });
+
+    const params = requestedUrl(get).searchParams;
+    expect(params.get('from')).toBe('2026-09-10');
+    expect(params.get('to')).toBe('2026-09-20');
+  });
+
+  it('sends a single date on the side it was picked', async () => {
+    const get = mockGet({ data: csvBlob(), headers: {} });
+
+    await exportProgramReports({ startDate: '2026-09-10', endDate: '' });
+
+    const params = requestedUrl(get).searchParams;
+    expect(params.get('from')).toBe('2026-09-10');
+    expect(params.has('to')).toBe(false);
+  });
+
+  it('sends an end-only range as the upper bound', async () => {
+    const get = mockGet({ data: csvBlob(), headers: {} });
+
+    await exportProgramReports({ startDate: '', endDate: '2026-09-20' });
+
+    const params = requestedUrl(get).searchParams;
+    expect(params.has('from')).toBe(false);
+    expect(params.get('to')).toBe('2026-09-20');
+  });
+
+  it('leaves two equal dates alone', async () => {
+    const get = mockGet({ data: csvBlob(), headers: {} });
+
+    await exportProgramReports({ startDate: '2026-09-15', endDate: '2026-09-15' });
+
+    const params = requestedUrl(get).searchParams;
+    expect(params.get('from')).toBe('2026-09-15');
+    expect(params.get('to')).toBe('2026-09-15');
+  });
+
+  it('sends a future range unchanged', async () => {
+    const get = mockGet({ data: csvBlob(), headers: {} });
+
+    await exportProgramReports({ startDate: '2027-01-01', endDate: '2027-06-30' });
+
+    const params = requestedUrl(get).searchParams;
+    expect(params.get('from')).toBe('2027-01-01');
+    expect(params.get('to')).toBe('2027-06-30');
+  });
+
   it('omits the "all" sentinel the filter dropdowns use for an unset filter', async () => {
     const get = mockGet({ data: csvBlob(), headers: {} });
 
