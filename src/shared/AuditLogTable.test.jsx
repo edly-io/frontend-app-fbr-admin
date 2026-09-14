@@ -4,6 +4,7 @@ import {
 } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { IntlProvider } from 'react-intl';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import AuditLogTable from './AuditLogTable';
 
 // ── Mocks ────────────────────────────────────────────────────────────────────
@@ -26,10 +27,16 @@ global.ResizeObserver = global.ResizeObserver || class {
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
+const makeQueryClient = () => new QueryClient({
+  defaultOptions: { queries: { retry: false } },
+});
+
 const renderTable = (props = {}) => render(
-  <IntlProvider locale="en">
-    <AuditLogTable appLabel="biodata" {...props} />
-  </IntlProvider>,
+  <QueryClientProvider client={makeQueryClient()}>
+    <IntlProvider locale="en">
+      <AuditLogTable appLabel="biodata" {...props} />
+    </IntlProvider>
+  </QueryClientProvider>,
 );
 
 // ── Tests ────────────────────────────────────────────────────────────────────
