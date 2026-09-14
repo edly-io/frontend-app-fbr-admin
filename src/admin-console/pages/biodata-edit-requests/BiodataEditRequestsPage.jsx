@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import {
-  Alert, Button, Dropdown, Toast,
+  Alert, Button, ButtonGroup, Dropdown, Toast,
 } from '@openedx/paragon';
 import { useIntl } from '@edx/frontend-platform/i18n';
 import { useBiodataEditRequests, useResolveEditRequest } from './data/apiHooks';
@@ -99,17 +99,20 @@ const BiodataEditRequestsPage = () => {
 
   return (
     <div className="biodata-edit-requests-page">
-      <div className="page-view-toggle">
-        {['list', 'audit-log'].map(view => (
-          <Button
-            key={view}
-            variant="tertiary"
-            onClick={() => handleViewChange(view)}
-            className={`page-view-toggle__tab${activeView === view ? ' page-view-toggle__tab--active' : ''}`}
-          >
-            {view === 'list' ? 'Edit Requests' : 'Audit Log'}
-          </Button>
-        ))}
+      <div className="d-flex justify-content-end mb-3">
+        <ButtonGroup size="sm">
+          {['list', 'audit-log'].map(view => (
+            <Button
+              key={view}
+              variant={activeView === view ? 'primary' : 'outline-primary'}
+              size="sm"
+              aria-pressed={activeView === view}
+              onClick={() => handleViewChange(view)}
+            >
+              {view === 'list' ? 'Edit Requests' : 'Audit Log'}
+            </Button>
+          ))}
+        </ButtonGroup>
       </div>
 
       {activeView === 'audit-log' ? (

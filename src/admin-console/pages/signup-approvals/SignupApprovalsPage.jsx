@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Alert, Button, Toast } from '@openedx/paragon';
+import { Alert, Button, ButtonGroup, Toast } from '@openedx/paragon';
 import { useIntl } from '@edx/frontend-platform/i18n';
 import { useSignupApprovals } from './data/apiHooks';
 import SignupApprovalsToolbar from './SignupApprovalsToolbar';
@@ -77,17 +77,20 @@ const SignupApprovalsPage = () => {
 
   return (
     <div className="signup-approvals-page">
-      <div className="page-view-toggle">
-        {['list', 'audit-log'].map(view => (
-          <Button
-            key={view}
-            variant="tertiary"
-            onClick={() => handleViewChange(view)}
-            className={`page-view-toggle__tab${activeView === view ? ' page-view-toggle__tab--active' : ''}`}
-          >
-            {view === 'list' ? 'Signup Approvals' : 'Audit Log'}
-          </Button>
-        ))}
+      <div className="d-flex justify-content-end mb-3">
+        <ButtonGroup size="sm">
+          {['list', 'audit-log'].map(view => (
+            <Button
+              key={view}
+              variant={activeView === view ? 'primary' : 'outline-primary'}
+              size="sm"
+              aria-pressed={activeView === view}
+              onClick={() => handleViewChange(view)}
+            >
+              {view === 'list' ? 'Signup Approvals' : 'Audit Log'}
+            </Button>
+          ))}
+        </ButtonGroup>
       </div>
 
       {activeView === 'audit-log' ? (

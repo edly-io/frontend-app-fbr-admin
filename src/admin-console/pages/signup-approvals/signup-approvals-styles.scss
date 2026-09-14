@@ -24,7 +24,7 @@
 
 .signup-approvals-list {
   overflow: hidden;
-  background: #fff;
+  background: var(--pgn-color-white);
   border: 1px solid var(--pgn-color-border);
   border-radius: 10px;
 
@@ -87,5 +87,22 @@
   .signup-approvals-list__assign-icon {
     margin-right: 6px;
     font-size: 12px;
+  }
+}
+
+// ─── Dark variant ───────────────────────────────────────────────────────────
+// The card surface was a literal `#fff`, so it stayed white while every text
+// token inside it flipped to light ink. `--pgn-color-white` resolves to the body
+// background in the dark theme, which sinks the card into the page instead, so
+// it is lifted here with translucent ink - the same treatment the nav context
+// bar uses. The row rule is a numbered `gray-*` step and keeps its light value.
+[data-paragon-theme-variant="dark"] {
+  .signup-approvals-list {
+    background: rgba(248, 248, 248, 0.06);
+    border-color: rgba(248, 248, 248, 0.16);
+
+    .signup-approvals-list__row {
+      border-bottom-color: rgba(248, 248, 248, 0.12);
+    }
   }
 }
