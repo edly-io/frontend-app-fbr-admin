@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Alert, Button, ButtonGroup, Toast } from '@openedx/paragon';
+import {
+  Alert, Button, ButtonGroup, Toast,
+} from '@openedx/paragon';
 import { useIntl } from '@edx/frontend-platform/i18n';
 import { useSignupApprovals } from './data/apiHooks';
 import SignupApprovalsToolbar from './SignupApprovalsToolbar';
