@@ -131,6 +131,11 @@ const messages = defineMessages({
     defaultMessage: 'Edit',
     description: 'Tooltip / title for the edit-user row action button.',
   },
+  paginationLabel: {
+    id: 'fbrAdmin.users.pagination.label',
+    defaultMessage: 'Users table pagination navigation',
+    description: 'Accessible label for the users table pagination controls.',
+  },
   emptyValue: {
     id: 'fbrAdmin.users.row.emptyValue',
     defaultMessage: '—',

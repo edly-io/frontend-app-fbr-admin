@@ -45,6 +45,20 @@ export const getPaginatedResults = (data) => {
   return [];
 };
 
+// Endpoints paginated with edx's NamespacedPageNumberPagination nest their
+// metadata under `pagination`; the plain DRF PageNumberPagination ones put
+// `count` at the top level.
+export const getPaginatedCount = (data, results) => {
+  const count = data?.pagination?.count ?? data?.count;
+
+  if (count === undefined || count === null) {
+    return results.length;
+  }
+
+  const parsed = Number(count);
+  return Number.isFinite(parsed) ? parsed : results.length;
+};
+
 export const getInitials = (name) => (
   (name || '?')
     .split(/\s+/)

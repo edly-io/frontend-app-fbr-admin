@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import { Form, Icon } from '@openedx/paragon';
 import { Search } from '@openedx/paragon/icons';
@@ -15,18 +15,32 @@ const DebouncedSearchInput = ({
 }) => {
   const intl = useIntl();
   const [localValue, setLocalValue] = useState(value);
+  const onChangeRef = useRef(onChange);
+  const emittedValue = useRef(value);
+
+  useEffect(() => {
+    onChangeRef.current = onChange;
+  });
 
   useEffect(() => {
     setLocalValue(value);
+    emittedValue.current = value;
   }, [value]);
 
+  // Keyed on the typed value alone: depending on `onChange` would re-arm the
+  // timer on every parent render and emit a value the user never typed.
   useEffect(() => {
+    if (localValue === emittedValue.current) {
+      return undefined;
+    }
+
     const timeoutId = window.setTimeout(() => {
-      onChange(localValue);
+      emittedValue.current = localValue;
+      onChangeRef.current(localValue);
     }, delay);
 
     return () => window.clearTimeout(timeoutId);
-  }, [delay, localValue, onChange]);
+  }, [delay, localValue]);
 
   return (
     <div className="debounced-search-input" style={{ maxWidth: width }}>

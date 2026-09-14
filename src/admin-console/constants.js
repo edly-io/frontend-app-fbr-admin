@@ -73,4 +73,4 @@ export const PLACEHOLDER_NAV_ITEM_IDS = [
   'audit-log',
 ];
 
-export const ROWS_PER_PAGE_OPTIONS = [5, 10, 20, 50];
+export const ROWS_PER_PAGE_OPTIONS = [5, 10, 20, 25, 50];
