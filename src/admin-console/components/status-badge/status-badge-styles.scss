@@ -26,3 +26,29 @@
     background: var(--pgn-color-green);
   }
 }
+
+// ─── Dark variant ───────────────────────────────────────────────────────────
+// Both pills were built on fixed light tints - `gray-100` and a literal
+// `#EDFAF1` - while their text tokens flip to light ink in the dark theme,
+// leaving the label all but invisible on a near-white chip. There is no
+// dark-aware raised surface in the palette, so the tints are restated as
+// translucent ink over whatever surface the row provides.
+[data-paragon-theme-variant="dark"] {
+  .status-badge {
+    background: rgba(248, 248, 248, 0.1);
+    color: rgba(248, 248, 248, 0.82);
+
+    .status-badge__dot {
+      background: rgba(248, 248, 248, 0.55);
+    }
+  }
+
+  .status-badge--active {
+    background: rgba(93, 214, 152, 0.16);
+    color: var(--pgn-color-green);
+
+    .status-badge__dot {
+      background: var(--pgn-color-green);
+    }
+  }
+}

@@ -1,14 +1,13 @@
 /* eslint-disable react/prop-types */
 /* eslint-disable react/no-unstable-nested-components */
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import {
-  Alert, Badge, Button, DataTable, Pagination, Spinner,
+  Alert, Badge, Button, DataTable, Form, Icon, Pagination, Spinner,
 } from '@openedx/paragon';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faHistory, faSearch } from '@fortawesome/free-solid-svg-icons';
+import { History, InfoOutline, Search } from '@openedx/paragon/icons';
 import UserIdentity from '../admin-console/components/UserIdentity';
-import { getAuditLogs } from './auditLogApi';
+import { useAuditLogs, useRecordHistory } from './auditLogApiHooks';
 import './AuditLogTable.scss';
 
 const ROLE_LABELS = {
@@ -139,34 +138,21 @@ ChangesModal.propTypes = {
 const RecordHistoryModal = ({
   appLabel, recordType, objectId, objectRepr, onClose,
 }) => {
-  const [logs, setLogs] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
   const [page, setPage] = useState(1);
-  const [count, setCount] = useState(0);
   const [changesEntry, setChangesEntry] = useState(null);
 
-  useEffect(() => {
-    let cancelled = false;
-    setLoading(true);
-    (async () => {
-      try {
-        const result = await getAuditLogs({
-          appLabel,
-          models: recordType ? [recordType] : [],
-          objectId,
-          page,
-          pageSize: PAGE_SIZE,
-        });
-        if (!cancelled) { setLogs(result.results); setCount(result.count); }
-      } catch (err) {
-        if (!cancelled) { setError(err?.message || 'Failed to load history.'); }
-      } finally {
-        if (!cancelled) { setLoading(false); }
-      }
-    })();
-    return () => { cancelled = true; };
-  }, [appLabel, recordType, objectId, page]);
+  const { data, isPending, error: queryError } = useRecordHistory({
+    appLabel,
+    models: recordType ? [recordType] : [],
+    objectId,
+    page,
+    pageSize: PAGE_SIZE,
+  });
+
+  const logs = data?.results ?? [];
+  const count = data?.count ?? 0;
+  const loading = isPending;
+  const error = queryError ? (queryError.message || 'Failed to load history.') : '';
 
   const pageCount = Math.ceil(count / PAGE_SIZE);
 
@@ -289,11 +275,7 @@ RecordHistoryModal.defaultProps = { recordType: undefined };
 const AuditLogTable = ({
   appLabel, models, objectId, recordFilter, onClearFilter,
 }) => {
-  const [logs, setLogs] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
   const [page, setPage] = useState(1);
-  const [count, setCount] = useState(0);
 
   const [actionFilter, setActionFilter] = useState('');
   const [searchText, setSearchText] = useState('');
@@ -330,35 +312,24 @@ const AuditLogTable = ({
     setPage(1);
   };
 
-  useEffect(() => {
-    let cancelled = false;
-    setLoading(true);
-    setError('');
-    (async () => {
-      try {
-        const result = await getAuditLogs({
-          appLabel,
-          models,
-          objectId: activeObjectId,
-          action: actionFilter || undefined,
-          search: debouncedSearch || undefined,
-          dateFrom: dateFrom || undefined,
-          dateTo: dateTo || undefined,
-          page,
-          pageSize: PAGE_SIZE,
-        });
-        if (!cancelled) { setLogs(result.results); setCount(result.count); }
-      } catch (err) {
-        if (!cancelled) {
-          setError(err?.response?.data?.detail || err?.message || 'Failed to load audit log.');
-        }
-      } finally {
-        if (!cancelled) { setLoading(false); }
-      }
-    })();
-    return () => { cancelled = true; };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [appLabel, models, activeObjectId, actionFilter, debouncedSearch, dateFrom, dateTo, page]);
+  const { data, isPending, error: queryError } = useAuditLogs({
+    appLabel,
+    models,
+    objectId: activeObjectId,
+    action: actionFilter || undefined,
+    search: debouncedSearch || undefined,
+    dateFrom: dateFrom || undefined,
+    dateTo: dateTo || undefined,
+    page,
+    pageSize: PAGE_SIZE,
+  });
+
+  const logs = data?.results ?? [];
+  const count = data?.count ?? 0;
+  const loading = isPending;
+  const error = queryError
+    ? (queryError.response?.data?.detail || queryError.message || 'Failed to load audit log.')
+    : '';
 
   const isPageLevel = !objectId;
   const pageCount = Math.ceil(count / PAGE_SIZE);
@@ -434,8 +405,10 @@ const AuditLogTable = ({
               variant="link"
               onClick={() => setHistoryModal(entry)}
               className="audit-log__history-btn"
+              iconBefore={History}
+              size="sm"
             >
-              <FontAwesomeIcon icon={faHistory} /> Full history
+              Full history
             </Button>
           </div>
         );
@@ -482,58 +455,63 @@ const AuditLogTable = ({
   return (
     <div className="audit-log">
       {recordFilter && (
-        <div className="audit-log__filter-banner">
-          <span>Showing full history for record <strong>#{recordFilter}</strong></span>
-          {onClearFilter && (
-            <Button
-              variant="link"
-              onClick={onClearFilter}
-              className="audit-log__filter-banner-clear"
-            >
-              ← Show all records
-            </Button>
-          )}
-        </div>
+        <Alert
+          variant="info"
+          icon={InfoOutline}
+          className="audit-log__filter-banner"
+          actions={onClearFilter ? [
+            <Button onClick={onClearFilter}>Show all records</Button>,
+          ] : undefined}
+        >
+          Showing full history for record <strong>#{recordFilter}</strong>
+        </Alert>
       )}
 
       <div className="audit-log__filters">
-        <div className="audit-log__search-wrap">
-          <FontAwesomeIcon icon={faSearch} className="audit-log__search-icon" />
-          <input
+        <div className="audit-log__search">
+          <Form.Control
             type="text"
             value={searchText}
             onChange={handleSearchChange}
             placeholder="Search by record name…"
-            className="audit-log__search-input audit-log__search-input--with-icon"
+            leadingElement={<Icon src={Search} className="text-gray-500" />}
+            aria-label="Search by record name"
           />
         </div>
-        <select
-          value={actionFilter}
-          onChange={handleActionChange}
-          className="audit-log__action-select"
-        >
-          {ACTION_OPTIONS.map(opt => (
-            <option key={opt.value} value={opt.value}>{opt.label}</option>
-          ))}
-        </select>
+        <div className="audit-log__action">
+          <Form.Control
+            as="select"
+            value={actionFilter}
+            onChange={handleActionChange}
+            aria-label="Filter by action"
+          >
+            {ACTION_OPTIONS.map(opt => (
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
+            ))}
+          </Form.Control>
+        </div>
         <div className="audit-log__date-range">
-          <label htmlFor="audit-date-from-admin" className="audit-log__date-label">From</label>
-          <input
-            id="audit-date-from-admin"
-            type="date"
-            value={dateFrom}
-            onChange={handleDateFromChange}
-            className="audit-log__date-input"
-          />
-          <label htmlFor="audit-date-to-admin" className="audit-log__date-label">To</label>
-          <input
-            id="audit-date-to-admin"
-            type="date"
-            value={dateTo}
-            min={dateFrom || undefined}
-            onChange={handleDateToChange}
-            className="audit-log__date-input"
-          />
+          <div className="audit-log__date-field">
+            <Form.Label htmlFor="audit-date-from-admin" className="audit-log__date-label">From</Form.Label>
+            <Form.Control
+              id="audit-date-from-admin"
+              type="date"
+              value={dateFrom}
+              onChange={handleDateFromChange}
+              className="audit-log__date-input"
+            />
+          </div>
+          <div className="audit-log__date-field">
+            <Form.Label htmlFor="audit-date-to-admin" className="audit-log__date-label">To</Form.Label>
+            <Form.Control
+              id="audit-date-to-admin"
+              type="date"
+              value={dateTo}
+              min={dateFrom || undefined}
+              onChange={handleDateToChange}
+              className="audit-log__date-input"
+            />
+          </div>
         </div>
         <span className="audit-log__count">
           {count} result{count !== 1 ? 's' : ''}

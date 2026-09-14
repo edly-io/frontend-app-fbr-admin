@@ -16,3 +16,12 @@
     gap: 18px 24px;
   }
 }
+
+// ─── Dark variant ───────────────────────────────────────────────────────────
+// The heading colour is a literal picked against a white panel; on the dark
+// surface it drops to roughly 3:1.
+[data-paragon-theme-variant="dark"] {
+  .detail-section .detail-section__title {
+    color: #7FB3E8;
+  }
+}

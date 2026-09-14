@@ -1,26 +1,130 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import PropTypes from 'prop-types';
-import { Button } from '@openedx/paragon';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEye, faPen } from '@fortawesome/free-solid-svg-icons';
+import {
+  DataTable, Form, Icon, IconButton, Pagination,
+} from '@openedx/paragon';
+import { Edit, Visibility } from '@openedx/paragon/icons';
 import { useIntl } from '@edx/frontend-platform/i18n';
 import UserIdentity from '../../components/UserIdentity';
 import StatusBadge from '../../components/status-badge/StatusBadge';
 import ActionMenu from '../../components/action-menu/ActionMenu';
-import PaginationFooter from '../../components/pagination-footer/PaginationFooter';
+import { ROWS_PER_PAGE_OPTIONS } from '../../constants';
+import adminMessages from '../../messages';
 import messages from './messages';
-import '../../../assets/scss/admin-table-styles.scss';
+import './users-styles.scss';
 
-const COLUMN_WIDTHS = {
-  index: '52px',
-  actions: '110px',
+const renderStrong = chunks => <strong>{chunks}</strong>;
+
+const IndexCell = ({ row, column }) => (
+  <span className="users-table__index">{column.rowNumberOffset + row.index + 1}</span>
+);
+
+IndexCell.propTypes = {
+  row: PropTypes.shape({ index: PropTypes.number.isRequired }).isRequired,
+  column: PropTypes.shape({ rowNumberOffset: PropTypes.number.isRequired }).isRequired,
 };
 
-/**
- * Users table body + header + pagination footer. `pageUsers` is the already
- * client-side status-filtered page of results; `rowNumberOffset` is
- * `(page - 1) * rowsPerPage` so row numbers stay stable across pages.
- */
+const UserCell = ({ row }) => {
+  const user = row.original;
+
+  return (
+    <UserIdentity
+      name={user.name}
+      badges={[user.role].filter(Boolean)}
+      size="compact"
+      avatarValue={user.photo || user.initials}
+    />
+  );
+};
+
+UserCell.propTypes = {
+  row: PropTypes.shape({
+    original: PropTypes.shape({
+      name: PropTypes.string,
+      role: PropTypes.string,
+      photo: PropTypes.string,
+      initials: PropTypes.string,
+    }).isRequired,
+  }).isRequired,
+};
+
+const EmailCell = ({ value }) => {
+  const intl = useIntl();
+
+  return value
+    ? <span className="users-table__email">{value}</span>
+    : <span className="users-table__muted">{intl.formatMessage(messages.emptyValue)}</span>;
+};
+
+EmailCell.propTypes = { value: PropTypes.string };
+EmailCell.defaultProps = { value: '' };
+
+const MutedTextCell = ({ value }) => {
+  const intl = useIntl();
+
+  return (
+    <span className="users-table__muted">
+      {value || intl.formatMessage(messages.emptyValue)}
+    </span>
+  );
+};
+
+MutedTextCell.propTypes = { value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]) };
+MutedTextCell.defaultProps = { value: '' };
+
+const StatusCell = ({ value }) => <StatusBadge status={value} />;
+
+StatusCell.propTypes = { value: PropTypes.string.isRequired };
+
+const ActionsCell = ({ row, column }) => {
+  const intl = useIntl();
+  const user = row.original;
+
+  return (
+    <div className="users-table__actions d-flex align-items-center">
+      <IconButton
+        src={Visibility}
+        iconAs={Icon}
+        size="sm"
+        alt={intl.formatMessage(messages.viewTooltip)}
+        onClick={() => column.onView(user)}
+      />
+      <IconButton
+        src={Edit}
+        iconAs={Icon}
+        size="sm"
+        alt={intl.formatMessage(messages.editTooltip)}
+        onClick={() => column.onEdit(user)}
+      />
+      <ActionMenu
+        userId={user.id}
+        userStatus={user.status}
+        openId={column.openMenuId}
+        setOpenId={column.setOpenMenuId}
+        onView={() => column.onView(user)}
+        onEdit={() => column.onEdit(user)}
+        onDeactivate={() => column.onDeactivate(user)}
+      />
+    </div>
+  );
+};
+
+ActionsCell.propTypes = {
+  row: PropTypes.shape({
+    original: PropTypes.shape({
+      id: PropTypes.number.isRequired,
+      status: PropTypes.string,
+    }).isRequired,
+  }).isRequired,
+  column: PropTypes.shape({
+    openMenuId: PropTypes.number,
+    setOpenMenuId: PropTypes.func.isRequired,
+    onView: PropTypes.func.isRequired,
+    onEdit: PropTypes.func.isRequired,
+    onDeactivate: PropTypes.func.isRequired,
+  }).isRequired,
+};
+
 const UsersTable = ({
   isLoading,
   pageUsers,
@@ -41,91 +145,92 @@ const UsersTable = ({
 }) => {
   const intl = useIntl();
 
-  const columns = [
-    { label: intl.formatMessage(messages.columnIndex), width: COLUMN_WIDTHS.index },
-    { label: intl.formatMessage(messages.columnFullName) },
-    { label: intl.formatMessage(messages.columnEmail) },
-    { label: intl.formatMessage(messages.columnBatch) },
-    { label: intl.formatMessage(messages.columnMobile) },
-    { label: intl.formatMessage(messages.columnStatus) },
-    { label: intl.formatMessage(messages.columnActions), width: COLUMN_WIDTHS.actions },
-  ];
+  const columns = useMemo(() => [
+    {
+      Header: intl.formatMessage(messages.columnIndex),
+      id: 'index',
+      accessor: 'id',
+      rowNumberOffset,
+      Cell: IndexCell,
+    },
+    {
+      Header: intl.formatMessage(messages.columnFullName),
+      accessor: 'name',
+      Cell: UserCell,
+    },
+    {
+      Header: intl.formatMessage(messages.columnEmail),
+      accessor: 'email',
+      Cell: EmailCell,
+    },
+    {
+      Header: intl.formatMessage(messages.columnBatch),
+      accessor: 'batchNo',
+      Cell: MutedTextCell,
+    },
+    {
+      Header: intl.formatMessage(messages.columnMobile),
+      accessor: 'mobile',
+      Cell: MutedTextCell,
+    },
+    {
+      Header: intl.formatMessage(messages.columnStatus),
+      accessor: 'status',
+      Cell: StatusCell,
+    },
+    {
+      Header: intl.formatMessage(messages.columnActions),
+      id: 'actions',
+      accessor: 'id',
+      cellClassName: 'users-table__actions-cell',
+      openMenuId,
+      setOpenMenuId,
+      onView,
+      onEdit,
+      onDeactivate,
+      Cell: ActionsCell,
+    },
+  ], [intl, rowNumberOffset, openMenuId, setOpenMenuId, onView, onEdit, onDeactivate]);
 
   return (
-    <div className="admin-table__card">
-      <div className="admin-table__scroll">
-        <table className="admin-table">
-          <thead>
-            <tr className="admin-table__head-row">
-              {columns.map(({ label, width }) => (
-                <th
-                  key={label}
-                  style={width ? { width } : undefined}
-                  className={`admin-table__head-cell ${label === intl.formatMessage(messages.columnActions) ? 'admin-table__head-cell--center' : ''}`}
-                >
-                  {label}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {isLoading && (
-              <tr><td colSpan={7} className="admin-table__empty-cell">{intl.formatMessage(messages.loading)}</td></tr>
-            )}
-            {!isLoading && pageUsers.length === 0 && (
-              <tr><td colSpan={7} className="admin-table__empty-cell">{intl.formatMessage(messages.emptyState)}</td></tr>
-            )}
-            {!isLoading && pageUsers.map((user, idx) => (
-              <tr key={user.id} className="admin-table__body-row">
-                <td className="admin-table__cell admin-table__cell--index">{rowNumberOffset + idx + 1}</td>
-                <td className="admin-table__cell">
-                  <UserIdentity
-                    name={user.name}
-                    badges={[user.role].filter(Boolean)}
-                    size="compact"
-                    avatarValue={user.photo || user.initials}
-                  />
-                </td>
-                <td className="admin-table__cell admin-table__cell--link admin-table__cell--nowrap">{user.email}</td>
-                <td className="admin-table__cell admin-table__cell--muted admin-table__cell--nowrap">{user.batchNo || intl.formatMessage(messages.emptyValue)}</td>
-                <td className="admin-table__cell admin-table__cell--muted admin-table__cell--nowrap">{user.mobile || intl.formatMessage(messages.emptyValue)}</td>
-                <td className="admin-table__cell"><StatusBadge status={user.status} /></td>
-                <td className="admin-table__cell">
-                  <div className="admin-table__cell--actions">
-                    <Button variant="tertiary" size="sm" title={intl.formatMessage(messages.viewTooltip)} onClick={() => onView(user)}>
-                      <FontAwesomeIcon icon={faEye} />
-                    </Button>
-                    <Button variant="tertiary" size="sm" title={intl.formatMessage(messages.editTooltip)} onClick={() => onEdit(user)}>
-                      <FontAwesomeIcon icon={faPen} />
-                    </Button>
-                    <ActionMenu
-                      userId={user.id}
-                      userStatus={user.status}
-                      openId={openMenuId}
-                      setOpenId={setOpenMenuId}
-                      onView={() => onView(user)}
-                      onEdit={() => onEdit(user)}
-                      onDeactivate={() => onDeactivate(user)}
-                    />
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+    <div className="users-table">
+      <DataTable
+        isLoading={isLoading}
+        data={pageUsers}
+        itemCount={total}
+        columns={columns}
+      >
+        <DataTable.Table />
+        <DataTable.EmptyTable content={intl.formatMessage(messages.emptyState)} />
+      </DataTable>
 
-      <PaginationFooter
-        page={page}
-        totalPages={totalPages}
-        start={start}
-        end={end}
-        total={total}
-        rowsPerPage={rowsPerPage}
-        onPageChange={onPageChange}
-        onRowsPerPageChange={onRowsPerPageChange}
-        showPageNumbers
-      />
+      <div className="users-table__footer d-flex flex-column flex-lg-row align-items-start align-items-lg-center justify-content-lg-between">
+        <span className="users-table__summary">
+          {intl.formatMessage(adminMessages.paginationShowing, {
+            start, end, total, strong: renderStrong,
+          })}
+        </span>
+        <Pagination
+          paginationLabel={intl.formatMessage(messages.paginationLabel)}
+          pageCount={totalPages}
+          currentPage={page}
+          onPageSelect={onPageChange}
+          size="small"
+          variant="secondary"
+        />
+        <div className="users-table__rows-per-page d-flex align-items-center">
+          {intl.formatMessage(adminMessages.paginationRowsPerPage)}
+          <Form.Control
+            as="select"
+            size="sm"
+            value={rowsPerPage}
+            onChange={e => onRowsPerPageChange(Number(e.target.value))}
+            className="users-table__rows-select"
+          >
+            {ROWS_PER_PAGE_OPTIONS.map(n => <option key={n} value={n}>{n}</option>)}
+          </Form.Control>
+        </div>
+      </div>
     </div>
   );
 };

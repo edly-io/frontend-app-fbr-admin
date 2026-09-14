@@ -17,7 +17,7 @@
 /* AddUserModal */
 
 .add-user-modal__panel {
-  background: #fff;
+  background: var(--pgn-color-white);
   border-radius: 12px;
   width: 880px;
   max-width: 96vw;
@@ -182,7 +182,7 @@
   cursor: pointer;
   text-align: center;
   border: 1.5px solid var(--pgn-color-border);
-  background: #fff;
+  background: var(--pgn-color-white);
 }
 
 .add-user-modal__role-btn--active {
@@ -223,7 +223,7 @@
   cursor: pointer;
   text-align: center;
   border: 1.5px solid var(--pgn-color-border);
-  background: #fff;
+  background: var(--pgn-color-white);
 }
 
 .add-user-modal__trainee-btn--active {
@@ -280,7 +280,7 @@
   display: flex;
   justify-content: flex-end;
   gap: 10px;
-  background: #fff;
+  background: var(--pgn-color-white);
   flex-shrink: 0;
 }
 
@@ -310,7 +310,7 @@
 }
 
 .bulk-import-modal__panel {
-  background: #fff;
+  background: var(--pgn-color-white);
   border-radius: 12px;
   width: 900px;
   max-width: 96vw;
@@ -408,7 +408,7 @@
   font-weight: 600;
   text-align: center;
   border: 1.5px solid var(--pgn-color-border);
-  background: #fff;
+  background: var(--pgn-color-white);
   color: var(--pgn-color-gray-900);
 }
 
@@ -520,7 +520,7 @@
   display: flex;
   justify-content: flex-end;
   gap: 10px;
-  background: #fff;
+  background: var(--pgn-color-white);
   flex-shrink: 0;
 }
 
@@ -532,7 +532,7 @@
 /* ViewUserModal */
 
 .view-user-modal__panel {
-  background: #fff;
+  background: var(--pgn-color-white);
   border-radius: 12px;
   width: 720px;
   max-width: 96vw;
@@ -652,4 +652,34 @@
   color: var(--pgn-color-primary-base);
   cursor: pointer;
   text-decoration: underline;
+}
+
+// ─── Dark variant ───────────────────────────────────────────────────────────
+// The panels were literal `#fff`, so they stayed white while the type inside
+// them flipped to light ink. With the surface on a token it follows the theme,
+// and the panel needs an edge to stand off the dimmed page behind it. The
+// remaining fixes are the tints that are literals for the same reason.
+[data-paragon-theme-variant="dark"] {
+  .add-user-modal__panel,
+  .bulk-import-modal__panel,
+  .view-user-modal__panel {
+    border: 1px solid rgba(248, 248, 248, 0.16);
+  }
+
+  .add-user-modal__role-btn,
+  .add-user-modal__trainee-btn,
+  .bulk-import-modal__role-btn {
+    background: rgba(248, 248, 248, 0.06);
+    border-color: rgba(248, 248, 248, 0.16);
+  }
+
+  .bulk-import-modal__result-status--error {
+    background: rgba(255, 138, 128, 0.16);
+    color: #FFB3A7;
+  }
+
+  .bulk-import-modal__result-status--success {
+    background: rgba(93, 214, 152, 0.16);
+    color: var(--pgn-color-green);
+  }
 }

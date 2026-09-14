@@ -1,7 +1,7 @@
 import { getConfig } from '@edx/frontend-platform';
 import { getAuthenticatedHttpClient } from '@edx/frontend-platform/auth';
 import {
-  getInitials, getPhotoUrl, getPaginatedResults, getUserDetail as fetchUserDetail,
+  getInitials, getPhotoUrl, getPaginatedResults, getPaginatedCount, getUserDetail as fetchUserDetail,
 } from '../../../data/api';
 import { ROLE_LABELS, STATUS_LABELS } from '../constants';
 
@@ -53,7 +53,7 @@ export const getUsers = async ({
 
   return {
     users: results.map(mapProfileToUser),
-    total: typeof data?.count === 'number' ? data.count : results.length,
+    total: getPaginatedCount(data, results),
   };
 };
 

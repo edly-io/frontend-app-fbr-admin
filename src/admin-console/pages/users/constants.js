@@ -45,4 +45,4 @@ export const STATUS_LABELS = {
 
 export const STATUS_FILTER_OPTIONS = ['All', ...Object.values(STATUS_LABELS)];
 
-export const DEFAULT_USERS_ROWS_PER_PAGE = 25;
+export const DEFAULT_USERS_ROWS_PER_PAGE = 10;
