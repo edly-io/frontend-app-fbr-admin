@@ -34,6 +34,8 @@ const UsersFilters = ({
   countLabel,
 }) => {
   const intl = useIntl();
+  const selectedStatusLabel = STATUS_FILTER_OPTIONS
+    .find(option => option.value === statusFilter)?.label ?? statusFilter;
 
   return (
     <>
@@ -67,11 +69,13 @@ const UsersFilters = ({
         <div className="users-filters__controls d-flex align-items-center justify-content-between">
           <Dropdown>
             <Dropdown.Toggle variant="outline-secondary" id="status-filter" className="users-filters__status-toggle">
-              {intl.formatMessage(messages.statusFilterLabel, { status: statusFilter })}
+              {intl.formatMessage(messages.statusFilterLabel, { status: selectedStatusLabel })}
             </Dropdown.Toggle>
             <Dropdown.Menu>
-              {STATUS_FILTER_OPTIONS.map(status => (
-                <Dropdown.Item key={status} onClick={() => onStatusFilterChange(status)}>{status}</Dropdown.Item>
+              {STATUS_FILTER_OPTIONS.map(option => (
+                <Dropdown.Item key={option.value} onClick={() => onStatusFilterChange(option.value)}>
+                  {option.label}
+                </Dropdown.Item>
               ))}
             </Dropdown.Menu>
           </Dropdown>

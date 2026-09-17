@@ -1,5 +1,7 @@
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import {
+  act, render, screen, waitFor,
+} from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { IntlProvider } from 'react-intl';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
@@ -30,11 +32,19 @@ jest.mock('./UsersToolbar', () => function MockUsersToolbar() {
   return <div data-testid="users-toolbar" />;
 });
 
-jest.mock('./UsersFilters', () => function MockUsersFilters() {
+// Captured so a test can drive the filter callbacks without rendering the
+// real dropdown.
+const filtersProps = [];
+
+jest.mock('./UsersFilters', () => /* eslint-disable react/prop-types */ function MockUsersFilters(props) {
+  filtersProps.push(props);
   return <div data-testid="users-filters" />;
 });
 
-jest.mock('./UsersTable', () => function MockUsersTable() {
+const tableProps = [];
+
+jest.mock('./UsersTable', () => /* eslint-disable react/prop-types */ function MockUsersTable(props) {
+  tableProps.push(props);
   return <div data-testid="users-table" />;
 });
 
@@ -70,6 +80,10 @@ const makeQueryClient = () => new QueryClient({
   defaultOptions: { queries: { retry: false } },
 });
 
+const lastFiltersProps = () => filtersProps[filtersProps.length - 1];
+
+const lastTableProps = () => tableProps[tableProps.length - 1];
+
 const renderPage = (initialEntries = ['/']) => render(
   <QueryClientProvider client={makeQueryClient()}>
     <IntlProvider locale="en">
@@ -97,6 +111,8 @@ describe('UsersPage', () => {
     useUpdateUserStatus.mockReturnValue({ mutate: jest.fn() });
   });
 
+  beforeEach(() => { filtersProps.length = 0; tableProps.length = 0; });
+
   afterEach(() => jest.clearAllMocks());
 
   it('renders users list in default list view', async () => {
@@ -112,6 +128,48 @@ describe('UsersPage', () => {
 
     // Audit log is NOT shown in default list view
     expect(screen.queryByTestId('audit-log-table')).not.toBeInTheDocument();
+  });
+
+  it('asks the endpoint for the selected status instead of filtering in the page', async () => {
+    renderPage(['/']);
+
+    expect(useUsers).toHaveBeenLastCalledWith(expect.objectContaining({ status: 'all' }));
+
+    act(() => lastFiltersProps().onStatusFilterChange('on_leave'));
+
+    await waitFor(() => expect(useUsers).toHaveBeenLastCalledWith(
+      expect.objectContaining({ status: 'on_leave' }),
+    ));
+  });
+
+  it('goes back to page 1 when the status changes', async () => {
+    renderPage(['/']);
+
+    act(() => lastFiltersProps().onStatusFilterChange('lapsed'));
+
+    await waitFor(() => expect(useUsers).toHaveBeenLastCalledWith(
+      expect.objectContaining({ status: 'lapsed', page: 1 }),
+    ));
+  });
+
+  it('renders every row the endpoint returned, without a second filter pass', async () => {
+    useUsers.mockReturnValue({
+      data: {
+        users: [
+          { id: 1, name: 'Ali Raza', status: 'Active' },
+          { id: 2, name: 'Sara Khan', status: 'On Leave' },
+        ],
+        total: 2,
+      },
+      isLoading: false,
+      isError: false,
+      error: null,
+    });
+
+    renderPage(['/']);
+
+    await waitFor(() => expect(screen.getByTestId('users-table')).toBeInTheDocument());
+    expect(lastTableProps().pageUsers).toHaveLength(2);
   });
 
   it('shows audit log view when ?view=audit-log is in URL', async () => {
