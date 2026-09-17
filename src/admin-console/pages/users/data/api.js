@@ -3,7 +3,7 @@ import { getAuthenticatedHttpClient } from '@edx/frontend-platform/auth';
 import {
   getInitials, getPhotoUrl, getPaginatedResults, getPaginatedCount, getUserDetail as fetchUserDetail,
 } from '../../../data/api';
-import { ROLE_LABELS, STATUS_LABELS } from '../constants';
+import { ROLE_LABELS, STATUS_FILTER_ALL, STATUS_LABELS } from '../constants';
 
 export const BIODATA_USER_LIST_PATH = '/fbr/api/biodata/v1/users/';
 
@@ -33,12 +33,12 @@ export const mapProfileToUser = profile => ({
 });
 
 /**
- * Fetches a page of users. Preserves the exact query params used by the
- * original implementation: `page`, `page_size`, optional `role`, optional
- * `search`.
+ * Fetches a page of users: `page`, `page_size`, optional `role`, `status` and
+ * `search`. Every filter is applied by the list endpoint itself, so the count
+ * that comes back is the filtered total and paging walks the filtered set.
  */
 export const getUsers = async ({
-  page, pageSize, role, search,
+  page, pageSize, role, search, status,
 }) => {
   const params = new URLSearchParams({
     page: String(page),
@@ -46,6 +46,7 @@ export const getUsers = async ({
   });
 
   if (role) { params.set('role', role); }
+  if (status && status !== STATUS_FILTER_ALL) { params.set('status', status); }
   if (search && search.trim()) { params.set('search', search.trim()); }
 
   const { data } = await getAuthenticatedHttpClient().get(`${getUsersUrl()}?${params.toString()}`);

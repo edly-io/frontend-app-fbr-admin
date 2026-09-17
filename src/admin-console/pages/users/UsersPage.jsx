@@ -6,7 +6,7 @@ import { getProfileMfeUserUrl } from '../../data/api';
 import {
   useUsers, useSuperAdminAccessProbe, useUserDetailMutation, useUpdateUserStatus,
 } from './data/apiHooks';
-import { TABS, DEFAULT_USERS_ROWS_PER_PAGE } from './constants';
+import { TABS, DEFAULT_USERS_ROWS_PER_PAGE, STATUS_FILTER_ALL } from './constants';
 import UsersToolbar from './UsersToolbar';
 import UsersFilters from './UsersFilters';
 import UsersTable from './UsersTable';
@@ -26,25 +26,21 @@ const TAB_LABEL_MESSAGES = {
 };
 
 /**
- * Users page: role tabs + search + client-side status filter over a
- * server-paginated user list, row actions (view/edit/deactivate) and the
- * Add User / Bulk Import / View User modals.
+ * Users page: role tabs + search + status filter over a server-paginated user
+ * list, row actions (view/edit/deactivate) and the Add User / Bulk Import /
+ * View User modals.
  *
- * Behavior notes preserved from the monolith (see task constraints - not
- * "fixed" even though arguably inconsistent):
- *  - The status filter is applied client-side to only the already-fetched
- *    page of results; it does not re-query the server.
- *  - Pagination math (`totalPages`, `start`, `end`) is driven by the
- *    server-side total count for the *unfiltered* page, not the
- *    status-filtered subset actually rendered.
- *  - "Deactivate/Activate" calls POST /v1/users/{id}/status/ and uses
- *    `statusOverrides` for an optimistic update while the request is in flight.
+ * Every filter - tab, search and status - is a query param on the list
+ * endpoint, so the count and the pagination describe the filtered set.
+ *
+ * "Deactivate/Activate" calls POST /v1/users/{id}/status/ and uses
+ * `statusOverrides` for an optimistic update while the request is in flight.
  */
 const UsersPage = () => {
   const intl = useIntl();
   const [searchParams, setSearchParams] = useSearchParams();
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState('All');
+  const [statusFilter, setStatusFilter] = useState(STATUS_FILTER_ALL);
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(DEFAULT_USERS_ROWS_PER_PAGE);
   const [openMenuId, setOpenMenuId] = useState(null);
@@ -96,7 +92,7 @@ const UsersPage = () => {
   const {
     data, isLoading, isError, error,
   } = useUsers({
-    page: currentPage, pageSize: rowsPerPage, role: activeRole, search,
+    page: currentPage, pageSize: rowsPerPage, role: activeRole, search, status: statusFilter,
   });
 
   const totalUsers = data?.total ?? 0;
@@ -106,11 +102,9 @@ const UsersPage = () => {
     )),
     [data, statusOverrides],
   );
-  const filtered = users.filter(u => statusFilter === 'All' || u.status === statusFilter);
-
   const totalPages = Math.max(1, Math.ceil(totalUsers / rowsPerPage));
   const page = Math.min(currentPage, totalPages);
-  const pageUsers = filtered;
+  const pageUsers = users;
   const start = totalUsers === 0 ? 0 : (page - 1) * rowsPerPage + 1;
   const end = Math.min((page - 1) * rowsPerPage + pageUsers.length, totalUsers);
 

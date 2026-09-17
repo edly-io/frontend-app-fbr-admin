@@ -3,13 +3,11 @@
 // NOTE on i18n scope: `ROLE_LABELS` / `STATUS_LABELS` intentionally remain
 // plain English string constants (not routed through `intl.formatMessage`).
 // Their output feeds both on-screen text AND equality comparisons elsewhere
-// (e.g. the status filter, and the badge text handed to the shared
-// `UserIdentity` component from `@edly-io/frontend-component-fbr`, which
-// hardcodes English badge strings — "Super Admin", "Instructor", etc. — to
-// pick a badge color/tone). Translating these values would silently change
-// which tone a badge renders with in non-English locales and would change
-// the status-filter matching behavior, which is outside the scope of this
-// structural refactor. Only chrome that does *not* participate in such
+// (e.g. the badge text handed to the shared `UserIdentity` component from
+// `@edly-io/frontend-component-fbr`, which hardcodes English badge strings —
+// "Super Admin", "Instructor", etc. — to pick a badge color/tone).
+// Translating these values would silently change which tone a badge renders
+// with in non-English locales. Only chrome that does *not* participate in such
 // comparisons (tab labels, headers, buttons, empty states, etc.) is
 // localized via `messages.js`.
 
@@ -43,6 +41,14 @@ export const STATUS_LABELS = {
   lapsed: 'Lapsed',
 };
 
-export const STATUS_FILTER_OPTIONS = ['All', ...Object.values(STATUS_LABELS)];
+// The dropdown carries the backend's own status values; `?status=` goes
+// straight to the list endpoint, which filters the queryset. `all` is the
+// dropdown's "unset" sentinel and is simply not sent.
+export const STATUS_FILTER_ALL = 'all';
+
+export const STATUS_FILTER_OPTIONS = [
+  { value: STATUS_FILTER_ALL, label: 'All' },
+  ...Object.entries(STATUS_LABELS).map(([value, label]) => ({ value, label })),
+];
 
 export const DEFAULT_USERS_ROWS_PER_PAGE = 10;
