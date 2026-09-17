@@ -47,16 +47,10 @@ describe('exportProgramReports', () => {
     expect(params.get('to')).toBe('2026-12-31');
   });
 
-  // The date inputs are unbounded, so the pair can arrive in either order; the
-  // endpoint reads `from` as the lower bound of a run-window overlap, so the
-  // request layer is what puts a reversed pair the right way round.
-  it.each([
-    ['start before end', '2026-09-10', '2026-09-20'],
-    ['end before start', '2026-09-20', '2026-09-10'],
-  ])('sends the range low bound first (%s)', async (_label, startDate, endDate) => {
+  it('sends the picked range as from/to', async () => {
     const get = mockGet({ data: csvBlob(), headers: {} });
 
-    await exportProgramReports({ startDate, endDate });
+    await exportProgramReports({ startDate: '2026-09-10', endDate: '2026-09-20' });
 
     const params = requestedUrl(get).searchParams;
     expect(params.get('from')).toBe('2026-09-10');

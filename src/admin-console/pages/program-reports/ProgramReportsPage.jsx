@@ -25,12 +25,6 @@ const DEFAULT_FILTERS = {
 const EMPTY_FILTER_OPTIONS = { programs: [], instructors: [], cities: [] };
 const EMPTY_KPIS = { programCount: 0, certificatesAwarded: 0 };
 
-// The date range filter puts no bounds on either input: programs are scheduled
-// ahead of time and the report lists future ones, and picking the two dates in
-// either order is a legitimate selection. A reversed pair is put the right way
-// round when the request is built (see `programReportParams` in ./data/api),
-// not by blocking the pick here.
-
 /**
  * Program Report page: a Program/Instructor/City filter row driving a
  * server-paginated data table backed by `GET /fbr/api/reports/program/`.
@@ -82,6 +76,23 @@ const ProgramReportsPage = () => {
 
   const handleFilterChange = (key) => (value) => {
     setDraftFilters(previous => ({ ...previous, [key]: value }));
+  };
+
+  // `endMin` bounds the picker; a date input can still be typed into, so the
+  // handlers enforce the same ordering.
+  const handleStartDateChange = (startDate) => {
+    setDraftFilters(previous => ({
+      ...previous,
+      startDate,
+      endDate: previous.endDate && previous.endDate < startDate ? startDate : previous.endDate,
+    }));
+  };
+
+  const handleEndDateChange = (endDate) => {
+    setDraftFilters(previous => ({
+      ...previous,
+      endDate: previous.startDate && endDate < previous.startDate ? previous.startDate : endDate,
+    }));
   };
 
   // The backend builds and streams the CSV over the *applied* filters, so the
@@ -157,8 +168,9 @@ const ProgramReportsPage = () => {
       endValue: draftFilters.endDate,
       startLabel: intl.formatMessage(messages.filterDateRangeStart),
       endLabel: intl.formatMessage(messages.filterDateRangeEnd),
-      onStartChange: handleFilterChange('startDate'),
-      onEndChange: handleFilterChange('endDate'),
+      onStartChange: handleStartDateChange,
+      onEndChange: handleEndDateChange,
+      endMin: draftFilters.startDate || undefined,
     },
   ];
 

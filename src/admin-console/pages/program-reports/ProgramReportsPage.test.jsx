@@ -46,7 +46,6 @@ const renderPage = () => render(
   </IntlProvider>,
 );
 
-/** An ISO date *n* days from now, so the fixtures never age into the past. */
 const isoDaysFromNow = (days) => {
   const date = new Date();
   date.setDate(date.getDate() + days);
@@ -61,7 +60,6 @@ const pickRange = (start, end) => {
   fireEvent.change(endInput(), { target: { value: end } });
 };
 
-/** The filters the listing query last ran with. */
 const lastQueriedFilters = () => {
   const { calls } = useProgramReports.mock;
   return calls[calls.length - 1][0];
@@ -71,33 +69,20 @@ const apply = () => fireEvent.click(screen.getByRole('button', { name: 'Apply Fi
 
 afterEach(() => jest.clearAllMocks());
 
-// ── Unbounded selection ──────────────────────────────────────────────────────
+// ── No upper bound ───────────────────────────────────────────────────────────
 
-describe('ProgramReportsPage date range is unbounded', () => {
-  it('puts no min or max on either date input', () => {
+describe('ProgramReportsPage date range has no upper bound', () => {
+  it('puts no max on either date input', () => {
     renderPage();
 
-    // Programs are scheduled ahead and the report lists future ones, and either
-    // pick order is legitimate - any bound here would hide valid selections.
     expect(startInput()).not.toHaveAttribute('max');
     expect(endInput()).not.toHaveAttribute('max');
-    expect(startInput()).not.toHaveAttribute('min');
-    expect(endInput()).not.toHaveAttribute('min');
-  });
-
-  it('keeps no min on the end input after a start date is picked', () => {
-    renderPage();
-
-    fireEvent.change(startInput(), { target: { value: '2026-09-20' } });
-
-    expect(endInput()).not.toHaveAttribute('min');
   });
 
   it.each([
     ['a past range', '2025-01-01', '2025-03-31'],
     ['today on both sides', isoDaysFromNow(0), isoDaysFromNow(0)],
     ['a future range', isoDaysFromNow(30), isoDaysFromNow(365)],
-    ['an end date before the start date', '2026-09-20', '2026-09-10'],
     ['an end date after the start date', '2026-09-10', '2026-09-20'],
     ['the same date on both sides', '2026-09-15', '2026-09-15'],
   ])('keeps %s exactly as picked', (_label, start, end) => {
@@ -107,6 +92,57 @@ describe('ProgramReportsPage date range is unbounded', () => {
 
     expect(startInput()).toHaveValue(start);
     expect(endInput()).toHaveValue(end);
+  });
+});
+
+// ── The end date can't precede the start date ────────────────────────────────
+
+describe('ProgramReportsPage date range keeps its ends in order', () => {
+  it('bounds the end input at the start date once one is picked', () => {
+    renderPage();
+
+    expect(endInput()).not.toHaveAttribute('min');
+
+    fireEvent.change(startInput(), { target: { value: '2026-09-20' } });
+
+    expect(endInput()).toHaveAttribute('min', '2026-09-20');
+  });
+
+  it('pulls an end date typed before the start date up to it', () => {
+    renderPage();
+
+    pickRange('2026-09-20', '2026-09-10');
+
+    expect(startInput()).toHaveValue('2026-09-20');
+    expect(endInput()).toHaveValue('2026-09-20');
+  });
+
+  it('carries the end date along when the start date moves past it', () => {
+    renderPage();
+
+    pickRange('2026-09-10', '2026-09-20');
+    fireEvent.change(startInput(), { target: { value: '2026-09-25' } });
+
+    expect(endInput()).toHaveValue('2026-09-25');
+  });
+
+  it('leaves an end date on or after the start date alone', () => {
+    renderPage();
+
+    pickRange('2026-09-10', '2026-09-10');
+    expect(endInput()).toHaveValue('2026-09-10');
+
+    fireEvent.change(endInput(), { target: { value: '2026-09-20' } });
+
+    expect(endInput()).toHaveValue('2026-09-20');
+  });
+
+  it('accepts an end date with no start date picked', () => {
+    renderPage();
+
+    fireEvent.change(endInput(), { target: { value: '2026-09-10' } });
+
+    expect(endInput()).toHaveValue('2026-09-10');
   });
 });
 
@@ -124,7 +160,7 @@ describe('ProgramReportsPage date range reaches the query', () => {
     expect(lastQueriedFilters()).toMatchObject({ startDate: start, endDate: end });
   });
 
-  it('sends a reversed range as picked, for the request layer to order', () => {
+  it('never sends an end date before the start date', () => {
     renderPage();
 
     pickRange('2026-09-20', '2026-09-10');
@@ -132,7 +168,7 @@ describe('ProgramReportsPage date range reaches the query', () => {
 
     expect(lastQueriedFilters()).toMatchObject({
       startDate: '2026-09-20',
-      endDate: '2026-09-10',
+      endDate: '2026-09-20',
     });
   });
 
