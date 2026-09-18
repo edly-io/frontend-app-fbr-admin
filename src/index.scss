@@ -7,6 +7,15 @@ body {
   min-width: 320px;
 }
 
+// Paragon caps every DataTable cell at `max-width: 20vw` and clips the
+// overflow. That is ~280px on a desktop but only ~75px on a phone, which cuts
+// names, messages and notes off mid-word. Tables that cannot fit a narrow
+// viewport hold a minimum width and scroll instead, so a fixed cap reads
+// correctly at every size.
+.pgn__data-table-cell-wrap {
+  max-width: 20rem;
+}
+
 // Move Paragon toast to top-right
 #toast-root.toast-container {
   top: 24px;
