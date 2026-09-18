@@ -1,13 +1,14 @@
 import React, { useMemo } from 'react';
 import PropTypes from 'prop-types';
 import {
-  DataTable, Form, Icon, IconButton, Pagination,
+  DataTable, Form, Hyperlink, Icon, IconButton, Pagination,
 } from '@openedx/paragon';
 import { Edit, Visibility } from '@openedx/paragon/icons';
 import { useIntl } from '@edx/frontend-platform/i18n';
 import UserIdentity from '../../components/UserIdentity';
 import StatusBadge from '../../components/status-badge/StatusBadge';
 import ActionMenu from '../../components/action-menu/ActionMenu';
+import { getProfileMfeUserUrl } from '../../data/api';
 import { ROWS_PER_PAGE_OPTIONS } from '../../constants';
 import adminMessages from '../../messages';
 import messages from './messages';
@@ -76,9 +77,53 @@ const StatusCell = ({ value }) => <StatusBadge status={value} />;
 
 StatusCell.propTypes = { value: PropTypes.string.isRequired };
 
+// The profile MFE opens in a new tab. An anchor rather than a click handler is
+// what lets the row be middle-clicked, cmd-clicked, or have its link copied
+// from the context menu; `Hyperlink` adds `rel="noopener noreferrer"` itself.
+// `IconButton` renders a <button> only, so the icon-button classes carry the
+// styling across. Without a configured profile URL there is nothing to link to,
+// so it falls back to the click handler.
+const EditAction = ({ user, onEdit, editUrl }) => {
+  const intl = useIntl();
+  const label = intl.formatMessage(messages.editTooltip);
+
+  if (!editUrl) {
+    return (
+      <IconButton
+        src={Edit}
+        iconAs={Icon}
+        size="sm"
+        alt={label}
+        onClick={() => onEdit(user)}
+      />
+    );
+  }
+
+  return (
+    <Hyperlink
+      destination={editUrl}
+      target="_blank"
+      showLaunchIcon={false}
+      aria-label={label}
+      className="btn-icon btn-icon-primary btn-icon-sm users-table__edit-link"
+    >
+      <Icon src={Edit} className="btn-icon__icon" />
+    </Hyperlink>
+  );
+};
+
+EditAction.propTypes = {
+  user: PropTypes.shape({ id: PropTypes.number }).isRequired,
+  onEdit: PropTypes.func.isRequired,
+  editUrl: PropTypes.string,
+};
+
+EditAction.defaultProps = { editUrl: null };
+
 const ActionsCell = ({ row, column }) => {
   const intl = useIntl();
   const user = row.original;
+  const editUrl = getProfileMfeUserUrl(user.id);
 
   return (
     <div className="users-table__actions d-flex align-items-center">
@@ -89,13 +134,7 @@ const ActionsCell = ({ row, column }) => {
         alt={intl.formatMessage(messages.viewTooltip)}
         onClick={() => column.onView(user)}
       />
-      <IconButton
-        src={Edit}
-        iconAs={Icon}
-        size="sm"
-        alt={intl.formatMessage(messages.editTooltip)}
-        onClick={() => column.onEdit(user)}
-      />
+      <EditAction user={user} onEdit={column.onEdit} editUrl={editUrl} />
       <ActionMenu
         userId={user.id}
         userStatus={user.status}
@@ -103,6 +142,7 @@ const ActionsCell = ({ row, column }) => {
         setOpenId={column.setOpenMenuId}
         onView={() => column.onView(user)}
         onEdit={() => column.onEdit(user)}
+        editHref={editUrl}
         onDeactivate={() => column.onDeactivate(user)}
       />
     </div>
