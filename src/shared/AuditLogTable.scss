@@ -79,6 +79,14 @@
     font-weight: 500;
   }
 
+  // An actor's name and their role read as one label. Wrapped inside a narrow
+  // column they stack one word per line and drag the whole row taller than the
+  // screen, so they stay on one line each and the table scrolls instead.
+  .user-identity__name,
+  .user-identity__role-label {
+    white-space: nowrap;
+  }
+
   &__actor-email {
     font-size: 0.8rem;
     color: #6c757d;
