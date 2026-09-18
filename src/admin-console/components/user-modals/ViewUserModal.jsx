@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
-import { Button } from '@openedx/paragon';
+import { Button, ModalDialog } from '@openedx/paragon';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPen, faTimes } from '@fortawesome/free-solid-svg-icons';
 import { useIntl } from '@edx/frontend-platform/i18n';
@@ -119,166 +119,163 @@ const ViewUserModal = ({
   const showTrainee = trainee && (!showProfileTabs || activeProfileTab === 'trainee');
 
   return (
-    <div
-      role="button"
-      tabIndex={0}
-      className="view-user-modal__overlay"
-      onClick={e => { if (e.target === e.currentTarget) { onClose(); } }}
-      onKeyDown={(e) => {
-        if ((e.key === 'Enter' || e.key === ' ') && e.target === e.currentTarget) {
-          onClose();
-        }
-      }}
+    <ModalDialog
+      isOpen
+      onClose={onClose}
+      title={user.full_name || user.name || ''}
+      size="lg"
+      variant="default"
+      hasCloseButton={false}
+      isFullscreenOnMobile
+      className="view-user-modal"
     >
-      <div className="view-user-modal__panel">
-        <div className="view-user-modal__header">
-          <Button
-            variant="tertiary"
-            onClick={onClose}
-            className="view-user-modal__close-btn"
-          >
-            ×
-          </Button>
-          <div
-            className="view-user-modal__avatar"
-            style={{ background: user.color || '#1B5E7A' }}
-          >
-            {String(avatarValue).startsWith('http') || String(avatarValue).startsWith('/') ? (
-              <img
-                src={avatarValue}
-                alt=""
-                className="view-user-modal__avatar-image"
-              />
-            ) : avatarValue}
-          </div>
-        </div>
-
-        <div className="view-user-modal__body">
-          <div className="view-user-modal__identity">
-            <UserIdentity
-              name={user.full_name || user.name}
-              badges={roles}
-              size="large"
-              showAvatar={false}
+      <div className="view-user-modal__header">
+        <ModalDialog.CloseButton
+          as="button"
+          type="button"
+          className="view-user-modal__close-btn"
+        >
+          ×
+        </ModalDialog.CloseButton>
+        <div
+          className="view-user-modal__avatar"
+          style={{ background: user.color || '#1B5E7A' }}
+        >
+          {String(avatarValue).startsWith('http') || String(avatarValue).startsWith('/') ? (
+            <img
+              src={avatarValue}
+              alt=""
+              className="view-user-modal__avatar-image"
             />
-            {onAuditHistory && (
-              <Button
-                variant="link"
-                className="view-user-modal__audit-link"
-                onClick={() => onAuditHistory(user)}
-              >
-                Audit history →
-              </Button>
-            )}
-          </div>
-
-          {showProfileTabs && (
-            <div className="view-user-modal__tabs">
-              {availableProfileTabs.map(tab => {
-                const isActive = activeProfileTab === tab.id;
-                return (
-                  <Button
-                    key={tab.id}
-                    variant="tertiary"
-                    onClick={() => setActiveProfileTab(tab.id)}
-                    className={`view-user-modal__tab ${isActive ? 'view-user-modal__tab--active' : ''}`}
-                  >
-                    {tab.label}
-                  </Button>
-                );
-              })}
-            </div>
-          )}
-
-          <DetailSection title={intl.formatMessage(messages.viewUserSectionProfileInfo)}>
-            <DetailCell label={intl.formatMessage(messages.viewUserFieldEmail)} value={user.email} />
-            <DetailCell label={intl.formatMessage(messages.viewUserFieldMobile)} value={user.mobile} />
-            <DetailCell label={intl.formatMessage(messages.viewUserFieldCnic)} value={user.cnic} />
-            <DetailCell label={intl.formatMessage(messages.viewUserFieldStatus)} value={user.status} />
-            <DetailCell label={intl.formatMessage(messages.viewUserFieldCity)} value={user.city?.name} />
-            <DetailCell
-              label={intl.formatMessage(messages.viewUserFieldOrganisation)}
-              value={user.field_organisation}
-            />
-            <DetailCell
-              label={intl.formatMessage(messages.viewUserFieldEmergencyContact)}
-              value={user.emergency_contact_name}
-            />
-            <DetailCell
-              label={intl.formatMessage(messages.viewUserFieldEmergencyPhone)}
-              value={user.emergency_contact_phone}
-            />
-            <DetailCell
-              label={intl.formatMessage(messages.viewUserFieldEducationDegree)}
-              value={user.education_degree}
-            />
-            <DetailCell
-              label={intl.formatMessage(messages.viewUserFieldEducationInstitute)}
-              value={user.education_institute}
-            />
-            <DetailCell
-              label={intl.formatMessage(messages.viewUserFieldEducationYear)}
-              value={user.education_year}
-            />
-          </DetailSection>
-
-          {showInstructor && (
-            <DetailSection title={intl.formatMessage(messages.viewUserSectionInstructorProfile)}>
-              <DetailCell
-                label={intl.formatMessage(messages.viewUserFieldFieldOfExpertise)}
-                value={instructor.field_of_expertise}
-              />
-              <DetailCell
-                label={intl.formatMessage(messages.viewUserFieldLanguagesAwardsPublications)}
-                value={instructor.languages_awards_publications}
-              />
-            </DetailSection>
-          )}
-
-          {showTrainee && (
-            <DetailSection title={intl.formatMessage(messages.viewUserSectionTraineeProfile)}>
-              <DetailCell
-                label={intl.formatMessage(messages.viewUserFieldTraineeType)}
-                value={traineeTypeLabels[trainee.trainee_type] || trainee.trainee_type}
-              />
-              <DetailCell label={intl.formatMessage(messages.viewUserFieldBatch)} value={trainee.batch?.name} />
-              <DetailCell
-                label={intl.formatMessage(messages.viewUserFieldDateOfBirth)}
-                value={formatDate(trainee.date_of_birth)}
-              />
-              <DetailCell
-                label={intl.formatMessage(messages.viewUserFieldDesignation)}
-                value={trainee.designation}
-              />
-              <DetailCell label={intl.formatMessage(messages.viewUserFieldBpsGrade)} value={trainee.bps_grade} />
-              <DetailCell
-                label={intl.formatMessage(messages.viewUserFieldHostelPreference)}
-                value={trainee.hostel_preference}
-              />
-              <DetailCell
-                label={intl.formatMessage(messages.viewUserFieldServiceHistory)}
-                value={trainee.service_history}
-              />
-              <DetailCell
-                label={intl.formatMessage(messages.viewUserFieldLanguagesAwardsPublications)}
-                value={trainee.languages_awards_publications}
-              />
-            </DetailSection>
-          )}
-        </div>
-
-        <div className="view-user-modal__footer">
-          <Button variant="tertiary" onClick={onClose}>
-            <FontAwesomeIcon icon={faTimes} className="view-user-modal__btn-icon" />
-            {intl.formatMessage(messages.viewUserCloseButton)}
-          </Button>
-          <Button variant="primary" onClick={() => { onClose(); onEdit(user); }}>
-            <FontAwesomeIcon icon={faPen} className="view-user-modal__btn-icon" />
-            {intl.formatMessage(messages.viewUserEditButton)}
-          </Button>
+          ) : avatarValue}
         </div>
       </div>
-    </div>
+
+      <ModalDialog.Body className="view-user-modal__body">
+        <div className="view-user-modal__identity">
+          <UserIdentity
+            name={user.full_name || user.name}
+            badges={roles}
+            size="large"
+            showAvatar={false}
+          />
+          {onAuditHistory && (
+            <Button
+              variant="link"
+              className="view-user-modal__audit-link"
+              onClick={() => onAuditHistory(user)}
+            >
+              Audit history →
+            </Button>
+          )}
+        </div>
+
+        {showProfileTabs && (
+          <div className="view-user-modal__tabs">
+            {availableProfileTabs.map(tab => {
+              const isActive = activeProfileTab === tab.id;
+              return (
+                <Button
+                  key={tab.id}
+                  variant="tertiary"
+                  onClick={() => setActiveProfileTab(tab.id)}
+                  className={`view-user-modal__tab ${isActive ? 'view-user-modal__tab--active' : ''}`}
+                >
+                  {tab.label}
+                </Button>
+              );
+            })}
+          </div>
+        )}
+
+        <DetailSection title={intl.formatMessage(messages.viewUserSectionProfileInfo)}>
+          <DetailCell label={intl.formatMessage(messages.viewUserFieldEmail)} value={user.email} />
+          <DetailCell label={intl.formatMessage(messages.viewUserFieldMobile)} value={user.mobile} />
+          <DetailCell label={intl.formatMessage(messages.viewUserFieldCnic)} value={user.cnic} />
+          <DetailCell label={intl.formatMessage(messages.viewUserFieldStatus)} value={user.status} />
+          <DetailCell label={intl.formatMessage(messages.viewUserFieldCity)} value={user.city?.name} />
+          <DetailCell
+            label={intl.formatMessage(messages.viewUserFieldOrganisation)}
+            value={user.field_organisation}
+          />
+          <DetailCell
+            label={intl.formatMessage(messages.viewUserFieldEmergencyContact)}
+            value={user.emergency_contact_name}
+          />
+          <DetailCell
+            label={intl.formatMessage(messages.viewUserFieldEmergencyPhone)}
+            value={user.emergency_contact_phone}
+          />
+          <DetailCell
+            label={intl.formatMessage(messages.viewUserFieldEducationDegree)}
+            value={user.education_degree}
+          />
+          <DetailCell
+            label={intl.formatMessage(messages.viewUserFieldEducationInstitute)}
+            value={user.education_institute}
+          />
+          <DetailCell
+            label={intl.formatMessage(messages.viewUserFieldEducationYear)}
+            value={user.education_year}
+          />
+        </DetailSection>
+
+        {showInstructor && (
+          <DetailSection title={intl.formatMessage(messages.viewUserSectionInstructorProfile)}>
+            <DetailCell
+              label={intl.formatMessage(messages.viewUserFieldFieldOfExpertise)}
+              value={instructor.field_of_expertise}
+            />
+            <DetailCell
+              label={intl.formatMessage(messages.viewUserFieldLanguagesAwardsPublications)}
+              value={instructor.languages_awards_publications}
+            />
+          </DetailSection>
+        )}
+
+        {showTrainee && (
+          <DetailSection title={intl.formatMessage(messages.viewUserSectionTraineeProfile)}>
+            <DetailCell
+              label={intl.formatMessage(messages.viewUserFieldTraineeType)}
+              value={traineeTypeLabels[trainee.trainee_type] || trainee.trainee_type}
+            />
+            <DetailCell label={intl.formatMessage(messages.viewUserFieldBatch)} value={trainee.batch?.name} />
+            <DetailCell
+              label={intl.formatMessage(messages.viewUserFieldDateOfBirth)}
+              value={formatDate(trainee.date_of_birth)}
+            />
+            <DetailCell
+              label={intl.formatMessage(messages.viewUserFieldDesignation)}
+              value={trainee.designation}
+            />
+            <DetailCell label={intl.formatMessage(messages.viewUserFieldBpsGrade)} value={trainee.bps_grade} />
+            <DetailCell
+              label={intl.formatMessage(messages.viewUserFieldHostelPreference)}
+              value={trainee.hostel_preference}
+            />
+            <DetailCell
+              label={intl.formatMessage(messages.viewUserFieldServiceHistory)}
+              value={trainee.service_history}
+            />
+            <DetailCell
+              label={intl.formatMessage(messages.viewUserFieldLanguagesAwardsPublications)}
+              value={trainee.languages_awards_publications}
+            />
+          </DetailSection>
+        )}
+      </ModalDialog.Body>
+
+      <ModalDialog.Footer className="view-user-modal__footer">
+        <ModalDialog.CloseButton variant="tertiary">
+          <FontAwesomeIcon icon={faTimes} className="view-user-modal__btn-icon" />
+          {intl.formatMessage(messages.viewUserCloseButton)}
+        </ModalDialog.CloseButton>
+        <Button variant="primary" onClick={() => { onClose(); onEdit(user); }}>
+          <FontAwesomeIcon icon={faPen} className="view-user-modal__btn-icon" />
+          {intl.formatMessage(messages.viewUserEditButton)}
+        </Button>
+      </ModalDialog.Footer>
+    </ModalDialog>
   );
 };
 

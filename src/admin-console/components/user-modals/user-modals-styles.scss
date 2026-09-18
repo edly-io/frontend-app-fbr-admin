@@ -1,10 +1,9 @@
 /* Shared chrome + per-modal rules for AddUserModal, BulkImportUsersModal and
-   ViewUserModal - three self-contained modals with a very similar overlay /
-   panel / header / footer structure but slightly different dimensions. */
+   ViewUserModal. The first two are self-contained overlay / panel structures;
+   ViewUserModal sits in a Paragon ModalDialog and only keeps its inner parts. */
 
 .add-user-modal__overlay,
-.bulk-import-modal__overlay,
-.view-user-modal__overlay {
+.bulk-import-modal__overlay {
   position: fixed;
   inset: 0;
   z-index: 1050;
@@ -531,16 +530,17 @@
 
 /* ViewUserModal */
 
-.view-user-modal__panel {
-  background: var(--pgn-color-white);
-  border-radius: 12px;
-  width: 720px;
-  max-width: 96vw;
-  max-height: 92vh;
+/* Paragon's ModalDialog supplies the backdrop, portal, focus trap and Esc
+   handling; these rules only strip its default padding so the gradient header
+   can sit flush against the rounded corners. */
+.view-user-modal.pgn__modal {
+  padding: 0;
   overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.25);
+  border-radius: 12px;
+}
+
+.view-user-modal .pgn__modal-body {
+  padding: 0;
 }
 
 .view-user-modal__header {
@@ -553,6 +553,7 @@
 
 .view-user-modal__close-btn {
   position: absolute;
+  z-index: 1;
   top: 12px;
   right: 14px;
   background: rgba(255, 255, 255, 0.18);
@@ -596,7 +597,6 @@
 
 .view-user-modal__body {
   overflow-y: auto;
-  flex: 1;
 }
 
 .view-user-modal__identity {
@@ -662,7 +662,7 @@
 [data-paragon-theme-variant="dark"] {
   .add-user-modal__panel,
   .bulk-import-modal__panel,
-  .view-user-modal__panel {
+  .view-user-modal.pgn__modal {
     border: 1px solid rgba(248, 248, 248, 0.16);
   }
 
