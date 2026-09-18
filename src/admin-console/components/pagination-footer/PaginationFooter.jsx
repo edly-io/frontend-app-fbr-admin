@@ -1,8 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Button, Form } from '@openedx/paragon';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons';
+import { Form, Pagination } from '@openedx/paragon';
 import { useIntl } from '@edx/frontend-platform/i18n';
 import messages from '../../messages';
 import { ROWS_PER_PAGE_OPTIONS } from '../../constants';
@@ -11,13 +9,9 @@ import './pagination-footer-styles.scss';
 const renderStrong = chunks => <strong>{chunks}</strong>;
 
 /**
- * Shared pagination footer used by Users, Signup Approvals and Biodata Edit
- * Requests tables/lists. Preserves the exact pagination math and rows-per-page
- * behavior previously duplicated across each view in the monolith.
- *
- * When `showPageNumbers` is true (Users), numbered page buttons are rendered
- * in addition to the prev/next chevrons, matching the original Users table
- * footer. Signup Approvals / Biodata Edit Requests only rendered the chevrons.
+ * Shared pagination footer: a row summary, Paragon's `Pagination` (numbered
+ * pages with prev/next, the same control the Users table uses) and the
+ * rows-per-page selector.
  */
 const PaginationFooter = ({
   page,
@@ -28,7 +22,6 @@ const PaginationFooter = ({
   rowsPerPage,
   onPageChange,
   onRowsPerPageChange,
-  showPageNumbers,
 }) => {
   const intl = useIntl();
 
@@ -42,31 +35,14 @@ const PaginationFooter = ({
           strong: renderStrong,
         })}
       </span>
-      <div className="pagination-footer__controls d-flex flex-wrap align-items-center">
-        <Button
-          variant="outline-secondary"
-          size="sm"
-          onClick={() => onPageChange(Math.max(1, page - 1))}
-          disabled={page <= 1}
-          aria-label={intl.formatMessage(messages.paginationPrevious)}
-        >
-          <FontAwesomeIcon icon={faChevronLeft} className="pagination-footer__nav-icon" />
-        </Button>
-        {showPageNumbers && Array.from({ length: totalPages }, (_, i) => i + 1).map(n => (
-          <Button key={n} size="sm" variant={n === page ? 'primary' : 'outline-secondary'} onClick={() => onPageChange(n)}>
-            {n}
-          </Button>
-        ))}
-        <Button
-          variant="outline-secondary"
-          size="sm"
-          onClick={() => onPageChange(Math.min(totalPages, page + 1))}
-          disabled={page >= totalPages}
-          aria-label={intl.formatMessage(messages.paginationNext)}
-        >
-          <FontAwesomeIcon icon={faChevronRight} className="pagination-footer__nav-icon" />
-        </Button>
-      </div>
+      <Pagination
+        paginationLabel={intl.formatMessage(messages.paginationLabel)}
+        pageCount={totalPages}
+        currentPage={page}
+        onPageSelect={onPageChange}
+        size="small"
+        variant="secondary"
+      />
       <div className="pagination-footer__rows-per-page d-flex align-items-center">
         {intl.formatMessage(messages.paginationRowsPerPage)}
         <Form.Control
@@ -92,11 +68,6 @@ PaginationFooter.propTypes = {
   rowsPerPage: PropTypes.number.isRequired,
   onPageChange: PropTypes.func.isRequired,
   onRowsPerPageChange: PropTypes.func.isRequired,
-  showPageNumbers: PropTypes.bool,
-};
-
-PaginationFooter.defaultProps = {
-  showPageNumbers: false,
 };
 
 export default PaginationFooter;

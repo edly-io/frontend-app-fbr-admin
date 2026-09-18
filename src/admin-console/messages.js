@@ -146,6 +146,11 @@ const messages = defineMessages({
     defaultMessage: 'Showing <strong>{start}–{end}</strong> of <strong>{total}</strong>',
     description: 'Pagination footer summary of the currently visible row range out of the total.',
   },
+  paginationLabel: {
+    id: 'fbrAdmin.shell.pagination.label',
+    defaultMessage: 'Table pagination navigation',
+    description: 'Accessible label for the pagination controls in a table footer.',
+  },
   paginationPrevious: {
     id: 'fbrAdmin.shell.pagination.previous',
     defaultMessage: 'Previous page',

@@ -1,6 +1,6 @@
 import { getConfig } from '@edx/frontend-platform';
 import { getAuthenticatedHttpClient } from '@edx/frontend-platform/auth';
-import { getPaginatedResults } from '../../../data/api';
+import { getPaginatedResults, getPaginatedCount } from '../../../data/api';
 
 export const BIODATA_EDIT_REQUESTS_PATH = '/fbr/api/biodata/v1/edit-requests/';
 
@@ -19,7 +19,7 @@ export const getEditRequests = async ({ page, pageSize, statusFilter }) => {
 
   return {
     requests: results,
-    total: typeof data?.count === 'number' ? data.count : results.length,
+    total: getPaginatedCount(data, results),
   };
 };
 
