@@ -149,3 +149,11 @@
     white-space: nowrap;
   }
 }
+
+// The Edit action is a link (so it can be copied / opened in a new tab) wearing
+// the icon-button styling; drop the hyperlink underline it would otherwise get.
+.users-table__edit-link,
+.users-table__edit-link:hover,
+.users-table__edit-link:focus {
+  text-decoration: none;
+}

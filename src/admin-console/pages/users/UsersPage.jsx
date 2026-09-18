@@ -135,9 +135,8 @@ const UsersPage = () => {
     setShowAddModal(true);
   };
   const handleImport = () => { setShowBulkImportModal(true); };
-  const handleEdit = async (user) => {
-    const detail = await userDetailMutation.mutateAsync(user);
-    const profileUrl = getProfileMfeUserUrl(detail.id);
+  const handleEdit = (user) => {
+    const profileUrl = getProfileMfeUserUrl(user.id);
     if (profileUrl) {
       window.open(profileUrl, '_blank', 'noopener,noreferrer');
     }

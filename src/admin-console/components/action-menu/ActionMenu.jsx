@@ -7,7 +7,7 @@ import messages from '../../pages/users/messages';
 import './action-menu-styles.scss';
 
 const ActionMenu = ({
-  userId, userStatus, onView, onEdit, onDeactivate, openId, setOpenId,
+  userId, userStatus, onView, onEdit, editHref, onDeactivate, openId, setOpenId,
 }) => {
   const intl = useIntl();
   const isOpen = openId === userId;
@@ -31,7 +31,13 @@ const ActionMenu = ({
         <Dropdown.Item onClick={onView}>
           {intl.formatMessage(messages.actionMenuViewProfile)}
         </Dropdown.Item>
-        <Dropdown.Item onClick={onEdit}>
+        <Dropdown.Item
+          {...(editHref
+            ? {
+              as: 'a', href: editHref, target: '_blank', rel: 'noopener noreferrer',
+            }
+            : { onClick: onEdit })}
+        >
           {intl.formatMessage(messages.actionMenuEditUser)}
         </Dropdown.Item>
         <Dropdown.Divider />
@@ -53,12 +59,15 @@ ActionMenu.propTypes = {
   userStatus: PropTypes.string.isRequired,
   onView: PropTypes.func.isRequired,
   onEdit: PropTypes.func.isRequired,
+  // When set, Edit renders as a link to the profile MFE instead of a button.
+  editHref: PropTypes.string,
   onDeactivate: PropTypes.func.isRequired,
   openId: PropTypes.number,
   setOpenId: PropTypes.func.isRequired,
 };
 
 ActionMenu.defaultProps = {
+  editHref: null,
   openId: null,
 };
 
