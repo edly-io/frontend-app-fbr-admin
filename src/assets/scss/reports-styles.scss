@@ -41,17 +41,11 @@
 
   // Tables
   //
-  // Paragon caps every DataTable cell at `max-width: 20vw`, which is ~280px on
-  // a desktop but only ~75px on a phone - narrow enough to break a name into
-  // one word per line and to squeeze the breakdown bars out of their cells. A
-  // fixed cap plus a scrolling table gives cells a readable width at every
-  // viewport instead.
+  // The cell cap Paragon applies is lifted globally in `index.scss`; these
+  // tables also need to scroll rather than squash when the columns stop
+  // fitting.
   .pgn__data-table-layout-wrapper {
     overflow-x: auto;
-  }
-
-  .pgn__data-table-cell-wrap {
-    max-width: 20rem;
   }
 
   // Per-column floors, applied through each column's `cellClassName`.
