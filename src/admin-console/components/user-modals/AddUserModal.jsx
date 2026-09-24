@@ -382,117 +382,117 @@ const AddUserModal = ({ onClose, assignmentUser }) => {
       </ModalDialog.Header>
 
       <ModalDialog.Body ref={contentRef}>
-          <div className="add-user-modal__section">
-            <p className="add-user-modal__section-label">
-              {intl.formatMessage(messages.roleSectionLabel)} <span className="add-user-modal__required-mark">*</span>
-            </p>
-            <div className="add-user-modal__role-grid">
-              {visibleRoles.map((role) => {
-                const active = selectedRole === role.id;
-                return (
-                  <button
-                    key={role.id}
-                    type="button"
-                    onClick={() => setSelectedRole(role.id)}
-                    className={`add-user-modal__role-btn ${active ? 'add-user-modal__role-btn--active' : ''}`}
-                  >
-                    <p
-                      className={`add-user-modal__role-btn-title ${active ? 'add-user-modal__role-btn-title--active' : ''}`}
-                    >{intl.formatMessage(role.labelMessage)}
-                    </p>
-                    <p
-                      className={`add-user-modal__role-btn-desc ${active ? 'add-user-modal__role-btn-desc--active' : ''}`}
-                    >{intl.formatMessage(role.descMessage)}
-                    </p>
-                  </button>
-                );
-              })}
-            </div>
+        <div className="add-user-modal__section">
+          <p className="add-user-modal__section-label">
+            {intl.formatMessage(messages.roleSectionLabel)} <span className="add-user-modal__required-mark">*</span>
+          </p>
+          <div className="add-user-modal__role-grid">
+            {visibleRoles.map((role) => {
+              const active = selectedRole === role.id;
+              return (
+                <button
+                  key={role.id}
+                  type="button"
+                  onClick={() => setSelectedRole(role.id)}
+                  className={`add-user-modal__role-btn ${active ? 'add-user-modal__role-btn--active' : ''}`}
+                >
+                  <p
+                    className={`add-user-modal__role-btn-title ${active ? 'add-user-modal__role-btn-title--active' : ''}`}
+                  >{intl.formatMessage(role.labelMessage)}
+                  </p>
+                  <p
+                    className={`add-user-modal__role-btn-desc ${active ? 'add-user-modal__role-btn-desc--active' : ''}`}
+                  >{intl.formatMessage(role.descMessage)}
+                  </p>
+                </button>
+              );
+            })}
           </div>
+        </div>
 
-          {selectedRole === 'trainee' && (
-            <div className="add-user-modal__section">
-              <p className="add-user-modal__section-label">
-                {intl.formatMessage(messages.traineeTypeSectionLabel)} <span className="add-user-modal__required-mark">*</span>
+        {selectedRole === 'trainee' && (
+        <div className="add-user-modal__section">
+          <p className="add-user-modal__section-label">
+            {intl.formatMessage(messages.traineeTypeSectionLabel)} <span className="add-user-modal__required-mark">*</span>
+          </p>
+          <div className="add-user-modal__trainee-grid">
+            {TRAINEE_TYPES.map((type) => {
+              const active = traineeType === type.id;
+              return (
+                <button
+                  key={type.id}
+                  type="button"
+                  onClick={() => setTraineeType(type.id)}
+                  className={`add-user-modal__trainee-btn ${active ? 'add-user-modal__trainee-btn--active' : ''}`}
+                >
+                  <p
+                    className={`add-user-modal__trainee-btn-title ${active ? 'add-user-modal__trainee-btn-title--active' : ''}`}
+                  >{intl.formatMessage(type.labelMessage)}
+                  </p>
+                  <p
+                    className={`add-user-modal__trainee-btn-desc ${active ? 'add-user-modal__trainee-btn-desc--active' : ''}`}
+                  >{intl.formatMessage(type.descMessage)}
+                  </p>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+        )}
+
+        {apiError && (
+        <Alert ref={apiErrorRef} variant="danger" className="mb-3">
+          {apiError}
+        </Alert>
+        )}
+
+        {!isAssignment && shouldShowCity && cities.length === 0 && (
+        <Alert variant="warning" className="mb-3">
+          {intl.formatMessage(messages.noCitiesWarning)}
+        </Alert>
+        )}
+
+        {!isAssignment && selectedRole === 'trainee' && traineeType === 'stp' && batches.length === 0 && (
+        <Alert variant="warning" className="mb-3">
+          {intl.formatMessage(messages.noBatchesWarning)}
+        </Alert>
+        )}
+
+        {isAssignment ? (
+          <>
+            <SectionHeader
+              title={intl.formatMessage(messages.sectionSignInApproval)}
+              note={intl.formatMessage(messages.sectionSignInApprovalNote)}
+            />
+            <div className="add-user-modal__summary-box">
+              <p className="add-user-modal__summary-text">
+                {intl.formatMessage(messages.assignmentSummary, { email: <strong key="email">{assignmentEmail}</strong> })}
               </p>
-              <div className="add-user-modal__trainee-grid">
-                {TRAINEE_TYPES.map((type) => {
-                  const active = traineeType === type.id;
-                  return (
-                    <button
-                      key={type.id}
-                      type="button"
-                      onClick={() => setTraineeType(type.id)}
-                      className={`add-user-modal__trainee-btn ${active ? 'add-user-modal__trainee-btn--active' : ''}`}
-                    >
-                      <p
-                        className={`add-user-modal__trainee-btn-title ${active ? 'add-user-modal__trainee-btn-title--active' : ''}`}
-                      >{intl.formatMessage(type.labelMessage)}
-                      </p>
-                      <p
-                        className={`add-user-modal__trainee-btn-desc ${active ? 'add-user-modal__trainee-btn-desc--active' : ''}`}
-                      >{intl.formatMessage(type.descMessage)}
-                      </p>
-                    </button>
-                  );
-                })}
-              </div>
             </div>
-          )}
-
-          {apiError && (
-            <Alert ref={apiErrorRef} variant="danger" className="mb-3">
-              {apiError}
-            </Alert>
-          )}
-
-          {!isAssignment && shouldShowCity && cities.length === 0 && (
-            <Alert variant="warning" className="mb-3">
-              {intl.formatMessage(messages.noCitiesWarning)}
-            </Alert>
-          )}
-
-          {!isAssignment && selectedRole === 'trainee' && traineeType === 'stp' && batches.length === 0 && (
-            <Alert variant="warning" className="mb-3">
-              {intl.formatMessage(messages.noBatchesWarning)}
-            </Alert>
-          )}
-
-          {isAssignment ? (
-            <>
-              <SectionHeader
-                title={intl.formatMessage(messages.sectionSignInApproval)}
-                note={intl.formatMessage(messages.sectionSignInApprovalNote)}
+          </>
+        ) : (
+          <>
+            <SectionHeader title={intl.formatMessage(messages.sectionInformation)} note={contextText} />
+            {createFields.map((row) => (
+              <FieldRow
+                key={getRowKey(row)}
+                fields={row}
+                values={values}
+                onChange={handleChange}
+                errors={errors}
+                cities={cities}
+                batches={batches}
               />
-              <div className="add-user-modal__summary-box">
-                <p className="add-user-modal__summary-text">
-                  {intl.formatMessage(messages.assignmentSummary, { email: <strong key="email">{assignmentEmail}</strong> })}
-                </p>
-              </div>
-            </>
-          ) : (
-            <>
-              <SectionHeader title={intl.formatMessage(messages.sectionInformation)} note={contextText} />
-              {createFields.map((row) => (
-                <FieldRow
-                  key={getRowKey(row)}
-                  fields={row}
-                  values={values}
-                  onChange={handleChange}
-                  errors={errors}
-                  cities={cities}
-                  batches={batches}
-                />
-              ))}
-            </>
-          )}
+            ))}
+          </>
+        )}
 
-          {!isAssignment && selectedRole === 'trainee' && (
-            <div className="add-user-modal__hint">
-              <FontAwesomeIcon icon={faHome} />
-              <span>{intl.formatMessage(messages.batchHintStpOnly)}</span>
-            </div>
-          )}
+        {!isAssignment && selectedRole === 'trainee' && (
+        <div className="add-user-modal__hint">
+          <FontAwesomeIcon icon={faHome} />
+          <span>{intl.formatMessage(messages.batchHintStpOnly)}</span>
+        </div>
+        )}
 
       </ModalDialog.Body>
 

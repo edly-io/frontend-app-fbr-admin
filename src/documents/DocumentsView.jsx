@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
+import PropTypes from 'prop-types';
 import {
   ActionRow, Button, DataTable, Form, Icon, IconButton, ModalDialog, OverlayTrigger,
   Pagination, Tooltip,
@@ -92,6 +93,150 @@ const ROLE_DISPLAY = {
   data_admin: 'Data Admin',
   instructor: 'Instructor',
   trainee: 'Trainee',
+};
+
+// Cell renderers keep the markup the hand-written table used, so the rows read
+// exactly as before; only the table around them is Paragon's now. They live at
+// module scope so react-table sees the same component type on every render and
+// updates each cell instead of remounting it - a remount drops focus and closes
+// any tooltip that happens to be open in the actions column.
+const TitleCell = ({ row }) => {
+  const doc = row.original;
+  const fileType = getFileTypeInfo(doc);
+  return (
+    <div className="docs-title-cell">
+      <span className="docs-file-icon" style={{ color: fileType.color }}>
+        <FontAwesomeIcon icon={fileType.icon} />
+      </span>
+      <div>
+        <span className="docs-doc-title">{doc.title}</span>
+        {doc.original_filename !== doc.title && (
+          <span className="docs-doc-filename">{doc.original_filename}</span>
+        )}
+      </div>
+    </div>
+  );
+};
+
+const TypeCell = ({ row }) => {
+  const name = row.original.document_type_name;
+  if (!name) { return <span className="docs-td-muted">—</span>; }
+  return (
+    <span className="docs-type-badge" style={badgeVars(name)}>
+      {name}
+    </span>
+  );
+};
+
+const UploaderCell = ({ row }) => (row.original.uploaded_by_name ? (
+  <UserIdentity
+    name={row.original.uploaded_by_name}
+    badges={[ROLE_DISPLAY[row.original.uploaded_by_role]].filter(Boolean)}
+    size="compact"
+    showAvatar
+  />
+) : '—');
+
+const ActionsCell = ({ row, column }) => {
+  const doc = row.original;
+  const {
+    onPreview, onCopyLink, onToggleVisibility, onEdit, onDelete,
+  } = column.actions;
+  return (
+    <div className="docs-action-group d-flex align-items-center">
+      <OverlayTrigger placement="top" overlay={<Tooltip id={`preview-${doc.id}`}>Preview</Tooltip>}>
+        <IconButton
+          src={Visibility}
+          iconAs={Icon}
+          size="sm"
+          alt="Preview document"
+          onClick={() => onPreview(doc)}
+        />
+      </OverlayTrigger>
+      <OverlayTrigger placement="top" overlay={<Tooltip id={`copy-${doc.id}`}>Copy link</Tooltip>}>
+        <IconButton
+          src={LinkIcon}
+          iconAs={Icon}
+          size="sm"
+          alt="Copy shareable link"
+          onClick={() => onCopyLink(doc)}
+        />
+      </OverlayTrigger>
+      <OverlayTrigger
+        placement="top"
+        overlay={(
+          <Tooltip id={`vis-${doc.id}`}>
+            {doc.is_public
+              ? 'Make private — only FBR users (admins, instructors, trainees) can view after logging in'
+              : 'Make public — anyone can view without logging in'}
+          </Tooltip>
+        )}
+      >
+        <IconButton
+          src={doc.is_public ? LockOpen : Lock}
+          iconAs={Icon}
+          size="sm"
+          variant={doc.is_public ? 'success' : 'primary'}
+          alt={doc.is_public ? 'Set document to private' : 'Set document to public'}
+          onClick={() => onToggleVisibility(doc)}
+        />
+      </OverlayTrigger>
+      <OverlayTrigger placement="top" overlay={<Tooltip id={`edit-${doc.id}`}>Edit</Tooltip>}>
+        <IconButton
+          src={EditIcon}
+          iconAs={Icon}
+          size="sm"
+          alt="Edit document"
+          onClick={() => onEdit(doc)}
+        />
+      </OverlayTrigger>
+      <OverlayTrigger placement="top" overlay={<Tooltip id={`delete-${doc.id}`}>Delete</Tooltip>}>
+        <IconButton
+          src={Delete}
+          iconAs={Icon}
+          size="sm"
+          variant="danger"
+          alt="Delete document"
+          onClick={() => onDelete(doc)}
+        />
+      </OverlayTrigger>
+    </div>
+  );
+};
+const SizeCell = ({ row }) => formatBytes(row.original.file_size);
+
+const DateCell = ({ row }) => formatDate(row.original.created);
+
+const docShape = PropTypes.shape({
+  id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  title: PropTypes.string,
+  original_filename: PropTypes.string,
+  document_type_name: PropTypes.string,
+  file_size: PropTypes.number,
+  created: PropTypes.string,
+  uploaded_by_name: PropTypes.string,
+  uploaded_by_role: PropTypes.string,
+  is_public: PropTypes.bool,
+});
+
+const rowOf = PropTypes.shape({ original: docShape.isRequired }).isRequired;
+
+TitleCell.propTypes = { row: rowOf };
+TypeCell.propTypes = { row: rowOf };
+SizeCell.propTypes = { row: rowOf };
+DateCell.propTypes = { row: rowOf };
+UploaderCell.propTypes = { row: rowOf };
+ActionsCell.propTypes = {
+  row: rowOf,
+  column: PropTypes.shape({
+    actions: PropTypes.shape({
+      onPreview: PropTypes.func.isRequired,
+      onCopyLink: PropTypes.func.isRequired,
+      onToggleVisibility: PropTypes.func.isRequired,
+      onEdit: PropTypes.func.isRequired,
+      onDelete: PropTypes.func.isRequired,
+    }).isRequired,
+  }).isRequired,
 };
 
 const DocumentsView = () => {
@@ -200,109 +345,6 @@ const DocumentsView = () => {
   const openCreate = () => { setModalDoc(null); setShowModal(true); };
   const openEdit = (doc) => { setModalDoc(doc); setShowModal(true); };
 
-  // Cell renderers keep the markup the hand-written table used, so the rows read
-  // exactly as before; only the table around them is Paragon's now.
-  const TitleCell = ({ row }) => {
-    const doc = row.original;
-    const fileType = getFileTypeInfo(doc);
-    return (
-      <div className="docs-title-cell">
-        <span className="docs-file-icon" style={{ color: fileType.color }}>
-          <FontAwesomeIcon icon={fileType.icon} />
-        </span>
-        <div>
-          <span className="docs-doc-title">{doc.title}</span>
-          {doc.original_filename !== doc.title && (
-            <span className="docs-doc-filename">{doc.original_filename}</span>
-          )}
-        </div>
-      </div>
-    );
-  };
-
-  const TypeCell = ({ row }) => {
-    const name = row.original.document_type_name;
-    if (!name) { return <span className="docs-td-muted">—</span>; }
-    return (
-      <span className="docs-type-badge" style={badgeVars(name)}>
-        {name}
-      </span>
-    );
-  };
-
-  const UploaderCell = ({ row }) => (row.original.uploaded_by_name ? (
-    <UserIdentity
-      name={row.original.uploaded_by_name}
-      badges={[ROLE_DISPLAY[row.original.uploaded_by_role]].filter(Boolean)}
-      size="compact"
-      showAvatar
-    />
-  ) : '—');
-
-  const ActionsCell = ({ row }) => {
-    const doc = row.original;
-    return (
-      <div className="docs-action-group d-flex align-items-center">
-        <OverlayTrigger placement="top" overlay={<Tooltip id={`preview-${doc.id}`}>Preview</Tooltip>}>
-          <IconButton
-            src={Visibility}
-            iconAs={Icon}
-            size="sm"
-            alt="Preview document"
-            onClick={() => handlePreview(doc)}
-          />
-        </OverlayTrigger>
-        <OverlayTrigger placement="top" overlay={<Tooltip id={`copy-${doc.id}`}>Copy link</Tooltip>}>
-          <IconButton
-            src={LinkIcon}
-            iconAs={Icon}
-            size="sm"
-            alt="Copy shareable link"
-            onClick={() => handleCopyLink(doc)}
-          />
-        </OverlayTrigger>
-        <OverlayTrigger
-          placement="top"
-          overlay={(
-            <Tooltip id={`vis-${doc.id}`}>
-              {doc.is_public
-                ? 'Make private — only FBR users (admins, instructors, trainees) can view after logging in'
-                : 'Make public — anyone can view without logging in'}
-            </Tooltip>
-          )}
-        >
-          <IconButton
-            src={doc.is_public ? LockOpen : Lock}
-            iconAs={Icon}
-            size="sm"
-            variant={doc.is_public ? 'success' : 'primary'}
-            alt={doc.is_public ? 'Set document to private' : 'Set document to public'}
-            onClick={() => handleToggleVisibility(doc)}
-          />
-        </OverlayTrigger>
-        <OverlayTrigger placement="top" overlay={<Tooltip id={`edit-${doc.id}`}>Edit</Tooltip>}>
-          <IconButton
-            src={EditIcon}
-            iconAs={Icon}
-            size="sm"
-            alt="Edit document"
-            onClick={() => openEdit(doc)}
-          />
-        </OverlayTrigger>
-        <OverlayTrigger placement="top" overlay={<Tooltip id={`delete-${doc.id}`}>Delete</Tooltip>}>
-          <IconButton
-            src={Delete}
-            iconAs={Icon}
-            size="sm"
-            variant="danger"
-            alt="Delete document"
-            onClick={() => setDeleteModalDoc(doc)}
-          />
-        </OverlayTrigger>
-      </div>
-    );
-  };
-
   // Widths that were inline `style` attributes on the old `th`s now travel with
   // the column, so header and body stay in step.
   const columns = [
@@ -313,7 +355,7 @@ const DocumentsView = () => {
     {
       Header: 'Size',
       id: 'size',
-      Cell: ({ row }) => formatBytes(row.original.file_size),
+      Cell: SizeCell,
       cellClassName: 'docs-col--size docs-td-mono',
       headerClassName: 'docs-col--size',
     },
@@ -323,15 +365,25 @@ const DocumentsView = () => {
     {
       Header: 'Date',
       id: 'date',
-      Cell: ({ row }) => formatDate(row.original.created),
+      Cell: DateCell,
       cellClassName: 'docs-col--date docs-td-mono',
       headerClassName: 'docs-col--date',
     },
     {
-      Header: 'Actions', id: 'actions', Cell: ActionsCell, cellClassName: 'docs-col--actions', headerClassName: 'docs-col--actions docs-th--center',
+      Header: 'Actions',
+      id: 'actions',
+      Cell: ActionsCell,
+      actions: {
+        onPreview: handlePreview,
+        onCopyLink: handleCopyLink,
+        onToggleVisibility: handleToggleVisibility,
+        onEdit: openEdit,
+        onDelete: setDeleteModalDoc,
+      },
+      cellClassName: 'docs-col--actions',
+      headerClassName: 'docs-col--actions docs-th--center',
     },
   ];
-
 
   return (
     <>

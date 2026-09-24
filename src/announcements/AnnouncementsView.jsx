@@ -163,6 +163,185 @@ RecipientsLog.propTypes = {
   sendNotification: PropTypes.bool.isRequired,
 };
 
+// Cells reproduce the markup the hand-written table used, so the rows read as
+// before. Only a sent announcement has a send log, so only a sent row offers
+// the expand affordance; Paragon holds the open/closed state through
+// `row.getToggleRowExpandedProps()`. They sit at module scope so react-table
+// keeps the same component type across renders and updates each cell rather
+// than remounting it, which would close an open tooltip in the actions column.
+const SubjectCell = ({ row }) => {
+  const item = row.original;
+  if (item.status !== 'sent') {
+    return <span className="ann-td-subject">{item.subject}</span>;
+  }
+  const { onClick, ...toggleProps } = row.getToggleRowExpandedProps();
+  return (
+    <button
+      type="button"
+      className="ann-td-subject ann-td-subject--toggle"
+      onClick={onClick}
+      aria-expanded={row.isExpanded}
+      {...toggleProps}
+    >
+      {item.subject}
+      <FontAwesomeIcon
+        icon={row.isExpanded ? faChevronUp : faChevronDown}
+        className="ann-td-subject-chevron"
+      />
+    </button>
+  );
+};
+
+const ScopeCell = ({ row }) => {
+  const item = row.original;
+  return (
+    <>
+      {SCOPE_LABELS[item.scope] || item.scope}
+      {item.scope === 'program' && item.program_key && (
+        <div className="ann-scope-sub">{item.program_key}</div>
+      )}
+      {item.scope === 'course' && item.course_id && (
+        <div className="ann-scope-sub">{item.course_id}</div>
+      )}
+    </>
+  );
+};
+
+const ChannelsCell = ({ row }) => {
+  const item = row.original;
+  return (
+    <>
+      <ChannelTags item={item} />
+      {item.banner_status && (
+        <div className="ann-banner-status-row">
+          <BannerStatusBadge bannerStatus={item.banner_status} />
+          {item.banner_expires_at && (
+            <span className="ann-banner-expiry">
+              {item.banner_status === 'expired' ? 'Expired' : 'Expires'}{' '}
+              {new Date(item.banner_expires_at).toLocaleDateString()}
+            </span>
+          )}
+        </div>
+      )}
+    </>
+  );
+};
+
+const CreatedByCell = ({ row }) => (row.original.sent_by_name ? (
+  <UserIdentity
+    name={row.original.sent_by_name}
+    badges={[ROLE_DISPLAY[row.original.sent_by_role]].filter(Boolean)}
+    size="compact"
+    showAvatar
+  />
+) : '—');
+
+const ActionsCell = ({ row, column }) => {
+  const item = row.original;
+  const { onView, onEditExpiry } = column.actions;
+  return (
+    <div className="ann-action-group d-flex align-items-center justify-content-center">
+      <OverlayTrigger
+        placement="top"
+        overlay={<Tooltip id={`tooltip-view-${item.id}`}>View details</Tooltip>}
+      >
+        <IconButton
+          src={Visibility}
+          iconAs={Icon}
+          size="sm"
+          alt="View announcement details"
+          onClick={() => onView(item)}
+        />
+      </OverlayTrigger>
+      {item.send_banner && item.status === 'sent' && (
+        item.banner_status === 'expired' ? (
+          <OverlayTrigger
+            placement="top"
+            overlay={<Tooltip id={`tooltip-expired-${item.id}`}>Banner has expired and cannot be modified</Tooltip>}
+          >
+            {/* A disabled control emits no pointer events, so the tooltip needs
+                a wrapper that still does. */}
+            <span>
+              <IconButton
+                src={EditIcon}
+                iconAs={Icon}
+                size="sm"
+                alt="Banner expired"
+                disabled
+              />
+            </span>
+          </OverlayTrigger>
+        ) : (
+          <OverlayTrigger
+            placement="top"
+            overlay={<Tooltip id={`tooltip-edit-${item.id}`}>Edit banner expiry</Tooltip>}
+          >
+            <IconButton
+              src={EditIcon}
+              iconAs={Icon}
+              size="sm"
+              alt="Edit banner expiry date"
+              onClick={() => onEditExpiry(item)}
+            />
+          </OverlayTrigger>
+        )
+      )}
+    </div>
+  );
+};
+const StatusCell = ({ row }) => <StatusBadge status={row.original.status} />;
+
+const SentAtCell = ({ row }) => formatDate(row.original.sent_at);
+
+const RecipientsSubRow = ({ row }) => (
+  <RecipientsLog
+    announcementId={row.original.id}
+    sendEmail={!!row.original.send_email}
+    sendNotification={!!row.original.send_notification}
+  />
+);
+
+const announcementShape = PropTypes.shape({
+  id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  subject: PropTypes.string,
+  status: PropTypes.string,
+  scope: PropTypes.string,
+  program_key: PropTypes.string,
+  course_id: PropTypes.string,
+  banner_status: PropTypes.string,
+  banner_expires_at: PropTypes.string,
+  sent_at: PropTypes.string,
+  sent_by_name: PropTypes.string,
+  sent_by_role: PropTypes.string,
+  send_banner: PropTypes.bool,
+  send_email: PropTypes.bool,
+  send_notification: PropTypes.bool,
+});
+
+const rowOf = PropTypes.shape({ original: announcementShape.isRequired }).isRequired;
+
+SubjectCell.propTypes = {
+  row: PropTypes.shape({
+    original: announcementShape.isRequired,
+    isExpanded: PropTypes.bool,
+    getToggleRowExpandedProps: PropTypes.func.isRequired,
+  }).isRequired,
+};
+ScopeCell.propTypes = { row: rowOf };
+ChannelsCell.propTypes = { row: rowOf };
+CreatedByCell.propTypes = { row: rowOf };
+StatusCell.propTypes = { row: rowOf };
+SentAtCell.propTypes = { row: rowOf };
+RecipientsSubRow.propTypes = { row: rowOf };
+ActionsCell.propTypes = {
+  row: rowOf,
+  column: PropTypes.shape({
+    actions: PropTypes.shape({
+      onView: PropTypes.func.isRequired,
+      onEditExpiry: PropTypes.func.isRequired,
+    }).isRequired,
+  }).isRequired,
+};
 
 const AnnouncementsView = ({ sectionLabel }) => {
   const [announcements, setAnnouncements] = useState([]);
@@ -202,131 +381,6 @@ const AnnouncementsView = ({ sectionLabel }) => {
 
   const handleCreated = () => { setShowCreate(false); fetchAnnouncements(search, filter); };
 
-
-  // Cells reproduce the markup the hand-written table used, so the rows read as
-  // before. Only a sent announcement has a send log, so only a sent row offers
-  // the expand affordance; Paragon holds the open/closed state through
-  // `row.getToggleRowExpandedProps()`.
-  const SubjectCell = ({ row }) => {
-    const item = row.original;
-    if (item.status !== 'sent') {
-      return <span className="ann-td-subject">{item.subject}</span>;
-    }
-    const { onClick, ...toggleProps } = row.getToggleRowExpandedProps();
-    return (
-      <button
-        type="button"
-        className="ann-td-subject ann-td-subject--toggle"
-        onClick={onClick}
-        aria-expanded={row.isExpanded}
-        {...toggleProps}
-      >
-        {item.subject}
-        <FontAwesomeIcon
-          icon={row.isExpanded ? faChevronUp : faChevronDown}
-          className="ann-td-subject-chevron"
-        />
-      </button>
-    );
-  };
-
-  const ScopeCell = ({ row }) => {
-    const item = row.original;
-    return (
-      <>
-        {SCOPE_LABELS[item.scope] || item.scope}
-        {item.scope === 'program' && item.program_key && (
-          <div className="ann-scope-sub">{item.program_key}</div>
-        )}
-        {item.scope === 'course' && item.course_id && (
-          <div className="ann-scope-sub">{item.course_id}</div>
-        )}
-      </>
-    );
-  };
-
-  const ChannelsCell = ({ row }) => {
-    const item = row.original;
-    return (
-      <>
-        <ChannelTags item={item} />
-        {item.banner_status && (
-          <div className="ann-banner-status-row">
-            <BannerStatusBadge bannerStatus={item.banner_status} />
-            {item.banner_expires_at && (
-              <span className="ann-banner-expiry">
-                {item.banner_status === 'expired' ? 'Expired' : 'Expires'}{' '}
-                {new Date(item.banner_expires_at).toLocaleDateString()}
-              </span>
-            )}
-          </div>
-        )}
-      </>
-    );
-  };
-
-  const CreatedByCell = ({ row }) => (row.original.sent_by_name ? (
-    <UserIdentity
-      name={row.original.sent_by_name}
-      badges={[ROLE_DISPLAY[row.original.sent_by_role]].filter(Boolean)}
-      size="compact"
-      showAvatar
-    />
-  ) : '—');
-
-  const ActionsCell = ({ row }) => {
-    const item = row.original;
-    return (
-      <div className="ann-action-group d-flex align-items-center justify-content-center">
-        <OverlayTrigger
-          placement="top"
-          overlay={<Tooltip id={`tooltip-view-${item.id}`}>View details</Tooltip>}
-        >
-          <IconButton
-            src={Visibility}
-            iconAs={Icon}
-            size="sm"
-            alt="View announcement details"
-            onClick={() => setViewItem(item)}
-          />
-        </OverlayTrigger>
-        {item.send_banner && item.status === 'sent' && (
-          item.banner_status === 'expired' ? (
-            <OverlayTrigger
-              placement="top"
-              overlay={<Tooltip id={`tooltip-expired-${item.id}`}>Banner has expired and cannot be modified</Tooltip>}
-            >
-              {/* A disabled control emits no pointer events, so the tooltip needs
-                  a wrapper that still does. */}
-              <span>
-                <IconButton
-                  src={EditIcon}
-                  iconAs={Icon}
-                  size="sm"
-                  alt="Banner expired"
-                  disabled
-                />
-              </span>
-            </OverlayTrigger>
-          ) : (
-            <OverlayTrigger
-              placement="top"
-              overlay={<Tooltip id={`tooltip-edit-${item.id}`}>Edit banner expiry</Tooltip>}
-            >
-              <IconButton
-                src={EditIcon}
-                iconAs={Icon}
-                size="sm"
-                alt="Edit banner expiry date"
-                onClick={() => setEditExpiryItem(item)}
-              />
-            </OverlayTrigger>
-          )
-        )}
-      </div>
-    );
-  };
-
   // The widths the old `th`s carried inline now travel with the column.
   const columns = [
     { Header: 'SUBJECT', accessor: 'subject', Cell: SubjectCell },
@@ -339,14 +393,14 @@ const AnnouncementsView = ({ sectionLabel }) => {
     {
       Header: 'STATUS',
       id: 'status',
-      Cell: ({ row }) => <StatusBadge status={row.original.status} />,
+      Cell: StatusCell,
       cellClassName: 'ann-col--status',
       headerClassName: 'ann-col--status',
     },
     {
       Header: 'SENT AT',
       id: 'sent_at',
-      Cell: ({ row }) => formatDate(row.original.sent_at),
+      Cell: SentAtCell,
       cellClassName: 'ann-col--sent ann-td-date',
       headerClassName: 'ann-col--sent',
     },
@@ -354,10 +408,14 @@ const AnnouncementsView = ({ sectionLabel }) => {
       Header: 'CREATED BY', id: 'created_by', Cell: CreatedByCell, cellClassName: 'ann-col--creator', headerClassName: 'ann-col--creator',
     },
     {
-      Header: 'ACTIONS', id: 'actions', Cell: ActionsCell, cellClassName: 'ann-col--actions', headerClassName: 'ann-col--actions ann-th--center',
+      Header: 'ACTIONS',
+      id: 'actions',
+      Cell: ActionsCell,
+      actions: { onView: setViewItem, onEditExpiry: setEditExpiryItem },
+      cellClassName: 'ann-col--actions',
+      headerClassName: 'ann-col--actions ann-th--center',
     },
   ];
-
 
   return (
     <>
@@ -409,13 +467,7 @@ const AnnouncementsView = ({ sectionLabel }) => {
           data={announcements}
           itemCount={announcements.length}
           columns={columns}
-          renderRowSubComponent={({ row }) => (
-            <RecipientsLog
-              announcementId={row.original.id}
-              sendEmail={!!row.original.send_email}
-              sendNotification={!!row.original.send_notification}
-            />
-          )}
+          renderRowSubComponent={RecipientsSubRow}
         >
           <DataTable.Table />
           <DataTable.EmptyTable content="No announcements yet." />
