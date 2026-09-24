@@ -110,18 +110,7 @@
   }
 
   &__history-btn {
-    display: block;
-    background: none;
-    border: none;
-    padding: 0;
     margin-top: 4px;
-    color: var(--pgn-color-primary-base, #0d6efd);
-    cursor: pointer;
-    font-size: 0.75rem;
-
-    &:hover {
-      text-decoration: underline;
-    }
   }
 
   &__changes-list {

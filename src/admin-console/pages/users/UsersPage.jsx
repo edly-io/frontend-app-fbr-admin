@@ -190,6 +190,7 @@ const UsersPage = () => {
       {activeView === 'audit-log' ? (
         <AuditLogTable
           appLabel="biodata"
+          models={['fbrprofile', 'fbrprofilerole', 'biodataeditrequest']}
           recordFilter={recordFilter}
           onClearFilter={handleClearFilter}
         />
