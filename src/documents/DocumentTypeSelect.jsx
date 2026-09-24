@@ -2,10 +2,11 @@ import React, { useCallback, useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import CreatableSelect from 'react-select/creatable';
 import { createDocumentType, listDocumentTypes } from './api';
+import './DocumentTypeSelect.css';
 
 const formatCreateLabel = (inputValue) => (
   <span>
-    <strong style={{ color: '#0a58ca' }}>+ Add new type: </strong>
+    <strong style={{ color: 'var(--pgn-color-primary-base)' }}>+ Add new type: </strong>
     <em>&ldquo;{inputValue}&rdquo;</em>
   </span>
 );
@@ -47,15 +48,29 @@ const DocumentTypeSelect = ({
     }
   };
 
-  const selectStyles = {
-    control: (base) => ({
-      ...base,
-      minHeight: '38px',
-      borderColor: '#ced4da',
-      boxShadow: 'none',
-      '&:hover': { borderColor: '#adb5bd' },
-    }),
-    menu: (base) => ({ ...base, zIndex: 1050 }),
+  // `unstyled` drops react-select's own emotion styling so the control can wear
+  // Paragon's `form-control` instead. That is what keeps it identical to the
+  // Title and Description inputs beside it - in both themes, and through any
+  // future change to Paragon's form styling - rather than an approximation of
+  // it in tokens. The menu borrows Paragon's dropdown for the same reason.
+  // DocumentTypeSelect.css supplies only the layout `unstyled` took away.
+  const selectClassNames = {
+    container: () => 'doc-type-select',
+    control: () => 'doc-type-select__control form-control',
+    valueContainer: () => 'doc-type-select__value',
+    placeholder: () => 'doc-type-select__placeholder',
+    indicatorsContainer: () => 'doc-type-select__indicators',
+    indicatorSeparator: () => 'doc-type-select__separator',
+    dropdownIndicator: () => 'doc-type-select__indicator',
+    clearIndicator: () => 'doc-type-select__indicator',
+    menu: () => 'doc-type-select__menu dropdown-menu show',
+    option: ({ isSelected, isFocused }) => [
+      'doc-type-select__option dropdown-item',
+      isSelected ? 'active' : '',
+      isFocused && !isSelected ? 'doc-type-select__option--focused' : '',
+    ].filter(Boolean).join(' '),
+    noOptionsMessage: () => 'doc-type-select__message',
+    loadingMessage: () => 'doc-type-select__message',
   };
 
   return (
@@ -71,7 +86,8 @@ const DocumentTypeSelect = ({
       placeholder="Select or create a type…"
       formatCreateLabel={formatCreateLabel}
       isValidNewOption={isValidNewOption}
-      styles={selectStyles}
+      unstyled
+      classNames={selectClassNames}
     />
   );
 };

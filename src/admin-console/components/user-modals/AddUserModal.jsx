@@ -2,7 +2,9 @@ import React, {
   useEffect, useMemo, useRef, useState,
 } from 'react';
 import PropTypes from 'prop-types';
-import { Alert, Button, Form } from '@openedx/paragon';
+import {
+  ActionRow, Alert, Button, Form, ModalDialog,
+} from '@openedx/paragon';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCheck, faHome, faUserCircle } from '@fortawesome/free-solid-svg-icons';
 import { useIntl } from '@edx/frontend-platform/i18n';
@@ -364,40 +366,22 @@ const AddUserModal = ({ onClose, assignmentUser }) => {
   const eyebrow = intl.formatMessage(isAssignment ? messages.addUserEyebrowAssignment : messages.addUserEyebrowCreate);
 
   return (
-    <div
-      role="button"
-      tabIndex={0}
-      className="add-user-modal__overlay"
-      onClick={e => { if (e.target === e.currentTarget && !isSubmitting) { onClose(); } }}
-      onKeyDown={(e) => {
-        if ((e.key === 'Enter' || e.key === ' ') && e.target === e.currentTarget && !isSubmitting) {
-          onClose();
-        }
-      }}
+    <ModalDialog
+      isOpen
+      onClose={onClose}
+      title={title}
+      size="lg"
+      hasCloseButton={!isSubmitting}
+      isFullscreenOnMobile
+      className="add-user-modal"
     >
-      <div className="add-user-modal__panel">
-        <div className="add-user-modal__header">
-          <div className="add-user-modal__header-icon">
-            +
-          </div>
-          <div>
-            <p className="add-user-modal__eyebrow">
-              {eyebrow}
-            </p>
-            <h2 className="add-user-modal__title">{title}</h2>
-            <p className="add-user-modal__subtitle">{subtitle}</p>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            disabled={isSubmitting}
-            className="add-user-modal__close-btn"
-          >
-            x
-          </button>
-        </div>
+      <ModalDialog.Header>
+        <p className="add-user-modal__eyebrow">{eyebrow}</p>
+        <ModalDialog.Title>{title}</ModalDialog.Title>
+        <p className="add-user-modal__subtitle">{subtitle}</p>
+      </ModalDialog.Header>
 
-        <div ref={contentRef} className="add-user-modal__content">
+      <ModalDialog.Body ref={contentRef}>
           <div className="add-user-modal__section">
             <p className="add-user-modal__section-label">
               {intl.formatMessage(messages.roleSectionLabel)} <span className="add-user-modal__required-mark">*</span>
@@ -509,10 +493,12 @@ const AddUserModal = ({ onClose, assignmentUser }) => {
               <span>{intl.formatMessage(messages.batchHintStpOnly)}</span>
             </div>
           )}
-        </div>
 
-        <div className="add-user-modal__footer">
-          <Button variant="tertiary" onClick={onClose} disabled={isSubmitting}>{intl.formatMessage(messages.cancelButton)}</Button>
+      </ModalDialog.Body>
+
+      <ModalDialog.Footer>
+        <ActionRow>
+          <Button variant="outline-primary" onClick={onClose} disabled={isSubmitting}>{intl.formatMessage(messages.cancelButton)}</Button>
           <Button
             variant="primary"
             onClick={handleSubmit}
@@ -526,9 +512,9 @@ const AddUserModal = ({ onClose, assignmentUser }) => {
             <FontAwesomeIcon icon={faCheck} className="add-user-modal__submit-icon" />
             {submitLabel}
           </Button>
-        </div>
-      </div>
-    </div>
+        </ActionRow>
+      </ModalDialog.Footer>
+    </ModalDialog>
   );
 };
 

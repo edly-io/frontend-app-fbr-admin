@@ -1,0 +1,84 @@
+/* react-select is rendered with `unstyled`, so its control wears Paragon's
+   `form-control` and its menu Paragon's `dropdown-menu`. The rules here are
+   only the layout that `unstyled` removed - no colours, so the control keeps
+   following whatever Paragon renders for the inputs beside it. */
+
+.doc-type-select {
+  position: relative;
+}
+
+/* `form-control` is a block element; react-select's control is a row of the
+   value, the separator and the indicators. */
+.doc-type-select__control.form-control {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  cursor: pointer;
+}
+
+.doc-type-select__value {
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.125rem;
+  min-width: 0;
+}
+
+.doc-type-select__placeholder {
+  color: var(--pgn-color-gray-500);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.doc-type-select__indicators {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+}
+
+.doc-type-select__separator {
+  align-self: stretch;
+  width: 1px;
+  margin: 0.375rem 0.25rem;
+  background-color: var(--pgn-color-border);
+}
+
+.doc-type-select__indicator {
+  display: flex;
+  align-items: center;
+  padding: 0 0.25rem;
+  color: var(--pgn-color-gray-500);
+  cursor: pointer;
+}
+
+.doc-type-select__indicator:hover {
+  color: var(--pgn-color-gray-700);
+}
+
+/* `dropdown-menu show` gives the surface, border and radius; react-select needs
+   it anchored under the control and as wide as it. */
+.doc-type-select__menu.dropdown-menu {
+  position: absolute;
+  inset-inline: 0;
+  top: calc(100% + 0.125rem);
+  z-index: 1050;
+  max-height: 16rem;
+  overflow-y: auto;
+}
+
+/* `dropdown-item` has no hover when the pointer is not over it; react-select
+   drives its own keyboard focus, so that state is mirrored here. */
+.doc-type-select__option {
+  cursor: pointer;
+}
+
+.doc-type-select__option--focused {
+  background-color: var(--pgn-color-light-200);
+}
+
+.doc-type-select__message {
+  padding: 0.5rem 1rem;
+  color: var(--pgn-color-gray-500);
+}

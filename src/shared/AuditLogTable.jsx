@@ -3,9 +3,11 @@
 import React, { useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import {
-  Alert, Badge, Button, DataTable, Form, Icon, IconButtonWithTooltip, Pagination, Spinner,
+  ActionRow, Alert, Badge, Button, DataTable, Form, Icon, ModalDialog, Pagination, Spinner,
 } from '@openedx/paragon';
-import { History, InfoOutline, Search } from '@openedx/paragon/icons';
+import {
+  Difference, History, InfoOutline, Search,
+} from '@openedx/paragon/icons';
 import UserIdentity from '../admin-console/components/UserIdentity';
 import { useAuditLogs, useRecordHistory } from './auditLogApiHooks';
 import './AuditLogTable.scss';
@@ -143,56 +145,60 @@ const ChangesModal = ({ entry, onClose }) => {
   } = entry;
   const date = new Date(timestamp);
 
-  return (
-    <div
-      role="button"
-      tabIndex={0}
-      className="audit-modal__overlay"
-      onClick={(e) => { if (e.target === e.currentTarget) { onClose(); } }}
-      onKeyDown={(e) => { if (e.key === 'Escape') { onClose(); } }}
-    >
-      <div className="audit-modal__panel">
-        <div className="audit-modal__header">
-          <div>
-            <h5 className="audit-modal__title">Change Details — {repr}</h5>
-            <small className="audit-modal__subtitle">
-              {date.toLocaleString('en-GB', {
-                day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit',
-              })}
-              {' · '}
-              <Badge variant={ACTION_VARIANT[action] || 'light'}>{action}</Badge>
-              {' · '}
-              {actorName || 'System'}
-              {actorEmail && ` (${actorEmail})`}
-            </small>
-          </div>
-          <Button variant="tertiary" onClick={onClose} className="audit-modal__close-btn">×</Button>
-        </div>
+  const changeRows = Object.entries(changes || {}).map(([field, [oldVal, newVal]]) => ({
+    field, oldValue: String(oldVal ?? '—'), newValue: String(newVal ?? '—'),
+  }));
 
-        {!changes || Object.keys(changes).length === 0 ? (
+  return (
+    <ModalDialog
+      isOpen
+      onClose={onClose}
+      title={`Change Details — ${repr}`}
+      size="lg"
+      hasCloseButton
+      isFullscreenOnMobile
+      className="audit-modal"
+    >
+      <ModalDialog.Header>
+        <ModalDialog.Title>Change Details — {repr}</ModalDialog.Title>
+        <small className="audit-modal__subtitle">
+          {date.toLocaleString('en-GB', {
+            day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit',
+          })}
+          {' · '}
+          <Badge variant={ACTION_VARIANT[action] || 'light'}>{action}</Badge>
+          {' · '}
+          {actorName || 'System'}
+          {actorEmail && ` (${actorEmail})`}
+        </small>
+      </ModalDialog.Header>
+
+      <ModalDialog.Body>
+        {changeRows.length === 0 ? (
           <p className="audit-modal__empty">No field-level diff recorded for this entry.</p>
         ) : (
-          <table className="audit-modal__table">
-            <thead>
-              <tr>
-                {['Field', 'Old Value', 'New Value'].map(h => (
-                  <th key={h} className="audit-modal__th">{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {Object.entries(changes).map(([field, [oldVal, newVal]], i) => (
-                <tr key={field} className={i % 2 === 0 ? 'audit-modal__tr--even' : 'audit-modal__tr--odd'}>
-                  <td className="audit-modal__td audit-modal__td--field">{field}</td>
-                  <td className="audit-modal__td audit-modal__td--old">{String(oldVal ?? '—')}</td>
-                  <td className="audit-modal__td audit-modal__td--new">{String(newVal ?? '—')}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <div className="audit-log__table-scroll audit-log__table-scroll--narrow">
+            <DataTable
+              data={changeRows}
+              itemCount={changeRows.length}
+              columns={[
+                { Header: 'Field', accessor: 'field', cellClassName: 'audit-modal__td--field' },
+                { Header: 'Old value', accessor: 'oldValue', cellClassName: 'audit-modal__td--old' },
+                { Header: 'New value', accessor: 'newValue', cellClassName: 'audit-modal__td--new' },
+              ]}
+            >
+              <DataTable.Table />
+            </DataTable>
+          </div>
         )}
-      </div>
-    </div>
+      </ModalDialog.Body>
+
+      <ModalDialog.Footer>
+        <ActionRow>
+          <Button variant="outline-primary" onClick={onClose}>Close</Button>
+        </ActionRow>
+      </ModalDialog.Footer>
+    </ModalDialog>
   );
 };
 
@@ -232,21 +238,21 @@ const RecordHistoryModal = ({
   const pageCount = Math.ceil(count / PAGE_SIZE);
 
   return (
-    <div
-      role="button"
-      tabIndex={0}
-      className="audit-modal__overlay"
-      onClick={(e) => { if (e.target === e.currentTarget) { onClose(); } }}
-      onKeyDown={(e) => { if (e.key === 'Escape') { onClose(); } }}
+    <ModalDialog
+      isOpen
+      onClose={onClose}
+      title="Full History"
+      size="xl"
+      hasCloseButton
+      isFullscreenOnMobile
+      className="audit-modal"
     >
-      <div className="audit-modal__panel audit-modal__panel--wide">
-        <div className="audit-modal__header">
-          <div>
-            <h5 className="audit-modal__title">Full History</h5>
-            <small className="audit-modal__subtitle">{objectRepr}</small>
-          </div>
-          <Button variant="tertiary" onClick={onClose} className="audit-modal__close-btn">×</Button>
-        </div>
+      <ModalDialog.Header>
+        <ModalDialog.Title>Full History</ModalDialog.Title>
+        <small className="audit-modal__subtitle">{objectRepr}</small>
+      </ModalDialog.Header>
+
+      <ModalDialog.Body>
 
         {loading && (
           <div className="text-center py-4">
@@ -256,68 +262,70 @@ const RecordHistoryModal = ({
         {!loading && error && <Alert variant="danger">{error}</Alert>}
         {!loading && !error && (
           <>
-            <table className="audit-modal__table">
-              <thead>
-                <tr>
-                  {['Timestamp', 'Actor', 'Action', 'Fields changed'].map(h => (
-                    <th key={h} className="audit-modal__th">{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {logs.length === 0 ? (
-                  <tr className="audit-modal__empty-row">
-                    <td colSpan={4} className="audit-modal__td audit-modal__td--center">
-                      No history recorded yet.
-                    </td>
-                  </tr>
-                ) : logs.map((entry, i) => {
-                  const date = new Date(entry.timestamp);
-                  const fieldCount = entry.changes ? Object.keys(entry.changes).length : 0;
-                  return (
-                    <tr key={entry.id} className={i % 2 === 0 ? 'audit-modal__tr--even' : 'audit-modal__tr--odd'}>
-                      <td className="audit-modal__td">
-                        {date.toLocaleString('en-GB', {
-                          day: '2-digit',
-                          month: 'short',
-                          year: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })}
-                      </td>
-                      <td className="audit-modal__td">
-                        {entry.actor_name ? (
-                          <UserIdentity
-                            name={entry.actor_name}
-                            badges={[ROLE_LABELS[entry.actor_role] || '']}
-                            size="compact"
-                          />
-                        ) : (
-                          <span className="text-muted">System</span>
+            <div className="audit-log__table-scroll audit-log__table-scroll--narrow">
+              <DataTable
+                data={logs}
+                itemCount={count}
+                columns={[
+                  {
+                    Header: 'Timestamp',
+                    id: 'timestamp',
+                    Cell: ({ row }) => new Date(row.original.timestamp).toLocaleString('en-GB', {
+                      day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit',
+                    }),
+                    cellClassName: 'audit-log__timestamp',
+                  },
+                  {
+                    Header: 'Actor',
+                    id: 'actor',
+                    Cell: ({ row }) => (row.original.actor_name ? (
+                      <>
+                        <UserIdentity
+                          name={row.original.actor_name}
+                          badges={[ROLE_LABELS[row.original.actor_role] || '']}
+                          size="compact"
+                        />
+                        {row.original.actor_email && (
+                          <small className="audit-log__actor-email">{row.original.actor_email}</small>
                         )}
-                        {entry.actor_email && (
-                          <small className="audit-log__actor-email">{entry.actor_email}</small>
-                        )}
-                      </td>
-                      <td className="audit-modal__td">
-                        <Badge variant={ACTION_VARIANT[entry.action] || 'light'}>{entry.action}</Badge>
-                      </td>
-                      <td className="audit-modal__td">
-                        {fieldCount > 0 ? (
-                          <Button
-                            variant="link"
-                            onClick={() => setChangesEntry(entry)}
-                            className="audit-modal__fields-btn"
-                          >
-                            {fieldCount} field{fieldCount !== 1 ? 's' : ''} changed
-                          </Button>
-                        ) : '—'}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                      </>
+                    ) : <span className="text-muted">System</span>),
+                  },
+                  {
+                    Header: 'Action',
+                    id: 'action',
+                    Cell: ({ row }) => (
+                      <Badge variant={ACTION_VARIANT[row.original.action] || 'light'}>
+                        {row.original.action}
+                      </Badge>
+                    ),
+                  },
+                  {
+                    Header: 'Fields changed',
+                    id: 'fields',
+                    Cell: ({ row }) => {
+                      const fieldCount = row.original.changes
+                        ? Object.keys(row.original.changes).length : 0;
+                      if (fieldCount === 0) { return '—'; }
+                      return (
+                        <Button
+                          variant="outline-primary"
+                          size="sm"
+                          onClick={() => setChangesEntry(row.original)}
+                          className="audit-log__changes-btn"
+                          iconBefore={Difference}
+                        >
+                          {fieldCount} field{fieldCount !== 1 ? 's' : ''} changed
+                        </Button>
+                      );
+                    },
+                  },
+                ]}
+              >
+                <DataTable.Table />
+                <DataTable.EmptyTable content="No history recorded yet." />
+              </DataTable>
+            </div>
             {pageCount > 1 && (
               <Pagination
                 paginationLabel="History pagination"
@@ -330,9 +338,16 @@ const RecordHistoryModal = ({
             )}
           </>
         )}
-      </div>
+      </ModalDialog.Body>
+
+      <ModalDialog.Footer>
+        <ActionRow>
+          <Button variant="outline-primary" onClick={onClose}>Close</Button>
+        </ActionRow>
+      </ModalDialog.Footer>
+
       {changesEntry && <ChangesModal entry={changesEntry} onClose={() => setChangesEntry(null)} />}
-    </div>
+    </ModalDialog>
   );
 };
 
@@ -500,6 +515,9 @@ const AuditLogTable = ({
     {
       Header: 'Record',
       accessor: 'object_repr',
+      // The id and the history link were each on their own line, with the link's
+      // icon stacked above its label - four lines per row for one record. They
+      // are one meta line under the name now.
       Cell: ({ row }) => {
         const entry = row.original;
         if (entry.rowType === 'batch') {
@@ -513,23 +531,25 @@ const AuditLogTable = ({
         }
         const prefix = entry.rowType === 'batch-child' ? '↳ ' : '';
         return (
-          <div className={entry.rowType === 'batch-child' ? 'audit-log__record--child' : ''}>
+          <div className={entry.rowType === 'batch-child' ? 'audit-log__record audit-log__record--child' : 'audit-log__record'}>
             <div className="audit-log__record-repr">{prefix}{entry.object_repr || '—'}</div>
-            {entry.object_pk && (
-              <div className="audit-log__record-id">ID: {entry.object_pk}</div>
-            )}
-            {entry.rowType !== 'batch-child' && (
-              <IconButtonWithTooltip
-                tooltipContent="Full history"
-                tooltipPlacement="top"
-                src={History}
-                iconAs={Icon}
-                alt="Full history"
-                onClick={() => setHistoryModal(entry)}
-                className="audit-log__history-btn"
-                size="sm"
-              />
-            )}
+            <div className="audit-log__record-meta">
+              {entry.object_pk && (
+                <span className="audit-log__record-id">ID: {entry.object_pk}</span>
+              )}
+              {entry.rowType !== 'batch-child' && (
+                <Button
+                  variant="outline-primary"
+                  size="sm"
+                  onClick={() => setHistoryModal(entry)}
+                  className="audit-log__history-btn"
+                  iconBefore={History}
+                  aria-label={`Full history for ${entry.object_repr || `record ${entry.object_pk}`}`}
+                >
+                  Full history
+                </Button>
+              )}
+            </div>
           </div>
         );
       },
@@ -538,34 +558,33 @@ const AuditLogTable = ({
       Header: 'Changes',
       accessor: 'changes',
       disableSortBy: true,
+      // A row says *what* changed; the before/after values live one click away in
+      // the detail modal. Dumping three raw `field: old -> new` lines per row
+      // made the listing a wall of text that was hard to scan and repeated what
+      // the modal already shows properly.
       Cell: ({ row }) => {
         const { changes } = row.original;
-        const fieldCount = changes ? Object.keys(changes).length : 0;
-        if (fieldCount === 0) {
+        const fields = changes ? Object.keys(changes) : [];
+        if (fields.length === 0) {
           return <span className="text-muted audit-log__record-type">—</span>;
         }
         return (
-          <div>
-            <ul className="audit-log__changes-list">
-              {Object.entries(changes).slice(0, 3).map(([field, [oldVal, newVal]]) => (
-                <li key={field} className="audit-log__change-item">
-                  <span className="audit-log__change-field">{field}:</span>{' '}
-                  <span className="audit-log__change-old">{String(oldVal ?? '—')}</span>
-                  {' → '}
-                  <span className="audit-log__change-new">{String(newVal ?? '—')}</span>
-                </li>
-              ))}
-              {fieldCount > 3 && (
-                <li className="audit-log__changes-more">+{fieldCount - 3} more…</li>
-              )}
-            </ul>
+          <div className="audit-log__changes">
             <Button
-              variant="link"
+              variant="outline-primary"
+              size="sm"
               onClick={() => setChangesModal(row.original)}
-              className="audit-log__view-changes-btn"
+              className="audit-log__changes-btn"
+              iconBefore={Difference}
+              aria-label={`${fields.length} field${fields.length !== 1 ? 's' : ''} changed`
+                + `, view details for ${row.original.object_repr || 'this record'}`}
             >
-              View all changes
+              {fields.length} field{fields.length !== 1 ? 's' : ''} changed
             </Button>
+            <span className="audit-log__changes-fields">
+              {fields.slice(0, 3).join(', ')}
+              {fields.length > 3 ? ` +${fields.length - 3} more` : ''}
+            </span>
           </div>
         );
       },
@@ -656,10 +675,12 @@ const AuditLogTable = ({
       {!loading && error && <Alert variant="danger">{error}</Alert>}
       {!loading && !error && (
         <>
-          <DataTable isSortable data={displayRows} columns={columns} itemCount={count}>
-            <DataTable.Table />
-            <DataTable.EmptyTable content="No activity recorded yet." />
-          </DataTable>
+          <div className="audit-log__table-scroll">
+            <DataTable isSortable data={displayRows} columns={columns} itemCount={count}>
+              <DataTable.Table />
+              <DataTable.EmptyTable content="No activity recorded yet." />
+            </DataTable>
+          </div>
           {pageCount > 1 && (
             <Pagination
               paginationLabel="Audit log pagination"

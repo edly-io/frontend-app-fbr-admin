@@ -1,9 +1,11 @@
 import React, { useMemo, useState } from 'react';
 import PropTypes from 'prop-types';
-import { Alert, Button, Form } from '@openedx/paragon';
+import {
+  ActionRow, Alert, Button, Form, ModalDialog,
+} from '@openedx/paragon';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
-  faCheck, faDownload, faFileCsv, faTimes, faUpload,
+  faCheck, faDownload, faUpload,
 } from '@fortawesome/free-solid-svg-icons';
 import { useIntl } from '@edx/frontend-platform/i18n';
 import { downloadBulkImportSample } from '../../data/api';
@@ -142,38 +144,22 @@ const BulkImportUsersModal = ({ onClose }) => {
   ];
 
   return (
-    <div
-      role="button"
-      tabIndex={0}
-      className="bulk-import-modal__overlay"
-      onClick={event => { if (event.target === event.currentTarget && !closeDisabled) { onClose(); } }}
-      onKeyDown={(event) => {
-        if ((event.key === 'Enter' || event.key === ' ') && event.target === event.currentTarget && !closeDisabled) {
-          onClose();
-        }
-      }}
+    <ModalDialog
+      isOpen
+      onClose={onClose}
+      title={intl.formatMessage(messages.bulkImportTitle)}
+      size="lg"
+      hasCloseButton={!closeDisabled}
+      isFullscreenOnMobile
+      className="bulk-import-modal"
     >
-      <div className="bulk-import-modal__panel">
-        <div className="bulk-import-modal__header">
-          <div className="bulk-import-modal__header-icon">
-            <FontAwesomeIcon icon={faFileCsv} />
-          </div>
-          <div>
-            <p className="bulk-import-modal__eyebrow">{intl.formatMessage(messages.bulkImportEyebrow)}</p>
-            <h2 className="bulk-import-modal__title">{intl.formatMessage(messages.bulkImportTitle)}</h2>
-            <p className="bulk-import-modal__subtitle">{intl.formatMessage(messages.bulkImportSubtitle)}</p>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            disabled={closeDisabled}
-            className="bulk-import-modal__close-btn"
-          >
-            <FontAwesomeIcon icon={faTimes} />
-          </button>
-        </div>
+      <ModalDialog.Header>
+        <p className="bulk-import-modal__eyebrow">{intl.formatMessage(messages.bulkImportEyebrow)}</p>
+        <ModalDialog.Title>{intl.formatMessage(messages.bulkImportTitle)}</ModalDialog.Title>
+        <p className="bulk-import-modal__subtitle">{intl.formatMessage(messages.bulkImportSubtitle)}</p>
+      </ModalDialog.Header>
 
-        <div className="bulk-import-modal__content">
+      <ModalDialog.Body>
           {importableRoles.length === 0 ? (
             <Alert variant="warning" className="mb-3">
               {intl.formatMessage(messages.bulkImportNoPermission)}
@@ -288,17 +274,19 @@ const BulkImportUsersModal = ({ onClose }) => {
               </div>
             </div>
           )}
-        </div>
 
-        <div className="bulk-import-modal__footer">
-          <Button variant="tertiary" onClick={onClose} disabled={closeDisabled}>{intl.formatMessage(messages.closeButton)}</Button>
+      </ModalDialog.Body>
+
+      <ModalDialog.Footer>
+        <ActionRow>
+          <Button variant="outline-primary" onClick={onClose} disabled={closeDisabled}>{intl.formatMessage(messages.closeButton)}</Button>
           <Button variant="primary" onClick={handleSubmit} disabled={!canSubmit}>
             <FontAwesomeIcon icon={dryRun ? faCheck : faUpload} className="bulk-import-modal__submit-icon" />
             {submitLabel}
           </Button>
-        </div>
-      </div>
-    </div>
+        </ActionRow>
+      </ModalDialog.Footer>
+    </ModalDialog>
   );
 };
 

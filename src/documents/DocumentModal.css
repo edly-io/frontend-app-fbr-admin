@@ -21,33 +21,47 @@
 
 /* ── Form label extras ──────────────────────────────────────────────────── */
 .doc-required { color: #ef4444; margin-left: 2px; }
-.doc-optional { color: #9ca3af; font-weight: 400; font-size: 0.8rem; margin-left: 4px; }
+.doc-optional { color: var(--pgn-color-gray-500); font-weight: 400; font-size: 0.8rem; margin-left: 4px; }
 
 /* ── Upload zone ────────────────────────────────────────────────────────── */
+/* The zone is the panel's action, so every state is a primary shade and they
+   escalate: rest, hover, drag-over.
+
+   Paragon's numbered primary ramp cannot drive this directly. Its dark ramp is
+   inverted - `primary-200` is a pale surface in light but a mid-tone accent in
+   dark - so one numbered token cannot serve both as a fill. These four are
+   scoped to the component instead, which leaves Paragon's namespace alone and
+   keeps the values readable in one place. `primary-light` and `primary-base`
+   are used directly because those two do mean the same thing in both themes. */
 .doc-upload-zone {
-  border: 2px dashed #d1d5db;
+  --doc-zone-bg: var(--pgn-color-primary-light);
+  --doc-zone-bg-hover: var(--pgn-color-primary-100);
+  --doc-zone-bg-over: var(--pgn-color-primary-200);
+  --doc-zone-border: var(--pgn-color-primary-200);
+
+  border: 2px dashed var(--doc-zone-border);
   border-radius: 10px;
   padding: 32px 24px;
   cursor: pointer;
   text-align: center;
   transition: border-color 0.15s, background 0.15s;
-  background: #fafafa;
+  background: var(--doc-zone-bg);
   outline: none;
 }
 .doc-upload-zone:hover,
 .doc-upload-zone:focus {
-  border-color: #6366f1;
-  background: #f5f3ff;
+  border-color: var(--pgn-color-primary-base);
+  background: var(--doc-zone-bg-hover);
 }
 .doc-upload-zone--over {
-  border-color: #6366f1;
-  background: #ede9fe;
+  border-color: var(--pgn-color-primary-base);
+  background: var(--doc-zone-bg-over);
 }
 .doc-upload-zone--filled {
   padding: 16px 20px;
   border-style: solid;
-  border-color: #a5b4fc;
-  background: #f5f3ff;
+  border-color: var(--pgn-color-primary-base);
+  background: var(--doc-zone-bg-hover);
   cursor: default;
 }
 
@@ -55,19 +69,19 @@
 .doc-upload-prompt { display: flex; flex-direction: column; align-items: center; gap: 6px; }
 .doc-upload-icon {
   font-size: 2.2rem;
-  color: #a5b4fc;
+  color: var(--pgn-color-primary-base);
   margin-bottom: 4px;
 }
 .doc-upload-label {
   margin: 0;
   font-size: 0.9rem;
-  color: #374151;
+  color: var(--pgn-color-gray-800);
 }
-.doc-upload-label strong { color: #4f46e5; }
+.doc-upload-label strong { color: var(--pgn-color-primary-base); }
 .doc-upload-hint {
   margin: 0;
   font-size: 0.78rem;
-  color: #9ca3af;
+  color: var(--pgn-color-gray-500);
 }
 
 /* Upload preview (file selected) */
@@ -79,7 +93,7 @@
 }
 .doc-upload-preview-icon {
   font-size: 1.4rem;
-  color: #6366f1;
+  color: var(--pgn-color-primary-base);
   flex-shrink: 0;
 }
 .doc-upload-preview-info {
@@ -91,7 +105,7 @@
 }
 .doc-upload-preview-name {
   font-weight: 500;
-  color: #111827;
+  color: var(--pgn-color-gray-900);
   font-size: 0.875rem;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -99,13 +113,13 @@
 }
 .doc-upload-preview-size {
   font-size: 0.78rem;
-  color: #6b7280;
+  color: var(--pgn-color-gray-600);
 }
 .doc-upload-clear {
   flex-shrink: 0;
   border: none;
   background: transparent;
-  color: #9ca3af;
+  color: var(--pgn-color-gray-500);
   cursor: pointer;
   padding: 4px 6px;
   border-radius: 4px;
@@ -125,11 +139,11 @@
 
 .doc-visibility-label {
   font-size: 0.875rem;
-  color: #9ca3af;
+  color: var(--pgn-color-gray-500);
   font-weight: 500;
   transition: color 0.15s;
 }
-.doc-visibility-label--active { color: #111827; }
+.doc-visibility-label--active { color: var(--pgn-color-gray-900); }
 
 .doc-visibility-switch {
   position: relative;
@@ -137,7 +151,7 @@
   height: 24px;
   border-radius: 12px;
   border: none;
-  background: #d1d5db;
+  background: var(--pgn-color-gray-400);
   cursor: pointer;
   padding: 0;
   transition: background 0.2s;
@@ -152,7 +166,7 @@
   width: 18px;
   height: 18px;
   border-radius: 50%;
-  background: #fff;
+  background: var(--pgn-color-white);
   transition: transform 0.2s;
   display: block;
   box-shadow: 0 1px 3px rgba(0,0,0,0.2);
@@ -162,6 +176,38 @@
 .doc-visibility-hint {
   margin: 6px 0 0;
   font-size: 0.8rem;
-  color: #6b7280;
+  color: var(--pgn-color-gray-600);
   line-height: 1.4;
+}
+
+/* ── Dark variant ────────────────────────────────────────────────────────────
+   What is left here is what Paragon has no token for: the two surfaces the drop
+   zone escalates through, and the error tints, which are fixed pastels built to
+   carry dark ink and so need their own pairing on a dark ground. */
+:root[data-paragon-theme-variant="dark"] {
+  /* Paragon's dark `primary-100`/`200` are mid-tone accents, not surfaces, so
+     the two fills the zone escalates through are given dark values here. Rest
+     and the borders stay on Paragon tokens - those read correctly either way. */
+  .doc-upload-zone {
+    --doc-zone-bg-hover: #2E3140;
+    --doc-zone-bg-over: #3A3E52;
+    --doc-zone-border: #3E4252;
+  }
+
+  .doc-modal-error {
+    background: rgba(239, 68, 68, 0.14);
+    border-color: rgba(239, 68, 68, 0.38);
+    color: #F5A3A3;
+  }
+
+  .doc-upload-clear:hover {
+    background: rgba(239, 68, 68, 0.16);
+    color: #F5A3A3;
+  }
+
+  /* The knob is a light disc on a coloured track in both themes, so it stays a
+     literal rather than following `--pgn-color-white`, which is the page. */
+  .doc-visibility-knob {
+    background: #F2F3F5;
+  }
 }
