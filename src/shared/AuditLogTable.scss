@@ -65,9 +65,25 @@
   }
 
   &__count {
-    color: #6c757d;
+    color: var(--pgn-color-gray-600);
     font-size: 0.8rem;
     margin-left: auto;
+  }
+
+  // Six columns cannot share a phone's width without every cell collapsing to
+  // one word per line. The table holds a readable minimum and the container
+  // scrolls sideways instead.
+  &__table-scroll {
+    max-width: 100%;
+    overflow-x: auto;
+
+    .pgn__data-table {
+      min-width: 62rem;
+    }
+
+    &--narrow .pgn__data-table {
+      min-width: 36rem;
+    }
   }
 
   &__timestamp {
@@ -89,7 +105,7 @@
 
   &__actor-email {
     font-size: 0.8rem;
-    color: #6c757d;
+    color: var(--pgn-color-gray-600);
     display: block;
   }
 
@@ -100,176 +116,79 @@
   &__record-repr {
     font-size: 0.85rem;
     font-weight: 500;
-    word-break: break-word;
+    overflow-wrap: break-word;
+  }
+
+  // The two row actions are real buttons, so the label sits under its button
+  // rather than beside it.
+  &__changes {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+
+  // Paragon's `sm` button is sized for a toolbar; inside a table row it needs
+  // to sit closer to the text it belongs to.
+  &__changes-btn,
+  &__history-btn {
+    white-space: nowrap;
+    // 1.5rem keeps the pointer target at the 24px WCAG 2.5.8 minimum once the
+    // padding is this tight.
+    min-height: 1.5rem;
+    padding: 0.125rem 0.5rem;
+    font-size: 0.75rem;
+    line-height: 1.5;
+
+    .pgn__icon {
+      width: 0.875rem;
+      height: 0.875rem;
+    }
+  }
+
+  &__changes-fields {
+    font-size: 0.75rem;
+    color: var(--pgn-color-gray-500);
+  }
+
+  // Id and history button share one line under the record's name.
+  &__record-meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.375rem;
   }
 
   &__record-id {
     font-size: 0.75rem;
-    color: #6c757d;
-    margin-top: 2px;
+    color: var(--pgn-color-gray-600);
   }
 
-  &__history-btn {
-    margin-top: 4px;
-  }
-
-  &__changes-list {
-    margin: 0;
-    padding: 0;
-    list-style: none;
-    font-size: 0.8rem;
-  }
-
-  &__change-item {
-    margin-bottom: 2px;
-  }
-
-  &__change-field {
-    font-weight: 500;
-  }
-
-  &__change-old {
-    color: #dc3545;
-  }
-
-  &__change-new {
-    color: #198754;
-  }
-
-  &__changes-more {
-    color: #6c757d;
-    font-size: 0.75rem;
-  }
-
-  &__view-changes-btn {
-    background: none;
-    border: none;
-    padding: 0;
-    margin-top: 4px;
-    color: var(--pgn-color-primary-base, #0d6efd);
-    cursor: pointer;
-    font-size: 0.75rem;
-    text-decoration: underline;
-  }
 }
 
+// ModalDialog supplies the overlay, panel, header and footer. What is left is
+// the subtitle under the title and the three diff columns.
 .audit-modal {
-  &__overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 9999;
-  }
-
-  &__panel {
-    background: #fff;
-    border-radius: 8px;
-    width: 90%;
-    max-width: 680px;
-    max-height: 85vh;
-    overflow: auto;
-    padding: 1.5rem;
-
-    &--wide {
-      max-width: 860px;
-      width: 95%;
-    }
-  }
-
-  &__header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 1rem;
-  }
-
-  &__title {
-    margin: 0;
-    font-size: 1.1rem;
-  }
-
   &__subtitle {
-    color: #6c757d;
     display: block;
     margin-top: 0.25rem;
+    color: var(--pgn-color-gray-600);
     font-size: 0.85rem;
   }
 
-  &__close-btn {
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 0.25rem;
-    font-size: 1rem;
-    line-height: 1;
-    color: #6c757d;
-
-    &:hover {
-      color: #000;
-    }
-  }
-
   &__empty {
-    color: #6c757d;
     margin: 0;
+    color: var(--pgn-color-gray-500);
   }
+}
 
-  &__table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 0.875rem;
-  }
+.audit-modal__td--field { font-weight: 500; white-space: nowrap; }
+.audit-modal__td--old { color: var(--pgn-color-danger-500); }
+.audit-modal__td--new { color: var(--pgn-color-green); }
 
-  &__th {
-    text-align: left;
-    padding: 0.5rem 0.75rem;
-    border-bottom: 2px solid #dee2e6;
-    font-weight: 600;
-    white-space: nowrap;
-  }
-
-  &__td {
-    padding: 0.5rem 0.75rem;
-    word-break: break-all;
-
-    &--field {
-      font-weight: 500;
-      white-space: nowrap;
-      word-break: normal;
-    }
-
-    &--old {
-      color: #dc3545;
-    }
-
-    &--new {
-      color: #198754;
-    }
-
-    &--center {
-      text-align: center;
-      color: #6c757d;
-    }
-  }
-
-  &__tr--even {
-    background: #f8f9fa;
-  }
-
-  &__tr--odd {
-    background: #fff;
-  }
-
-  &__fields-btn {
-    background: none;
-    border: none;
-    padding: 0;
-    cursor: pointer;
-    color: var(--pgn-color-primary-base, #0d6efd);
-    text-decoration: underline;
-    font-size: 0.875rem;
-  }
+// The history modal's pager sits under a full-width table, so it reads as
+// belonging to the whole panel rather than to its left edge.
+.audit-modal .pgn__pagination {
+  justify-content: center;
 }

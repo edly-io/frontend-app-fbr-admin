@@ -48,6 +48,10 @@
     overflow-x: auto;
   }
 
+  .pgn__data-table-cell-wrap {
+    max-width: none;
+  }
+
   // Per-column floors, applied through each column's `cellClassName`.
   .report-cell--identity {
     min-width: 12.5rem;

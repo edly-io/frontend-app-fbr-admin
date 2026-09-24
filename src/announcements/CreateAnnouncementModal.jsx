@@ -1,4 +1,6 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, {
+  useEffect, useMemo, useRef, useState,
+} from 'react';
 import PropTypes from 'prop-types';
 import { Button, Form } from '@openedx/paragon';
 import { Editor } from '@tinymce/tinymce-react';
@@ -60,13 +62,32 @@ const DEFAULT_RECIPIENT_TYPES = {
   program: ['instructor', 'trainee'],
 };
 
-const TINYMCE_INIT = {
-  height: 280,
-  menubar: false,
-  plugins: 'paste link image lists',
-  toolbar: 'bold italic underline | bullist numlist | link image | removeformat',
-  branding: false,
-  statusbar: false,
+// TinyMCE renders the editable area inside an iframe, so nothing on the page -
+// tokens included - reaches it. Its defaults are black ink, which on the dark
+// theme's surface left typing invisible. `content_style` is injected into that
+// iframe, and the skin and content stylesheet have dark builds shipped with the
+// package, so both halves of the editor follow the theme.
+//
+// The platform reloads the page when the theme is switched, so reading the
+// attribute once at render is enough.
+const isDarkTheme = () => (typeof document !== 'undefined'
+  && document.documentElement.getAttribute('data-paragon-theme-variant') === 'dark');
+
+const tinymceInit = () => {
+  const dark = isDarkTheme();
+  return {
+    height: 280,
+    menubar: false,
+    plugins: 'paste link image lists',
+    toolbar: 'bold italic underline | bullist numlist | link image | removeformat',
+    branding: false,
+    statusbar: false,
+    skin: dark ? 'oxide-dark' : 'oxide',
+    content_css: dark ? 'dark' : 'default',
+    content_style: dark
+      ? 'body { background-color: #131316; color: #E4E4E7; }'
+      : 'body { background-color: #FFFFFF; color: #212529; }',
+  };
 };
 
 const todayIsoDate = () => new Date().toISOString().split('T')[0];
@@ -91,6 +112,7 @@ const CreateAnnouncementModal = ({ onClose, onCreated }) => {
   const [recipientCount, setRecipientCount] = useState(null);
   const [recipientCountLoading, setRecipientCountLoading] = useState(false);
   const fileInputRef = useRef(null);
+  const editorInit = useMemo(tinymceInit, []);
   const previewTimerRef = useRef(null);
 
   useEffect(() => {
@@ -228,7 +250,7 @@ const CreateAnnouncementModal = ({ onClose, onCreated }) => {
           <div className="ann-field">
             <span className="ann-label">Body *</span>
             <Editor
-              init={TINYMCE_INIT}
+              init={editorInit}
               value={bodyHtml}
               onEditorChange={val => setBodyHtml(val)}
             />
@@ -418,7 +440,7 @@ const CreateAnnouncementModal = ({ onClose, onCreated }) => {
         </div>
 
         <div className="ann-footer">
-          <Button variant="tertiary" onClick={onClose} disabled={submitting}>Cancel</Button>
+          <Button variant="outline-primary" onClick={onClose} disabled={submitting}>Cancel</Button>
           <Button variant="primary" onClick={handleSubmit} disabled={submitting || !isFormReady}>
             {submitting ? 'Sending...' : 'Send Announcement'}
           </Button>

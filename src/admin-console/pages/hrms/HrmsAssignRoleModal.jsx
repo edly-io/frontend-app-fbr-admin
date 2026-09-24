@@ -154,19 +154,16 @@ const HrmsAssignRoleModal = ({ employee, onClose, onSuccess }) => {
       hasCloseButton
       isFullscreenOnMobile
     >
-      <ModalDialog.Header className="hrms-assign-modal__header">
-        <div className="hrms-assign-modal__header-icon">+</div>
-        <div>
-          <p className="hrms-assign-modal__eyebrow">
-            {intl.formatMessage(messages.assignRoleEyebrow)}
-          </p>
-          <ModalDialog.Title className="hrms-assign-modal__title">
-            {intl.formatMessage(messages.assignRoleTitle)}
-          </ModalDialog.Title>
-          <p className="hrms-assign-modal__header-subtitle">
-            {intl.formatMessage(messages.assignRoleSubtitle)}
-          </p>
-        </div>
+      <ModalDialog.Header>
+        <p className="hrms-assign-modal__eyebrow">
+          {intl.formatMessage(messages.assignRoleEyebrow)}
+        </p>
+        <ModalDialog.Title>
+          {intl.formatMessage(messages.assignRoleTitle)}
+        </ModalDialog.Title>
+        <p className="hrms-assign-modal__header-subtitle">
+          {intl.formatMessage(messages.assignRoleSubtitle)}
+        </p>
       </ModalDialog.Header>
 
       <ModalDialog.Body>
@@ -324,7 +321,7 @@ const HrmsAssignRoleModal = ({ employee, onClose, onSuccess }) => {
 
       <ModalDialog.Footer>
         <ActionRow>
-          <Button variant="tertiary" onClick={onClose} disabled={isSubmitting}>
+          <Button variant="outline-primary" onClick={onClose} disabled={isSubmitting}>
             {intl.formatMessage(messages.cancelButton)}
           </Button>
           <Button

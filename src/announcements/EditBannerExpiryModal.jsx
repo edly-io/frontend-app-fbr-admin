@@ -65,7 +65,7 @@ const EditBannerExpiryModal = ({ item, onClose, onSaved }) => {
         </div>
 
         <div className="eexp-footer">
-          <Button variant="tertiary" onClick={onClose} disabled={submitting}>Cancel</Button>
+          <Button variant="outline-primary" onClick={onClose} disabled={submitting}>Cancel</Button>
           <Button variant="primary" onClick={handleSave} disabled={submitting || !expiresAt}>
             {submitting ? 'Saving…' : 'Save'}
           </Button>

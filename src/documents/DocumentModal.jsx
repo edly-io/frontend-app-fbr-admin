@@ -241,7 +241,7 @@ const DocumentModal = ({ document, onClose, onSaved }) => {
 
       <ModalDialog.Footer>
         <ActionRow>
-          <Button variant="tertiary" onClick={onClose} disabled={isSaving}>Cancel</Button>
+          <Button variant="outline-primary" onClick={onClose} disabled={isSaving}>Cancel</Button>
           <Button
             variant="primary"
             type="submit"
