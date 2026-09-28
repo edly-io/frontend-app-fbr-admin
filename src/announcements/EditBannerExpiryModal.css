@@ -10,7 +10,7 @@
 }
 
 .eexp-modal {
-  background: #fff;
+  background: var(--pgn-color-bg-base);
   border-radius: 12px;
   width: 100%;
   max-width: 420px;
@@ -28,7 +28,7 @@
 .eexp-title {
   font-size: 16px;
   font-weight: 700;
-  color: #111827;
+  color: var(--pgn-color-gray-900);
   margin: 0;
 }
 
@@ -72,7 +72,7 @@
 .eexp-label {
   font-size: 13px;
   font-weight: 600;
-  color: #374151;
+  color: var(--pgn-color-gray-800);
 }
 
 .eexp-label-note {
@@ -96,4 +96,18 @@
   display: flex;
   justify-content: flex-end;
   gap: 8px;
+}
+
+/* ── Dark variant ────────────────────────────────────────────────────────────
+   The tints left above are pale fills built to carry dark ink. On a dark ground
+   each needs its own pairing rather than a token that flips, so the hue keeps
+   carrying its meaning. */
+:root[data-paragon-theme-variant="dark"] .eexp-error {
+  background: rgba(239, 68, 68, 0.14);
+  border-color: rgba(239, 68, 68, 0.38);
+  color: #F5A3A3;
+}
+:root[data-paragon-theme-variant="dark"] .eexp-note {
+  background: rgba(34, 197, 94, 0.16);
+  color: #8FE0AC;
 }

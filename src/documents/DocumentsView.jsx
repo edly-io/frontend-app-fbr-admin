@@ -1,12 +1,15 @@
 import React, { useCallback, useEffect, useState } from 'react';
+import PropTypes from 'prop-types';
 import {
-  ActionRow, Button, Form, ModalDialog, OverlayTrigger, Tooltip,
+  ActionRow, Button, DataTable, Form, Icon, IconButton, ModalDialog, OverlayTrigger,
+  Pagination, Tooltip,
 } from '@openedx/paragon';
+import {
+  Delete, Edit as EditIcon, Link as LinkIcon, Lock, LockOpen, Visibility,
+} from '@openedx/paragon/icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
-  faPlus, faEdit, faTrash, faLink, faChevronLeft, faChevronRight,
-  faEye, faFileImage, faFilePdf, faFileArchive, faFileAlt,
-  faLock, faLockOpen,
+  faPlus, faFileImage, faFilePdf, faFileArchive, faFileAlt,
 } from '@fortawesome/free-solid-svg-icons';
 import { getConfig } from '@edx/frontend-platform';
 import UserIdentity from '../admin-console/components/UserIdentity';
@@ -17,22 +20,24 @@ import DocumentModal from './DocumentModal';
 import DebouncedSearchInput from '../admin-console/components/debounced-search-input/DebouncedSearchInput';
 import './DocumentsView.scss';
 
+// Each entry carries the hue its pastel is built from, so the dark variant can
+// keep a type's identity instead of collapsing every badge onto one grey.
 const BADGE_PALETTES = [
-  { background: '#dbeafe', color: '#1e40af' }, // blue
-  { background: '#d1fae5', color: '#065f46' }, // green
-  { background: '#fce7f3', color: '#9d174d' }, // pink
-  { background: '#fef3c7', color: '#92400e' }, // amber
-  { background: '#ede9fe', color: '#5b21b6' }, // violet
-  { background: '#ffedd5', color: '#9a3412' }, // orange
-  { background: '#e0f2fe', color: '#075985' }, // sky
-  { background: '#ecfdf5', color: '#047857' }, // emerald
-  { background: '#fdf4ff', color: '#86198f' }, // fuchsia
-  { background: '#fff1f2', color: '#9f1239' }, // rose
-  { background: '#f0fdf4', color: '#166534' }, // lime
-  { background: '#fefce8', color: '#854d0e' }, // yellow
-  { background: '#f0f9ff', color: '#0c4a6e' }, // light blue
-  { background: '#fdf2f8', color: '#701a75' }, // purple-pink
-  { background: '#f7fee7', color: '#3f6212' }, // lime green
+  { background: '#dbeafe', color: '#1e40af', hue: 217 }, // blue
+  { background: '#d1fae5', color: '#065f46', hue: 160 }, // green
+  { background: '#fce7f3', color: '#9d174d', hue: 330 }, // pink
+  { background: '#fef3c7', color: '#92400e', hue: 40 }, // amber
+  { background: '#ede9fe', color: '#5b21b6', hue: 260 }, // violet
+  { background: '#ffedd5', color: '#9a3412', hue: 28 }, // orange
+  { background: '#e0f2fe', color: '#075985', hue: 200 }, // sky
+  { background: '#ecfdf5', color: '#047857', hue: 165 }, // emerald
+  { background: '#fdf4ff', color: '#86198f', hue: 295 }, // fuchsia
+  { background: '#fff1f2', color: '#9f1239', hue: 350 }, // rose
+  { background: '#f0fdf4', color: '#166534', hue: 145 }, // lime
+  { background: '#fefce8', color: '#854d0e', hue: 50 }, // yellow
+  { background: '#f0f9ff', color: '#0c4a6e', hue: 204 }, // light blue
+  { background: '#fdf2f8', color: '#701a75', hue: 310 }, // purple-pink
+  { background: '#f7fee7', color: '#3f6212', hue: 85 }, // lime green
 ];
 
 const getBadgeStyle = (name = '') => {
@@ -44,6 +49,18 @@ const getBadgeStyle = (name = '') => {
     hash |= 0;
   }
   return BADGE_PALETTES[Math.abs(hash) % BADGE_PALETTES.length];
+};
+
+// The pastel is handed to CSS rather than set as `background`/`color`, so the
+// dark rule can rebuild the badge from the same hue instead of being outranked
+// by an inline style.
+const badgeVars = (name) => {
+  const palette = getBadgeStyle(name);
+  return {
+    '--docs-badge-bg': palette.background,
+    '--docs-badge-fg': palette.color,
+    '--docs-badge-hue': palette.hue,
+  };
 };
 
 const getFileTypeInfo = (doc) => {
@@ -76,6 +93,150 @@ const ROLE_DISPLAY = {
   data_admin: 'Data Admin',
   instructor: 'Instructor',
   trainee: 'Trainee',
+};
+
+// Cell renderers keep the markup the hand-written table used, so the rows read
+// exactly as before; only the table around them is Paragon's now. They live at
+// module scope so react-table sees the same component type on every render and
+// updates each cell instead of remounting it - a remount drops focus and closes
+// any tooltip that happens to be open in the actions column.
+const TitleCell = ({ row }) => {
+  const doc = row.original;
+  const fileType = getFileTypeInfo(doc);
+  return (
+    <div className="docs-title-cell">
+      <span className="docs-file-icon" style={{ color: fileType.color }}>
+        <FontAwesomeIcon icon={fileType.icon} />
+      </span>
+      <div>
+        <span className="docs-doc-title">{doc.title}</span>
+        {doc.original_filename !== doc.title && (
+          <span className="docs-doc-filename">{doc.original_filename}</span>
+        )}
+      </div>
+    </div>
+  );
+};
+
+const TypeCell = ({ row }) => {
+  const name = row.original.document_type_name;
+  if (!name) { return <span className="docs-td-muted">—</span>; }
+  return (
+    <span className="docs-type-badge" style={badgeVars(name)}>
+      {name}
+    </span>
+  );
+};
+
+const UploaderCell = ({ row }) => (row.original.uploaded_by_name ? (
+  <UserIdentity
+    name={row.original.uploaded_by_name}
+    badges={[ROLE_DISPLAY[row.original.uploaded_by_role]].filter(Boolean)}
+    size="compact"
+    showAvatar
+  />
+) : '—');
+
+const ActionsCell = ({ row, column }) => {
+  const doc = row.original;
+  const {
+    onPreview, onCopyLink, onToggleVisibility, onEdit, onDelete,
+  } = column.actions;
+  return (
+    <div className="docs-action-group d-flex align-items-center">
+      <OverlayTrigger placement="top" overlay={<Tooltip id={`preview-${doc.id}`}>Preview</Tooltip>}>
+        <IconButton
+          src={Visibility}
+          iconAs={Icon}
+          size="sm"
+          alt="Preview document"
+          onClick={() => onPreview(doc)}
+        />
+      </OverlayTrigger>
+      <OverlayTrigger placement="top" overlay={<Tooltip id={`copy-${doc.id}`}>Copy link</Tooltip>}>
+        <IconButton
+          src={LinkIcon}
+          iconAs={Icon}
+          size="sm"
+          alt="Copy shareable link"
+          onClick={() => onCopyLink(doc)}
+        />
+      </OverlayTrigger>
+      <OverlayTrigger
+        placement="top"
+        overlay={(
+          <Tooltip id={`vis-${doc.id}`}>
+            {doc.is_public
+              ? 'Make private — only FBR users (admins, instructors, trainees) can view after logging in'
+              : 'Make public — anyone can view without logging in'}
+          </Tooltip>
+        )}
+      >
+        <IconButton
+          src={doc.is_public ? LockOpen : Lock}
+          iconAs={Icon}
+          size="sm"
+          variant={doc.is_public ? 'success' : 'primary'}
+          alt={doc.is_public ? 'Set document to private' : 'Set document to public'}
+          onClick={() => onToggleVisibility(doc)}
+        />
+      </OverlayTrigger>
+      <OverlayTrigger placement="top" overlay={<Tooltip id={`edit-${doc.id}`}>Edit</Tooltip>}>
+        <IconButton
+          src={EditIcon}
+          iconAs={Icon}
+          size="sm"
+          alt="Edit document"
+          onClick={() => onEdit(doc)}
+        />
+      </OverlayTrigger>
+      <OverlayTrigger placement="top" overlay={<Tooltip id={`delete-${doc.id}`}>Delete</Tooltip>}>
+        <IconButton
+          src={Delete}
+          iconAs={Icon}
+          size="sm"
+          variant="danger"
+          alt="Delete document"
+          onClick={() => onDelete(doc)}
+        />
+      </OverlayTrigger>
+    </div>
+  );
+};
+const SizeCell = ({ row }) => formatBytes(row.original.file_size);
+
+const DateCell = ({ row }) => formatDate(row.original.created);
+
+const docShape = PropTypes.shape({
+  id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  title: PropTypes.string,
+  original_filename: PropTypes.string,
+  document_type_name: PropTypes.string,
+  file_size: PropTypes.number,
+  created: PropTypes.string,
+  uploaded_by_name: PropTypes.string,
+  uploaded_by_role: PropTypes.string,
+  is_public: PropTypes.bool,
+});
+
+const rowOf = PropTypes.shape({ original: docShape.isRequired }).isRequired;
+
+TitleCell.propTypes = { row: rowOf };
+TypeCell.propTypes = { row: rowOf };
+SizeCell.propTypes = { row: rowOf };
+DateCell.propTypes = { row: rowOf };
+UploaderCell.propTypes = { row: rowOf };
+ActionsCell.propTypes = {
+  row: rowOf,
+  column: PropTypes.shape({
+    actions: PropTypes.shape({
+      onPreview: PropTypes.func.isRequired,
+      onCopyLink: PropTypes.func.isRequired,
+      onToggleVisibility: PropTypes.func.isRequired,
+      onEdit: PropTypes.func.isRequired,
+      onDelete: PropTypes.func.isRequired,
+    }).isRequired,
+  }).isRequired,
 };
 
 const DocumentsView = () => {
@@ -184,6 +345,46 @@ const DocumentsView = () => {
   const openCreate = () => { setModalDoc(null); setShowModal(true); };
   const openEdit = (doc) => { setModalDoc(doc); setShowModal(true); };
 
+  // Widths that were inline `style` attributes on the old `th`s now travel with
+  // the column, so header and body stay in step.
+  const columns = [
+    { Header: 'Title', accessor: 'title', Cell: TitleCell },
+    {
+      Header: 'Type', id: 'type', Cell: TypeCell, cellClassName: 'docs-col--type', headerClassName: 'docs-col--type',
+    },
+    {
+      Header: 'Size',
+      id: 'size',
+      Cell: SizeCell,
+      cellClassName: 'docs-col--size docs-td-mono',
+      headerClassName: 'docs-col--size',
+    },
+    {
+      Header: 'Uploaded by', id: 'uploader', Cell: UploaderCell, cellClassName: 'docs-col--uploader', headerClassName: 'docs-col--uploader',
+    },
+    {
+      Header: 'Date',
+      id: 'date',
+      Cell: DateCell,
+      cellClassName: 'docs-col--date docs-td-mono',
+      headerClassName: 'docs-col--date',
+    },
+    {
+      Header: 'Actions',
+      id: 'actions',
+      Cell: ActionsCell,
+      actions: {
+        onPreview: handlePreview,
+        onCopyLink: handleCopyLink,
+        onToggleVisibility: handleToggleVisibility,
+        onEdit: openEdit,
+        onDelete: setDeleteModalDoc,
+      },
+      cellClassName: 'docs-col--actions',
+      headerClassName: 'docs-col--actions docs-th--center',
+    },
+  ];
+
   return (
     <>
       {/* ── Page header ── */}
@@ -240,176 +441,29 @@ const DocumentsView = () => {
 
       {/* ── Table card ── */}
       <div className="docs-card">
-        <div className="docs-table-wrap">
-          <table className="docs-table">
-            <thead>
-              <tr className="docs-thead-row">
-                <th className="docs-th">Title</th>
-                <th className="docs-th" style={{ width: '140px' }}>Type</th>
-                <th className="docs-th" style={{ width: '85px' }}>Size</th>
-                <th className="docs-th" style={{ width: '200px' }}>Uploaded by</th>
-                <th className="docs-th" style={{ width: '110px' }}>Date</th>
-                <th className="docs-th docs-th--center" style={{ width: '140px' }}>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {isLoading && (
-                <tr>
-                  {/* eslint-disable-next-line jsx-a11y/control-has-associated-label */}
-                  <td colSpan={6} className="docs-td-empty">
-                    <div className="docs-loading-dots" aria-label="Loading" role="status">
-                      <span aria-hidden="true" /><span aria-hidden="true" /><span aria-hidden="true" />
-                    </div>
-                  </td>
-                </tr>
-              )}
-              {!isLoading && documents.length === 0 && (
-                <tr>
-                  <td colSpan={6} className="docs-td-empty">
-                    <div className="docs-empty-state">
-                      <FontAwesomeIcon icon={faFileAlt} className="docs-empty-icon" />
-                      <p>No documents found.</p>
-                    </div>
-                  </td>
-                </tr>
-              )}
-              {!isLoading && documents.map((doc) => {
-                const fileType = getFileTypeInfo(doc);
-                return (
-                  <tr key={doc.id} className="docs-row">
-                    <td className="docs-td-title">
-                      <div className="docs-title-cell">
-                        <span className="docs-file-icon" style={{ color: fileType.color }}>
-                          <FontAwesomeIcon icon={fileType.icon} />
-                        </span>
-                        <div>
-                          <span className="docs-doc-title">{doc.title}</span>
-                          {doc.original_filename !== doc.title && (
-                            <span className="docs-doc-filename">{doc.original_filename}</span>
-                          )}
-                        </div>
-                      </div>
-                    </td>
-                    <td className="docs-td">
-                      {doc.document_type_name ? (
-                        <span
-                          className="docs-type-badge"
-                          style={getBadgeStyle(doc.document_type_name)}
-                        >
-                          {doc.document_type_name}
-                        </span>
-                      ) : (
-                        <span className="docs-td-muted">—</span>
-                      )}
-                    </td>
-                    <td className="docs-td docs-td-mono">{formatBytes(doc.file_size)}</td>
-                    <td className="docs-td">
-                      {doc.uploaded_by_name ? (
-                        <UserIdentity
-                          name={doc.uploaded_by_name}
-                          badges={[ROLE_DISPLAY[doc.uploaded_by_role]].filter(Boolean)}
-                          size="compact"
-                          showAvatar
-                        />
-                      ) : '—'}
-                    </td>
-                    <td className="docs-td docs-td-mono">{formatDate(doc.created)}</td>
-                    <td className="docs-td-actions">
-                      <div className="docs-action-group">
-                        <OverlayTrigger placement="top" overlay={<Tooltip id={`preview-${doc.id}`}>Preview</Tooltip>}>
-                          <button
-                            type="button"
-                            className="docs-action-btn docs-action-btn--preview"
-                            onClick={() => handlePreview(doc)}
-                            aria-label="Preview document"
-                          >
-                            <FontAwesomeIcon icon={faEye} />
-                          </button>
-                        </OverlayTrigger>
-                        <OverlayTrigger placement="top" overlay={<Tooltip id={`copy-${doc.id}`}>Copy link</Tooltip>}>
-                          <button
-                            type="button"
-                            className="docs-action-btn docs-action-btn--link"
-                            onClick={() => handleCopyLink(doc)}
-                            aria-label="Copy shareable link"
-                          >
-                            <FontAwesomeIcon icon={faLink} />
-                          </button>
-                        </OverlayTrigger>
-                        <OverlayTrigger
-                          placement="top"
-                          overlay={(
-                            <Tooltip id={`vis-${doc.id}`}>
-                              {doc.is_public
-                                ? 'Make private — only FBR users (admins, instructors, trainees) can view after logging in'
-                                : 'Make public — anyone can view without logging in'}
-                            </Tooltip>
-                          )}
-                        >
-                          <button
-                            type="button"
-                            className={`docs-action-btn docs-action-btn--visibility${doc.is_public ? ' docs-action-btn--public' : ''}`}
-                            onClick={() => handleToggleVisibility(doc)}
-                            aria-label={doc.is_public ? 'Set document to private' : 'Set document to public'}
-                          >
-                            <FontAwesomeIcon icon={doc.is_public ? faLockOpen : faLock} />
-                          </button>
-                        </OverlayTrigger>
-                        <OverlayTrigger placement="top" overlay={<Tooltip id={`edit-${doc.id}`}>Edit</Tooltip>}>
-                          <button
-                            type="button"
-                            className="docs-action-btn docs-action-btn--edit"
-                            onClick={() => openEdit(doc)}
-                            aria-label="Edit document"
-                          >
-                            <FontAwesomeIcon icon={faEdit} />
-                          </button>
-                        </OverlayTrigger>
-                        <OverlayTrigger placement="top" overlay={<Tooltip id={`delete-${doc.id}`}>Delete</Tooltip>}>
-                          <button
-                            type="button"
-                            className="docs-action-btn docs-action-btn--delete"
-                            onClick={() => setDeleteModalDoc(doc)}
-                            aria-label="Delete document"
-                          >
-                            <FontAwesomeIcon icon={faTrash} />
-                          </button>
-                        </OverlayTrigger>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+        <DataTable
+          isLoading={isLoading}
+          data={documents}
+          itemCount={totalCount}
+          columns={columns}
+        >
+          <div className="docs-table-wrap">
+            <DataTable.Table />
+            <DataTable.EmptyTable content="No documents found." />
+          </div>
+        </DataTable>
 
         {/* ── Pagination ── */}
         {numPages > 1 && (
           <div className="docs-pagination">
-            <button
-              type="button"
-              className="docs-page-btn"
-              onClick={() => fetchDocuments(currentPage - 1)}
-              disabled={currentPage <= 1}
-              aria-label="Previous page"
-            >
-              <FontAwesomeIcon icon={faChevronLeft} />
-              <span>Prev</span>
-            </button>
-            <span className="docs-page-info">
-              Page <strong>{currentPage}</strong> of <strong>{numPages}</strong>
-            </span>
-            <button
-              type="button"
-              className="docs-page-btn"
-              onClick={() => fetchDocuments(currentPage + 1)}
-              disabled={currentPage >= numPages}
-              aria-label="Next page"
-            >
-              <span>Next</span>
-              <FontAwesomeIcon icon={faChevronRight} />
-            </button>
+            <Pagination
+              paginationLabel="Documents pagination"
+              pageCount={numPages}
+              currentPage={currentPage}
+              onPageSelect={(page) => fetchDocuments(page)}
+              size="small"
+              variant="secondary"
+            />
           </div>
         )}
       </div>
@@ -451,7 +505,7 @@ const DocumentsView = () => {
                   <span className="docs-delete-detail-label">Type</span>
                   <span
                     className="docs-type-badge"
-                    style={getBadgeStyle(deleteModalDoc.document_type_name)}
+                    style={badgeVars(deleteModalDoc.document_type_name)}
                   >
                     {deleteModalDoc.document_type_name}
                   </span>
@@ -469,7 +523,7 @@ const DocumentsView = () => {
           </ModalDialog.Body>
           <ModalDialog.Footer>
             <ActionRow>
-              <Button variant="tertiary" onClick={() => setDeleteModalDoc(null)} disabled={isDeleting}>
+              <Button variant="outline-primary" onClick={() => setDeleteModalDoc(null)} disabled={isDeleting}>
                 Cancel
               </Button>
               <Button variant="danger" onClick={handleDelete} disabled={isDeleting}>

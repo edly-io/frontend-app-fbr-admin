@@ -3,11 +3,12 @@ import React, {
 } from 'react';
 import PropTypes from 'prop-types';
 import {
-  Button, Form, OverlayTrigger, Tooltip,
+  Button, DataTable, Form, Icon, IconButton, OverlayTrigger, Tooltip,
 } from '@openedx/paragon';
+import { Edit as EditIcon, Visibility } from '@openedx/paragon/icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
-  faPlus, faChevronDown, faChevronUp, faEye, faPen,
+  faPlus, faChevronDown, faChevronUp,
 } from '@fortawesome/free-solid-svg-icons';
 import { listAnnouncements, getAnnouncementRecipients } from './api';
 import CreateAnnouncementModal from './CreateAnnouncementModal';
@@ -98,21 +99,17 @@ const RecipientsLog = ({ announcementId, sendEmail, sendNotification }) => {
 
   if (loading) {
     return (
-      <tr>
-        <td colSpan={7} className="ann-log-cell">
-          <span className="ann-log-loading-text">Loading send log...</span>
-        </td>
-      </tr>
+      <div className="ann-log-cell">
+        <span className="ann-log-loading-text">Loading send log...</span>
+      </div>
     );
   }
 
   if (error) {
     return (
-      <tr>
-        <td colSpan={7} className="ann-log-cell">
-          <span className="ann-log-error-text">{error}</span>
-        </td>
-      </tr>
+      <div className="ann-log-cell">
+        <span className="ann-log-error-text">{error}</span>
+      </div>
     );
   }
 
@@ -123,44 +120,40 @@ const RecipientsLog = ({ announcementId, sendEmail, sendNotification }) => {
   if (sendNotification) { cols.push('NOTIFICATION'); }
 
   return (
-    <tr>
-      <td colSpan={7} className="ann-log-cell--border">
-        <div className="ann-log-inner">
-          <p className="ann-log-title">
-            Send Log — {recipients.count} recipient{recipients.count !== 1 ? 's' : ''}
-          </p>
-          {recipients.count === 0 ? (
-            <p className="ann-log-empty">No recipients recorded.</p>
-          ) : (
-            <div className="ann-log-scroll">
-              <table className="ann-log-table">
-                <thead>
-                  <tr className="ann-log-thead-row">
-                    {cols.map(col => (
-                      <th key={col} className="ann-log-th">{col}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {recipients.results.map((r, idx) => (
-                    <tr
-                      key={r.id}
-                      className={idx < recipients.results.length - 1 ? 'ann-log-tr' : 'ann-log-tr--last'}
-                    >
-                      <td className="ann-log-td ann-log-td--name">{r.full_name || '—'}</td>
-                      <td className="ann-log-td ann-log-td--username">{r.username}</td>
-                      <td className="ann-log-td ann-log-td--email">{r.email || '—'}</td>
-                      {sendEmail && <td className="ann-log-td"><DeliveryBadge status={r.email_status} /></td>}
-                      {sendNotification && <td className="ann-log-td"><DeliveryBadge status={r.notification_status} /></td>}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+    <div className="ann-log-inner">
+      <p className="ann-log-title">
+        Send Log — {recipients.count} recipient{recipients.count !== 1 ? 's' : ''}
+      </p>
+      {recipients.count === 0 ? (
+        <p className="ann-log-empty">No recipients recorded.</p>
+      ) : (
+        <div className="ann-log-scroll">
+          <table className="ann-log-table">
+            <thead>
+              <tr className="ann-log-thead-row">
+                {cols.map(col => (
+                  <th key={col} className="ann-log-th">{col}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {recipients.results.map((r, idx) => (
+                <tr
+                  key={r.id}
+                  className={idx < recipients.results.length - 1 ? 'ann-log-tr' : 'ann-log-tr--last'}
+                >
+                  <td className="ann-log-td ann-log-td--name">{r.full_name || '—'}</td>
+                  <td className="ann-log-td ann-log-td--username">{r.username}</td>
+                  <td className="ann-log-td ann-log-td--email">{r.email || '—'}</td>
+                  {sendEmail && <td className="ann-log-td"><DeliveryBadge status={r.email_status} /></td>}
+                  {sendNotification && <td className="ann-log-td"><DeliveryBadge status={r.notification_status} /></td>}
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
-      </td>
-    </tr>
+      )}
+    </div>
   );
 };
 
@@ -170,22 +163,191 @@ RecipientsLog.propTypes = {
   sendNotification: PropTypes.bool.isRequired,
 };
 
-const COL_DEFS = [
-  ['SUBJECT', undefined],
-  ['SCOPE', '100px'],
-  ['CHANNELS', '200px'],
-  ['STATUS', '90px'],
-  ['SENT AT', '160px'],
-  ['CREATED BY', '220px'],
-  ['ACTIONS', '90px'],
-];
+// Cells reproduce the markup the hand-written table used, so the rows read as
+// before. Only a sent announcement has a send log, so only a sent row offers
+// the expand affordance; Paragon holds the open/closed state through
+// `row.getToggleRowExpandedProps()`. They sit at module scope so react-table
+// keeps the same component type across renders and updates each cell rather
+// than remounting it, which would close an open tooltip in the actions column.
+const SubjectCell = ({ row }) => {
+  const item = row.original;
+  if (item.status !== 'sent') {
+    return <span className="ann-td-subject">{item.subject}</span>;
+  }
+  const { onClick, ...toggleProps } = row.getToggleRowExpandedProps();
+  return (
+    <button
+      type="button"
+      className="ann-td-subject ann-td-subject--toggle"
+      onClick={onClick}
+      aria-expanded={row.isExpanded}
+      {...toggleProps}
+    >
+      {item.subject}
+      <FontAwesomeIcon
+        icon={row.isExpanded ? faChevronUp : faChevronDown}
+        className="ann-td-subject-chevron"
+      />
+    </button>
+  );
+};
+
+const ScopeCell = ({ row }) => {
+  const item = row.original;
+  return (
+    <>
+      {SCOPE_LABELS[item.scope] || item.scope}
+      {item.scope === 'program' && item.program_key && (
+        <div className="ann-scope-sub">{item.program_key}</div>
+      )}
+      {item.scope === 'course' && item.course_id && (
+        <div className="ann-scope-sub">{item.course_id}</div>
+      )}
+    </>
+  );
+};
+
+const ChannelsCell = ({ row }) => {
+  const item = row.original;
+  return (
+    <>
+      <ChannelTags item={item} />
+      {item.banner_status && (
+        <div className="ann-banner-status-row">
+          <BannerStatusBadge bannerStatus={item.banner_status} />
+          {item.banner_expires_at && (
+            <span className="ann-banner-expiry">
+              {item.banner_status === 'expired' ? 'Expired' : 'Expires'}{' '}
+              {new Date(item.banner_expires_at).toLocaleDateString()}
+            </span>
+          )}
+        </div>
+      )}
+    </>
+  );
+};
+
+const CreatedByCell = ({ row }) => (row.original.sent_by_name ? (
+  <UserIdentity
+    name={row.original.sent_by_name}
+    badges={[ROLE_DISPLAY[row.original.sent_by_role]].filter(Boolean)}
+    size="compact"
+    showAvatar
+  />
+) : '—');
+
+const ActionsCell = ({ row, column }) => {
+  const item = row.original;
+  const { onView, onEditExpiry } = column.actions;
+  return (
+    <div className="ann-action-group d-flex align-items-center justify-content-center">
+      <OverlayTrigger
+        placement="top"
+        overlay={<Tooltip id={`tooltip-view-${item.id}`}>View details</Tooltip>}
+      >
+        <IconButton
+          src={Visibility}
+          iconAs={Icon}
+          size="sm"
+          alt="View announcement details"
+          onClick={() => onView(item)}
+        />
+      </OverlayTrigger>
+      {item.send_banner && item.status === 'sent' && (
+        item.banner_status === 'expired' ? (
+          <OverlayTrigger
+            placement="top"
+            overlay={<Tooltip id={`tooltip-expired-${item.id}`}>Banner has expired and cannot be modified</Tooltip>}
+          >
+            {/* A disabled control emits no pointer events, so the tooltip needs
+                a wrapper that still does. */}
+            <span>
+              <IconButton
+                src={EditIcon}
+                iconAs={Icon}
+                size="sm"
+                alt="Banner expired"
+                disabled
+              />
+            </span>
+          </OverlayTrigger>
+        ) : (
+          <OverlayTrigger
+            placement="top"
+            overlay={<Tooltip id={`tooltip-edit-${item.id}`}>Edit banner expiry</Tooltip>}
+          >
+            <IconButton
+              src={EditIcon}
+              iconAs={Icon}
+              size="sm"
+              alt="Edit banner expiry date"
+              onClick={() => onEditExpiry(item)}
+            />
+          </OverlayTrigger>
+        )
+      )}
+    </div>
+  );
+};
+const StatusCell = ({ row }) => <StatusBadge status={row.original.status} />;
+
+const SentAtCell = ({ row }) => formatDate(row.original.sent_at);
+
+const RecipientsSubRow = ({ row }) => (
+  <RecipientsLog
+    announcementId={row.original.id}
+    sendEmail={!!row.original.send_email}
+    sendNotification={!!row.original.send_notification}
+  />
+);
+
+const announcementShape = PropTypes.shape({
+  id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  subject: PropTypes.string,
+  status: PropTypes.string,
+  scope: PropTypes.string,
+  program_key: PropTypes.string,
+  course_id: PropTypes.string,
+  banner_status: PropTypes.string,
+  banner_expires_at: PropTypes.string,
+  sent_at: PropTypes.string,
+  sent_by_name: PropTypes.string,
+  sent_by_role: PropTypes.string,
+  send_banner: PropTypes.bool,
+  send_email: PropTypes.bool,
+  send_notification: PropTypes.bool,
+});
+
+const rowOf = PropTypes.shape({ original: announcementShape.isRequired }).isRequired;
+
+SubjectCell.propTypes = {
+  row: PropTypes.shape({
+    original: announcementShape.isRequired,
+    isExpanded: PropTypes.bool,
+    getToggleRowExpandedProps: PropTypes.func.isRequired,
+  }).isRequired,
+};
+ScopeCell.propTypes = { row: rowOf };
+ChannelsCell.propTypes = { row: rowOf };
+CreatedByCell.propTypes = { row: rowOf };
+StatusCell.propTypes = { row: rowOf };
+SentAtCell.propTypes = { row: rowOf };
+RecipientsSubRow.propTypes = { row: rowOf };
+ActionsCell.propTypes = {
+  row: rowOf,
+  column: PropTypes.shape({
+    actions: PropTypes.shape({
+      onView: PropTypes.func.isRequired,
+      onEditExpiry: PropTypes.func.isRequired,
+    }).isRequired,
+  }).isRequired,
+};
 
 const AnnouncementsView = ({ sectionLabel }) => {
   const [announcements, setAnnouncements] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [showCreate, setShowCreate] = useState(false);
-  const [expandedId, setExpandedId] = useState(null);
   const [viewItem, setViewItem] = useState(null);
   const [editExpiryItem, setEditExpiryItem] = useState(null);
   const [search, setSearch] = useState('');
@@ -219,7 +381,41 @@ const AnnouncementsView = ({ sectionLabel }) => {
 
   const handleCreated = () => { setShowCreate(false); fetchAnnouncements(search, filter); };
 
-  const toggleExpand = (id) => setExpandedId(prev => (prev === id ? null : id));
+  // The widths the old `th`s carried inline now travel with the column.
+  const columns = [
+    { Header: 'SUBJECT', accessor: 'subject', Cell: SubjectCell },
+    {
+      Header: 'SCOPE', id: 'scope', Cell: ScopeCell, cellClassName: 'ann-col--scope ann-td-scope', headerClassName: 'ann-col--scope',
+    },
+    {
+      Header: 'CHANNELS', id: 'channels', Cell: ChannelsCell, cellClassName: 'ann-col--channels', headerClassName: 'ann-col--channels',
+    },
+    {
+      Header: 'STATUS',
+      id: 'status',
+      Cell: StatusCell,
+      cellClassName: 'ann-col--status',
+      headerClassName: 'ann-col--status',
+    },
+    {
+      Header: 'SENT AT',
+      id: 'sent_at',
+      Cell: SentAtCell,
+      cellClassName: 'ann-col--sent ann-td-date',
+      headerClassName: 'ann-col--sent',
+    },
+    {
+      Header: 'CREATED BY', id: 'created_by', Cell: CreatedByCell, cellClassName: 'ann-col--creator', headerClassName: 'ann-col--creator',
+    },
+    {
+      Header: 'ACTIONS',
+      id: 'actions',
+      Cell: ActionsCell,
+      actions: { onView: setViewItem, onEditExpiry: setEditExpiryItem },
+      cellClassName: 'ann-col--actions',
+      headerClassName: 'ann-col--actions ann-th--center',
+    },
+  ];
 
   return (
     <>
@@ -265,153 +461,17 @@ const AnnouncementsView = ({ sectionLabel }) => {
       </div>
 
       <div className="ann-table-wrap">
-        <table className="ann-table">
-          <thead>
-            <tr className="ann-thead-row">
-              {COL_DEFS.map(([label, width]) => (
-                <th
-                  key={label || '__actions'}
-                  className={`ann-th${label === 'ACTIONS' ? ' ann-th--center' : ''}`}
-                  style={width ? { width } : undefined}
-                >
-                  {label}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {isLoading && (
-              <tr><td colSpan={7} className="ann-td-empty">Loading announcements...</td></tr>
-            )}
-            {!isLoading && announcements.length === 0 && (
-              <tr><td colSpan={7} className="ann-td-empty">No announcements yet.</td></tr>
-            )}
-            {!isLoading && announcements.map((item) => {
-              const isExpanded = expandedId === item.id;
-              const isSent = item.status === 'sent';
-              const rowClass = [
-                'ann-row',
-                isExpanded ? 'ann-row--expanded' : '',
-                isSent ? 'ann-row--clickable' : '',
-              ].filter(Boolean).join(' ');
-              return (
-                <>
-                  <tr
-                    key={item.id}
-                    className={rowClass}
-                    onClick={() => isSent && toggleExpand(item.id)}
-                  >
-                    <td className="ann-td-subject">
-                      {item.subject}
-                      {isSent && (
-                        <FontAwesomeIcon
-                          icon={isExpanded ? faChevronUp : faChevronDown}
-                          className="ann-td-subject-chevron"
-                        />
-                      )}
-                    </td>
-                    <td className="ann-td-scope">
-                      {SCOPE_LABELS[item.scope] || item.scope}
-                      {item.scope === 'program' && item.program_key && (
-                        <div className="ann-scope-sub">{item.program_key}</div>
-                      )}
-                      {item.scope === 'course' && item.course_id && (
-                        <div className="ann-scope-sub">{item.course_id}</div>
-                      )}
-                    </td>
-                    <td className="ann-td">
-                      <ChannelTags item={item} />
-                      {item.banner_status && (
-                        <div className="ann-banner-status-row">
-                          <BannerStatusBadge bannerStatus={item.banner_status} />
-                          {item.banner_expires_at && (
-                            <span className="ann-banner-expiry">
-                              {item.banner_status === 'expired' ? 'Expired' : 'Expires'}{' '}
-                              {new Date(item.banner_expires_at).toLocaleDateString()}
-                            </span>
-                          )}
-                        </div>
-                      )}
-                    </td>
-                    <td className="ann-td"><StatusBadge status={item.status} /></td>
-                    <td className="ann-td-date">{formatDate(item.sent_at)}</td>
-                    <td className="ann-td">
-                      {item.sent_by_name ? (
-                        <UserIdentity
-                          name={item.sent_by_name}
-                          badges={[ROLE_DISPLAY[item.sent_by_role]].filter(Boolean)}
-                          size="compact"
-                          showAvatar
-                        />
-                      ) : '—'}
-                    </td>
-                    <td
-                      className="ann-td-actions"
-                      onClick={e => e.stopPropagation()}
-                    >
-                      <div className="ann-action-group">
-                        <OverlayTrigger
-                          placement="top"
-                          overlay={<Tooltip id={`tooltip-view-${item.id}`}>View details</Tooltip>}
-                        >
-                          <button
-                            type="button"
-                            className="ann-view-btn"
-                            onClick={() => setViewItem(item)}
-                            aria-label="View announcement details"
-                          >
-                            <FontAwesomeIcon icon={faEye} />
-                          </button>
-                        </OverlayTrigger>
-                        {item.send_banner && item.status === 'sent' && (
-                          item.banner_status === 'expired' ? (
-                            <OverlayTrigger
-                              placement="top"
-                              overlay={<Tooltip id={`tooltip-expired-${item.id}`}>Banner has expired and cannot be modified</Tooltip>}
-                            >
-                              <span>
-                                <button
-                                  type="button"
-                                  className="ann-edit-btn ann-edit-btn--disabled"
-                                  aria-label="Banner expired"
-                                  disabled
-                                >
-                                  <FontAwesomeIcon icon={faPen} />
-                                </button>
-                              </span>
-                            </OverlayTrigger>
-                          ) : (
-                            <OverlayTrigger
-                              placement="top"
-                              overlay={<Tooltip id={`tooltip-edit-${item.id}`}>Edit banner expiry</Tooltip>}
-                            >
-                              <button
-                                type="button"
-                                className="ann-edit-btn"
-                                onClick={() => setEditExpiryItem(item)}
-                                aria-label="Edit banner expiry date"
-                              >
-                                <FontAwesomeIcon icon={faPen} />
-                              </button>
-                            </OverlayTrigger>
-                          )
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                  {isExpanded && (
-                    <RecipientsLog
-                      key={`log-${item.id}`}
-                      announcementId={item.id}
-                      sendEmail={item.send_email}
-                      sendNotification={item.send_notification}
-                    />
-                  )}
-                </>
-              );
-            })}
-          </tbody>
-        </table>
+        <DataTable
+          isExpandable
+          isLoading={isLoading}
+          data={announcements}
+          itemCount={announcements.length}
+          columns={columns}
+          renderRowSubComponent={RecipientsSubRow}
+        >
+          <DataTable.Table />
+          <DataTable.EmptyTable content="No announcements yet." />
+        </DataTable>
       </div>
 
       {showCreate && (

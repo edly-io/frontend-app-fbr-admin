@@ -11,7 +11,7 @@
 
 /* Modal container */
 .ann-modal {
-  background: #fff;
+  background: var(--pgn-color-bg-base);
   border-radius: 12px;
   width: 680px;
   max-width: 95vw;
@@ -114,8 +114,8 @@
   align-items: center;
   gap: 8px;
   font-size: 13px;
-  background: #f9fafb;
-  border: 1px solid #e5e7eb;
+  background: var(--pgn-color-light-200);
+  border: 1px solid var(--pgn-color-border);
   border-radius: 6px;
   padding: 5px 10px;
   margin-bottom: 4px;
@@ -123,11 +123,11 @@
 
 .ann-file-name {
   flex: 1;
-  color: #374151;
+  color: var(--pgn-color-gray-800);
 }
 
 .ann-file-size {
-  color: #9ca3af;
+  color: var(--pgn-color-gray-500);
 }
 
 .ann-file-remove {
@@ -170,7 +170,7 @@
   border-radius: 8px;
   padding: 10px 14px;
   cursor: pointer;
-  background: #fff;
+  background: var(--pgn-color-bg-base);
   text-align: left;
   width: 100%;
 }
@@ -183,7 +183,7 @@
 .ann-tile-title {
   font-weight: 700;
   font-size: 14px;
-  color: #111827;
+  color: var(--pgn-color-gray-900);
 }
 
 .ann-tile--selected .ann-tile-title {
@@ -192,14 +192,14 @@
 
 .ann-tile-desc {
   font-size: 12px;
-  color: #6b7280;
+  color: var(--pgn-color-gray-600);
   margin-top: 2px;
 }
 
 .ann-tile.ann-tile--disabled {
   opacity: 0.45;
   cursor: not-allowed;
-  background: #f3f4f6;
+  background: var(--pgn-color-light-200);
 }
 
 .ann-banner-limit-note {
@@ -231,13 +231,13 @@
   align-items: center;
   gap: 10px;
   flex-wrap: wrap;
-  background: #f9fafb;
+  background: var(--pgn-color-light-200);
 }
 
 .ann-send-to-label {
   font-size: 11px;
   font-weight: 700;
-  color: #6b7280;
+  color: var(--pgn-color-gray-600);
   letter-spacing: 0.06em;
   text-transform: uppercase;
   white-space: nowrap;
@@ -251,20 +251,20 @@
 
 /* Recipient pills */
 .ann-pill {
-  border: 2px solid #6b7280;
+  border: 2px solid var(--pgn-color-gray-600);
   border-radius: 20px;
   padding: 4px 14px;
   font-size: 13px;
   cursor: pointer;
-  background: #fff;
-  color: #374151;
+  background: var(--pgn-color-bg-base);
+  color: var(--pgn-color-gray-800);
   font-weight: 600;
 }
 
 .ann-pill.ann-pill--active {
   border-color: var(--pgn-color-primary-base);
   background: var(--pgn-color-primary-base);
-  color: #fff;
+  color: var(--pgn-color-bg-base);
 }
 
 /* Recipient count bar */
@@ -278,4 +278,22 @@
 
 .ann-recipient-muted {
   color: var(--pgn-color-gray-400);
+}
+
+/* ── Dark variant ────────────────────────────────────────────────────────────
+   The tints left above are pale fills built to carry dark ink. On a dark ground
+   each needs its own pairing rather than a token that flips, so the hue keeps
+   carrying its meaning. */
+:root[data-paragon-theme-variant="dark"] .ann-error {
+  background: rgba(239, 68, 68, 0.14);
+  border-color: rgba(239, 68, 68, 0.38);
+  color: #F5A3A3;
+}
+:root[data-paragon-theme-variant="dark"] .ann-tile.ann-tile--selected {
+  background: var(--pgn-color-primary-light);
+}
+:root[data-paragon-theme-variant="dark"] .ann-banner-limit-note {
+  background: rgba(245, 158, 11, 0.16);
+  border-color: rgba(245, 158, 11, 0.38);
+  color: #F5C97A;
 }

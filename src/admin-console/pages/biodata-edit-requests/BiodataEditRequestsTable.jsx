@@ -129,7 +129,7 @@ const ActionCell = ({ row, column }) => {
     <div className="biodata-edit-requests-table__action-cell">
       {request.status === 'pending' ? (
         <Button
-          variant="success"
+          variant="primary"
           size="sm"
           onClick={() => column.onResolve(request.id)}
           disabled={isResolving}

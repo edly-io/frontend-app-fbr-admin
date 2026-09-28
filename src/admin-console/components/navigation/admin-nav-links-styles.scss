@@ -37,10 +37,18 @@
     background: transparent;
     cursor: pointer;
 
+    &:hover {
+      background: var(--pgn-color-gray-100);
+    }
+
     &--active {
       font-weight: 600;
       color: var(--pgn-color-primary-base);
       background: var(--pgn-color-primary-light);
+
+      &:hover {
+        background: var(--pgn-color-primary-light);
+      }
     }
   }
 

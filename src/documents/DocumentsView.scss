@@ -6,14 +6,14 @@
 /* ── Breadcrumb ─────────────────────────────────────────────────────────── */
 .docs-breadcrumb {
   font-size: 0.78rem;
-  color: #9ca3af;
+  color: var(--pgn-color-gray-500);
   margin: 0 0 6px;
   display: flex;
   align-items: center;
   gap: 2px;
 }
-.docs-breadcrumb-sep { margin: 0 4px; color: #d1d5db; }
-.docs-breadcrumb-active { color: #374151; font-weight: 500; }
+.docs-breadcrumb-sep { margin: 0 4px; color: var(--pgn-color-gray-400); }
+.docs-breadcrumb-active { color: var(--pgn-color-gray-800); font-weight: 500; }
 
 /* ── Page header ────────────────────────────────────────────────────────── */
 .docs-page-header {
@@ -27,7 +27,7 @@
 .docs-view-title {
   font-size: 1.6rem;
   font-weight: 700;
-  color: #111827;
+  color: var(--pgn-color-gray-900);
   margin: 0 0 6px;
   line-height: 1.2;
 }
@@ -38,7 +38,7 @@
 }
 .docs-create-btn-icon { margin-right: 7px; }
 .docs-view-desc {
-  color: #6b7280;
+  color: var(--pgn-color-gray-600);
   font-size: 0.875rem;
   margin: 0;
   line-height: 1.5;
@@ -61,7 +61,7 @@
 .docs-count-label {
   margin-left: auto;
   font-size: 0.8rem;
-  color: #9ca3af;
+  color: var(--pgn-color-gray-500);
   font-weight: 500;
   white-space: nowrap;
 }
@@ -95,72 +95,31 @@
 
 /* ── Table card ─────────────────────────────────────────────────────────── */
 .docs-card {
-  background: #fff;
-  border: 1px solid #e5e7eb;
+  background: var(--pgn-color-bg-base);
+  border: 1px solid var(--pgn-color-border);
   border-radius: 12px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
   overflow: hidden;
 }
+
 .docs-table-wrap { overflow-x: auto; }
-.docs-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.875rem;
-}
-.docs-thead-row { background: #f9fafb; border-bottom: 1px solid #e5e7eb; }
-.docs-th {
-  padding: 11px 16px;
-  text-align: left;
-  font-size: 0.72rem;
-  font-weight: 600;
-  color: #6b7280;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
+
+// The table, its header row, row rules and hover are Paragon's DataTable now.
+// What is left are the column widths the old inline `th` styles carried, and
+// the two type treatments the cells rely on.
+.docs-col--type { width: 140px; }
+.docs-col--size { width: 85px; }
+.docs-col--uploader { width: 200px; }
+.docs-col--date { width: 110px; }
+/* Five 2.25rem icon buttons plus their gaps; the old hand-rolled buttons were
+   smaller and fitted 140px. */
+.docs-col--actions { width: 200px; text-align: center; }
+
 .docs-th--center { text-align: center; }
-.docs-row {
-  border-bottom: 1px solid #f3f4f6;
-  transition: background 0.1s;
-}
-.docs-row:last-child { border-bottom: none; }
-.docs-row:hover { background: #fafafa; }
-.docs-td {
-  padding: 13px 16px;
-  color: #374151;
-  vertical-align: middle;
-}
-.docs-td-mono { font-variant-numeric: tabular-nums; font-size: 0.82rem; color: #6b7280; }
-.docs-td-muted { color: #d1d5db; }
-
-/* ── Empty / loading states ─────────────────────────────────────────────── */
-.docs-td-empty { padding: 48px 16px; text-align: center; }
-.docs-empty-state { display: flex; flex-direction: column; align-items: center; gap: 10px; color: #9ca3af; }
-.docs-empty-icon { font-size: 2rem; opacity: 0.4; }
-.docs-empty-state p { margin: 0; font-size: 0.9rem; }
-
-.docs-loading-dots {
-  display: inline-flex;
-  gap: 6px;
-  align-items: center;
-  padding: 16px 0;
-}
-.docs-loading-dots span {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: #d1d5db;
-  animation: docs-bounce 1.2s infinite ease-in-out;
-}
-.docs-loading-dots span:nth-child(2) { animation-delay: 0.2s; }
-.docs-loading-dots span:nth-child(3) { animation-delay: 0.4s; }
-@keyframes docs-bounce {
-  0%, 80%, 100% { transform: scale(0.7); opacity: 0.5; }
-  40% { transform: scale(1); opacity: 1; }
-}
+.docs-td-mono { font-variant-numeric: tabular-nums; font-size: 0.82rem; color: var(--pgn-color-gray-500); }
+.docs-td-muted { color: var(--pgn-color-gray-400); }
 
 /* ── Title cell ─────────────────────────────────────────────────────────── */
-.docs-td-title { padding: 12px 16px; vertical-align: middle; }
 .docs-title-cell { display: flex; align-items: center; gap: 12px; }
 .docs-file-icon {
   flex-shrink: 0;
@@ -171,13 +130,13 @@
 .docs-doc-title {
   display: block;
   font-weight: 500;
-  color: #111827;
+  color: var(--pgn-color-gray-900);
   line-height: 1.3;
 }
 .docs-doc-filename {
   display: block;
   font-size: 0.75rem;
-  color: #9ca3af;
+  color: var(--pgn-color-gray-500);
   margin-top: 1px;
 }
 
@@ -190,47 +149,24 @@
   font-weight: 600;
   white-space: nowrap;
   letter-spacing: 0.02em;
+  background: var(--docs-badge-bg);
+  color: var(--docs-badge-fg);
+}
+
+:root[data-paragon-theme-variant="dark"] .docs-type-badge {
+  background: hsl(var(--docs-badge-hue) 42% 20%);
+  color: hsl(var(--docs-badge-hue) 70% 78%);
 }
 
 /* ── Action buttons ─────────────────────────────────────────────────────── */
-.docs-td-actions { padding: 8px 16px; text-align: center; }
-.docs-action-group {
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  background: #f9fafb;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  padding: 3px;
-}
-.docs-action-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border: none;
-  background: transparent;
-  cursor: pointer;
-  border-radius: 5px;
-  width: 30px;
-  height: 30px;
-  font-size: 0.8rem;
-  transition: background 0.12s, color 0.12s;
-  color: #9ca3af;
-}
-.docs-action-btn:hover { background: #fff; color: #374151; box-shadow: 0 1px 2px rgba(0,0,0,0.08); }
-.docs-action-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-.docs-action-btn--preview:hover { color: #0891b2; }
-.docs-action-btn--link:hover { color: #1d4ed8; }
-.docs-action-btn--visibility:hover { color: #6b7280; }
-.docs-action-btn--visibility.docs-action-btn--public { color: #059669; }
-.docs-action-btn--visibility.docs-action-btn--public:hover { color: #047857; }
-.docs-action-btn--edit:hover { color: #059669; }
-.docs-action-btn--delete:hover { color: #dc2626; }
+/* Paragon's IconButton carries the size, shape, colour and hover; the row only
+   needs the icons spaced, matching the users table. */
+.docs-action-group { gap: 0.125rem; }
 
 /* ── Delete modal details ───────────────────────────────────────────────── */
 .docs-delete-details {
-  background: #f9fafb;
-  border: 1px solid #e5e7eb;
+  background: var(--pgn-color-light-200);
+  border: 1px solid var(--pgn-color-border);
   border-radius: 8px;
   padding: 10px 14px;
   margin-bottom: 14px;
@@ -243,11 +179,11 @@
   align-items: center;
   gap: 10px;
   font-size: 0.85rem;
-  color: #374151;
+  color: var(--pgn-color-gray-800);
 }
 .docs-delete-detail-label {
   font-weight: 600;
-  color: #6b7280;
+  color: var(--pgn-color-gray-600);
   min-width: 36px;
   font-size: 0.78rem;
   text-transform: uppercase;
@@ -271,22 +207,28 @@
   justify-content: center;
   gap: 16px;
   padding: 14px 16px;
-  border-top: 1px solid #f3f4f6;
+  border-top: 1px solid var(--pgn-color-border);
 }
-.docs-page-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: #fff;
-  border: 1px solid #e5e7eb;
-  border-radius: 7px;
-  padding: 6px 14px;
-  cursor: pointer;
-  color: #374151;
-  font-size: 0.83rem;
-  font-weight: 500;
-  transition: background 0.12s, border-color 0.12s;
+
+// ─── Dark variant ───────────────────────────────────────────────────────────
+// The alert tints are fixed pastels that pair with dark ink, so on a dark
+// ground they need their own values rather than a token.
+:root[data-paragon-theme-variant="dark"] {
+  .docs-alert--error {
+    background: rgba(239, 68, 68, 0.14);
+    border-color: rgba(239, 68, 68, 0.38);
+    color: #F5A3A3;
+  }
+
+  .docs-alert--success {
+    background: rgba(34, 197, 94, 0.14);
+    border-color: rgba(34, 197, 94, 0.38);
+    color: #8FE0AC;
+  }
+
+  .docs-delete-warning {
+    background: rgba(239, 68, 68, 0.14);
+    border-color: rgba(239, 68, 68, 0.38);
+    color: #F5A3A3;
+  }
 }
-.docs-page-btn:hover:not(:disabled) { background: #f9fafb; border-color: #d1d5db; }
-.docs-page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-.docs-page-info { font-size: 0.83rem; color: #6b7280; }

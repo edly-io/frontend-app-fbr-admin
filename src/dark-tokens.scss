@@ -1,0 +1,87 @@
+// Paragon ships its neutral ramp in `light.css` only. The dark theme swaps that
+// file out for `dark.css`, which never redefines `--pgn-color-gray-*`,
+// `--pgn-color-light-*`, `--pgn-color-border` or `--pgn-color-text-light`, so
+// every declaration reading one of them is invalid in dark mode and the browser
+// drops it. Card surfaces, dashed separators and muted text therefore do not
+// disappear because of a contrast choice - they are never painted at all.
+//
+// Supplying the missing values restores those rules. Nothing here can regress
+// light mode (the selector does not match) or dark mode (the declarations it
+// revives are currently dead), and `:root[...]` outranks the theme's own
+// `:root` block whichever stylesheet the browser applies last.
+//
+// The ramp is anchored on the platform's dark page (#0D0D0E) and body text
+// (#CCCCCC): 100-400 are surfaces and rules stacked just above the page, 500
+// upwards is type, with 500 clearing 4.5:1 on the page ground.
+// Controls the browser draws itself - the date picker's calendar indicator, the
+// file input's button, scrollbars, the native select popup - are painted from
+// `color-scheme`, not from any stylesheet. Left unset the browser assumes light
+// and renders a black-on-dark calendar icon. Declaring it is what makes every
+// one of them follow the theme; it is also why the app should state `light`
+// explicitly, or a viewer whose OS is dark gets dark controls on our light page.
+:root {
+  color-scheme: light;
+}
+
+:root[data-paragon-theme-variant="dark"] {
+  color-scheme: dark;
+
+  --pgn-color-theme-bg-gray: #131316;
+  --pgn-color-light-200: #1C1C20;
+  --pgn-color-light-400: #33333A;
+  --pgn-color-light-500: #42424A;
+  --pgn-color-border: #33333A;
+
+  // Paragon's own DataTable rule reads these, so supplying them is what lets a
+  // table surface follow the theme instead of needing a per-page override.
+  --pgn-color-bg-base: #131316;
+  --pgn-color-data-table-bg-base: var(--pgn-color-bg-base);
+
+  --pgn-color-gray-100: #1C1C20;
+  --pgn-color-gray-300: #3A3A42;
+  --pgn-color-gray-400: #6B6B75;
+  --pgn-color-gray-500: #9096A0;
+  --pgn-color-gray-600: #A8ADB6;
+  --pgn-color-gray-700: #C2C6CD;
+  --pgn-color-gray-800: #DCDEE2;
+  --pgn-color-gray-900: #F2F3F5;
+  --pgn-color-gray-base: #9096A0;
+
+  // `link-base` and `link-hover` resolve to `info-500`, which light.css alone
+  // defines. Without them every link and `variant="link"` button falls back to
+  // inherited text colour and reads as plain copy.
+  --pgn-color-link-base: #79B8FF;
+  --pgn-color-link-hover: #A7CFFF;
+
+  // Outline buttons keep their text and border colour in dark, but every state
+  // token below is defined in light.css only: with them missing the background
+  // never paints, hover and active look identical to rest, the focus ring falls
+  // back to body text colour and disabled is indistinguishable from enabled.
+  --pgn-color-btn-bg-outline-primary: transparent;
+  --pgn-color-btn-hover-bg-outline-primary: #222C42;
+  --pgn-color-btn-hover-text-outline-primary: #D3E0FA;
+  --pgn-color-btn-active-bg-outline-primary: #2E3A54;
+  --pgn-color-btn-active-text-outline-primary: #FFFFFF;
+  --pgn-color-btn-active-border-outline-primary: #D3E0FA;
+  --pgn-color-btn-focus-bg-outline-primary: transparent;
+  --pgn-color-btn-focus-text-outline-primary: var(--pgn-color-btn-text-outline-primary);
+  --pgn-color-btn-focus-border-outline-primary: var(--pgn-color-btn-border-outline-primary);
+  --pgn-color-btn-focus-outline-outline-primary: var(--pgn-color-primary-base);
+  --pgn-color-btn-disabled-bg-outline-primary: transparent;
+  --pgn-color-btn-disabled-text-outline-primary: #7C7C87;
+  --pgn-color-btn-disabled-border-outline-primary: #3A3A42;
+
+  --pgn-color-text-light: #9096A0;
+
+  // Accents keep their meaning but are lifted off the dark ground; the -100 and
+  // -200 steps are tints used as backgrounds, so they darken instead.
+  --pgn-color-green: #4CC38A;
+  --pgn-color-red: #E8697D;
+  --pgn-color-danger-100: #3A1A1F;
+  --pgn-color-danger-200: #4C2027;
+  --pgn-color-danger-500: #E8697D;
+  --pgn-color-danger-700: #F29AA6;
+  --pgn-color-success-100: #16301F;
+  --pgn-color-info-100: #14283C;
+  --pgn-color-info-500: #5BA8E5;
+}
