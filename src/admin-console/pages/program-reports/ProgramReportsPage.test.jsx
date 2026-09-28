@@ -52,12 +52,17 @@ const isoDaysFromNow = (days) => {
   return date.toISOString().slice(0, 10);
 };
 
+const toDisplay = (iso) => {
+  const [y, m, d] = iso.split('-');
+  return `${d}/${m}/${y}`;
+};
+
 const startInput = () => screen.getByLabelText('Start date');
 const endInput = () => screen.getByLabelText('End date');
 
 const pickRange = (start, end) => {
-  fireEvent.change(startInput(), { target: { value: start } });
-  fireEvent.change(endInput(), { target: { value: end } });
+  fireEvent.change(startInput(), { target: { value: toDisplay(start) } });
+  fireEvent.change(endInput(), { target: { value: toDisplay(end) } });
 };
 
 const lastQueriedFilters = () => {
@@ -72,11 +77,14 @@ afterEach(() => jest.clearAllMocks());
 // ── No upper bound ───────────────────────────────────────────────────────────
 
 describe('ProgramReportsPage date range has no upper bound', () => {
-  it('puts no max on either date input', () => {
+  it('puts no max on either date input (no day is ever disabled for being too far out)', () => {
     renderPage();
 
-    expect(startInput()).not.toHaveAttribute('max');
-    expect(endInput()).not.toHaveAttribute('max');
+    fireEvent.focus(startInput());
+    expect(document.querySelector('.react-datepicker__day--disabled')).not.toBeInTheDocument();
+
+    fireEvent.focus(endInput());
+    expect(document.querySelector('.react-datepicker__day--disabled')).not.toBeInTheDocument();
   });
 
   it.each([
@@ -90,8 +98,8 @@ describe('ProgramReportsPage date range has no upper bound', () => {
 
     pickRange(start, end);
 
-    expect(startInput()).toHaveValue(start);
-    expect(endInput()).toHaveValue(end);
+    expect(startInput()).toHaveValue(toDisplay(start));
+    expect(endInput()).toHaveValue(toDisplay(end));
   });
 });
 
@@ -101,11 +109,14 @@ describe('ProgramReportsPage date range keeps its ends in order', () => {
   it('bounds the end input at the start date once one is picked', () => {
     renderPage();
 
-    expect(endInput()).not.toHaveAttribute('min');
+    fireEvent.focus(endInput());
+    expect(document.querySelector('.react-datepicker__day--disabled')).not.toBeInTheDocument();
 
-    fireEvent.change(startInput(), { target: { value: '2026-09-20' } });
+    fireEvent.change(startInput(), { target: { value: toDisplay('2026-09-20') } });
 
-    expect(endInput()).toHaveAttribute('min', '2026-09-20');
+    fireEvent.focus(endInput());
+    const disabledDay = screen.getByText('1', { selector: '.react-datepicker__day--disabled' });
+    expect(disabledDay).toBeInTheDocument();
   });
 
   it('pulls an end date typed before the start date up to it', () => {
@@ -113,36 +124,36 @@ describe('ProgramReportsPage date range keeps its ends in order', () => {
 
     pickRange('2026-09-20', '2026-09-10');
 
-    expect(startInput()).toHaveValue('2026-09-20');
-    expect(endInput()).toHaveValue('2026-09-20');
+    expect(startInput()).toHaveValue(toDisplay('2026-09-20'));
+    expect(endInput()).toHaveValue(toDisplay('2026-09-20'));
   });
 
   it('carries the end date along when the start date moves past it', () => {
     renderPage();
 
     pickRange('2026-09-10', '2026-09-20');
-    fireEvent.change(startInput(), { target: { value: '2026-09-25' } });
+    fireEvent.change(startInput(), { target: { value: toDisplay('2026-09-25') } });
 
-    expect(endInput()).toHaveValue('2026-09-25');
+    expect(endInput()).toHaveValue(toDisplay('2026-09-25'));
   });
 
   it('leaves an end date on or after the start date alone', () => {
     renderPage();
 
     pickRange('2026-09-10', '2026-09-10');
-    expect(endInput()).toHaveValue('2026-09-10');
+    expect(endInput()).toHaveValue(toDisplay('2026-09-10'));
 
-    fireEvent.change(endInput(), { target: { value: '2026-09-20' } });
+    fireEvent.change(endInput(), { target: { value: toDisplay('2026-09-20') } });
 
-    expect(endInput()).toHaveValue('2026-09-20');
+    expect(endInput()).toHaveValue(toDisplay('2026-09-20'));
   });
 
   it('accepts an end date with no start date picked', () => {
     renderPage();
 
-    fireEvent.change(endInput(), { target: { value: '2026-09-10' } });
+    fireEvent.change(endInput(), { target: { value: toDisplay('2026-09-10') } });
 
-    expect(endInput()).toHaveValue('2026-09-10');
+    expect(endInput()).toHaveValue(toDisplay('2026-09-10'));
   });
 });
 

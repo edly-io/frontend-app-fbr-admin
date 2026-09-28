@@ -2,7 +2,9 @@ import React, {
   useEffect, useMemo, useRef, useState,
 } from 'react';
 import PropTypes from 'prop-types';
-import { Button, Form } from '@openedx/paragon';
+import {
+  ActionRow, Alert, Button, Form, ModalDialog, breakpoints, useMediaQuery,
+} from '@openedx/paragon';
 import { Editor } from '@tinymce/tinymce-react';
 import 'tinymce';
 import 'tinymce/icons/default';
@@ -17,6 +19,7 @@ import { getAuthenticatedHttpClient } from '@edx/frontend-platform/auth';
 import {
   createAnnouncement, sendAnnouncement, uploadAttachment, previewRecipients,
 } from './api';
+import DatepickerControl from '../shared/date-picker-control/DatepickerControl';
 import './CreateAnnouncementModal.css';
 
 const extractResults = (data) => {
@@ -93,6 +96,7 @@ const tinymceInit = () => {
 const todayIsoDate = () => new Date().toISOString().split('T')[0];
 
 const CreateAnnouncementModal = ({ onClose, onCreated }) => {
+  const isMobile = useMediaQuery({ maxWidth: breakpoints.small.maxWidth });
   const [subject, setSubject] = useState('');
   const [bodyHtml, setBodyHtml] = useState('');
   const [summary, setSummary] = useState('');
@@ -224,210 +228,220 @@ const CreateAnnouncementModal = ({ onClose, onCreated }) => {
   };
 
   return (
-    <div className="ann-overlay" role="dialog" aria-modal="true">
-      <div className="ann-modal">
-        <div className="ann-header">
-          <h2 className="ann-modal-title">Create Announcement</h2>
-          <button type="button" onClick={onClose} className="ann-close-btn">×</button>
+    <ModalDialog
+      title="Create Announcement"
+      isOpen
+      onClose={onClose}
+      size="lg"
+      isFullscreenOnMobile
+      hasCloseButton={!submitting}
+      isBlocking={submitting}
+    >
+      <ModalDialog.Header>
+        <ModalDialog.Title>Create Announcement</ModalDialog.Title>
+      </ModalDialog.Header>
+
+      <ModalDialog.Body>
+        {error && <Alert variant="danger" className="mb-3">{error}</Alert>}
+
+        {/* Subject */}
+        <div className="ann-field">
+          <label htmlFor="ann-subject" className="ann-label">Subject *</label>
+          <Form.Control
+            id="ann-subject"
+            type="text"
+            value={subject}
+            onChange={e => setSubject(e.target.value)}
+            placeholder="Announcement subject"
+          />
         </div>
 
-        <div className="ann-body">
-          {error && <div className="ann-error">{error}</div>}
+        {/* Body */}
+        <div className="ann-field">
+          <span className="ann-label">Body *</span>
+          <Editor
+            init={editorInit}
+            value={bodyHtml}
+            onEditorChange={val => setBodyHtml(val)}
+          />
+        </div>
 
-          {/* Subject */}
-          <div className="ann-field">
-            <label htmlFor="ann-subject" className="ann-label">Subject *</label>
-            <Form.Control
-              id="ann-subject"
-              type="text"
-              value={subject}
-              onChange={e => setSubject(e.target.value)}
-              placeholder="Announcement subject"
-            />
-          </div>
-
-          {/* Body */}
-          <div className="ann-field">
-            <span className="ann-label">Body *</span>
-            <Editor
-              init={editorInit}
-              value={bodyHtml}
-              onEditorChange={val => setBodyHtml(val)}
-            />
-          </div>
-
-          {/* Attachments */}
-          <div className="ann-field">
-            <span className="ann-label">Attachments</span>
-            <Button
-              variant="outline-secondary"
-              size="sm"
-              onClick={() => fileInputRef.current?.click()}
-            >
-              + Add Files
-            </Button>
-            <input
-              ref={fileInputRef}
-              type="file"
-              multiple
-              onChange={handleFileChange}
-              className="d-none"
-            />
-            {files.length > 0 && (
-              <ul className="ann-file-list">
-                {files.map((file, index) => (
-                  <li
-                    key={`${file.name}-${index}`} // eslint-disable-line react/no-array-index-key
-                    className="ann-file-item"
-                  >
-                    <span className="ann-file-name">
-                      {file.name}
-                      {' '}
-                      <span className="ann-file-size">({(file.size / 1024).toFixed(0)} KB)</span>
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => removeFile(index)}
-                      className="ann-file-remove"
-                    >
-                      ×
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-
-          {/* Channels */}
-          <div className="ann-field">
-            <span className="ann-label">Delivery Channels</span>
-            {bannerAtLimit && (
-              <p className="ann-banner-limit-note">
-                Maximum 2 active banners reached. Banner channel is unavailable until an existing banner expires.
-              </p>
-            )}
-            <div className="ann-channels-grid">
-              {CHANNEL_OPTIONS.map(ch => {
-                const isBannerDisabled = ch.id === 'banner' && bannerAtLimit;
-                return (
-                  <button
-                    key={ch.id}
-                    type="button"
-                    className={[
-                      'ann-tile',
-                      channelState[ch.id] ? 'ann-tile--selected' : '',
-                      isBannerDisabled ? 'ann-tile--disabled' : '',
-                    ].filter(Boolean).join(' ')}
-                    onClick={ch.id === 'banner' ? handleBannerToggle : () => channelSetter[ch.id](v => !v)}
-                    disabled={isBannerDisabled}
-                  >
-                    <div className="ann-tile-title">{ch.label}</div>
-                    <div className="ann-tile-desc">{ch.desc}</div>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Banner expiry (required when banner enabled) */}
-          {sendBanner && (
-            <div className="ann-field">
-              <label htmlFor="ann-banner-expires" className="ann-label">
-                Banner Expiry Date *
-                {' '}
-                <span className="ann-label-note">(banner stops showing after this date)</span>
-              </label>
-              <Form.Control
-                id="ann-banner-expires"
-                type="date"
-                value={bannerExpiresAt}
-                min={todayIsoDate()}
-                onChange={e => setBannerExpiresAt(e.target.value)}
-              />
-            </div>
+        {/* Attachments */}
+        <div className="ann-field">
+          <span className="ann-label">Attachments</span>
+          <Button
+            variant="outline-secondary"
+            size="sm"
+            onClick={() => fileInputRef.current?.click()}
+          >
+            + Add Files
+          </Button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            multiple
+            onChange={handleFileChange}
+            className="d-none"
+          />
+          {files.length > 0 && (
+          <ul className="ann-file-list">
+            {files.map((file, index) => (
+              <li
+                key={`${file.name}-${index}`} // eslint-disable-line react/no-array-index-key
+                className="ann-file-item"
+              >
+                <span className="ann-file-name">
+                  {file.name}
+                  {' '}
+                  <span className="ann-file-size">({(file.size / 1024).toFixed(0)} KB)</span>
+                </span>
+                <button
+                  type="button"
+                  onClick={() => removeFile(index)}
+                  className="ann-file-remove"
+                >
+                  ×
+                </button>
+              </li>
+            ))}
+          </ul>
           )}
+        </div>
 
-          {/* Summary (conditional) */}
-          {needsSummary && (
-            <div className="ann-field">
-              <label htmlFor="ann-summary" className="ann-label">
-                Summary *
-                {' '}
-                <span className="ann-label-note">(shown in banner / notification; max 280 chars)</span>
-              </label>
-              <Form.Control
-                id="ann-summary"
-                as="textarea"
-                rows={2}
-                value={summary}
-                onChange={e => setSummary(e.target.value.slice(0, 280))}
-                placeholder="Short summary visible in the banner and notification..."
-              />
-              <small className="ann-summary-count">{summary.length}/280</small>
-            </div>
+        {/* Channels */}
+        <div className="ann-field">
+          <span className="ann-label">Delivery Channels</span>
+          {bannerAtLimit && (
+          <Alert variant="warning" className="mb-2">
+            Maximum 2 active banners reached. Banner channel is unavailable until an existing banner expires.
+          </Alert>
           )}
+          <div className="ann-channels-grid">
+            {CHANNEL_OPTIONS.map(ch => {
+              const isBannerDisabled = ch.id === 'banner' && bannerAtLimit;
+              return (
+                <button
+                  key={ch.id}
+                  type="button"
+                  className={[
+                    'ann-tile',
+                    channelState[ch.id] ? 'ann-tile--selected' : '',
+                    isBannerDisabled ? 'ann-tile--disabled' : '',
+                  ].filter(Boolean).join(' ')}
+                  onClick={ch.id === 'banner' ? handleBannerToggle : () => channelSetter[ch.id](v => !v)}
+                  disabled={isBannerDisabled}
+                >
+                  <div className="ann-tile-title">{ch.label}</div>
+                  <div className="ann-tile-desc">{ch.desc}</div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
 
-          {/* Audience */}
-          <div className="ann-field">
-            <span className="ann-label">Audience</span>
-            <div className="ann-audience-card">
-              <div className="ann-scope-tiles">
-                {SCOPE_OPTIONS.map(opt => (
+        {/* Banner expiry (required when banner enabled) */}
+        {sendBanner && (
+        <div className="ann-field">
+          <label htmlFor="ann-banner-expires" className="ann-label">
+            Banner Expiry Date *
+            {' '}
+            <span className="ann-label-note">(banner stops showing after this date)</span>
+          </label>
+          <DatepickerControl
+            renderGroup={false}
+            id="ann-banner-expires"
+            dataTestId="ann-banner-expires"
+            controlName="ann-banner-expires"
+            value={bannerExpiresAt}
+            minDate={todayIsoDate()}
+            required
+            onChange={setBannerExpiresAt}
+          />
+        </div>
+        )}
+
+        {/* Summary (conditional) */}
+        {needsSummary && (
+        <div className="ann-field">
+          <label htmlFor="ann-summary" className="ann-label">
+            Summary *
+            {' '}
+            <span className="ann-label-note">(shown in banner / notification; max 280 chars)</span>
+          </label>
+          <Form.Control
+            id="ann-summary"
+            as="textarea"
+            rows={2}
+            value={summary}
+            onChange={e => setSummary(e.target.value.slice(0, 280))}
+            placeholder="Short summary visible in the banner and notification..."
+          />
+          <small className="ann-summary-count">{summary.length}/280</small>
+        </div>
+        )}
+
+        {/* Audience */}
+        <div className="ann-field">
+          <span className="ann-label">Audience</span>
+          <div className="ann-audience-card">
+            <div className="ann-scope-tiles">
+              {SCOPE_OPTIONS.map(opt => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  className={`ann-tile${scope === opt.value ? ' ann-tile--selected' : ''}`}
+                  onClick={() => setScope(opt.value)}
+                >
+                  <div className="ann-tile-title">{opt.title}</div>
+                  <div className="ann-tile-desc">{opt.desc}</div>
+                </button>
+              ))}
+            </div>
+
+            {scope === 'program' && (
+            <div className="ann-program-selector">
+              {scopeOptionsLoading ? (
+                <p className="ann-program-loading">Loading programs...</p>
+              ) : (
+                <Form.Control
+                  as="select"
+                  value={programKey}
+                  onChange={e => setProgramKey(e.target.value)}
+                >
+                  <option value="">— Select a program —</option>
+                  {programs.map(p => (
+                    <option key={p.program_key} value={p.program_key}>{p.name} ({p.program_key})</option>
+                  ))}
+                </Form.Control>
+              )}
+            </div>
+            )}
+
+            <div className="ann-send-to-row">
+              <span className="ann-send-to-label">Send to</span>
+              <div className="ann-pills">
+                {(RECIPIENT_TYPE_OPTIONS[scope] || []).map(opt => (
                   <button
                     key={opt.value}
                     type="button"
-                    className={`ann-tile${scope === opt.value ? ' ann-tile--selected' : ''}`}
-                    onClick={() => setScope(opt.value)}
+                    className={`ann-pill${recipientTypes.includes(opt.value) ? ' ann-pill--active' : ''}`}
+                    onClick={() => setRecipientTypes(
+                      prev => (prev.includes(opt.value)
+                        ? prev.filter(t => t !== opt.value)
+                        : [...prev, opt.value]),
+                    )}
                   >
-                    <div className="ann-tile-title">{opt.title}</div>
-                    <div className="ann-tile-desc">{opt.desc}</div>
+                    {opt.label}
                   </button>
                 ))}
-              </div>
-
-              {scope === 'program' && (
-                <div className="ann-program-selector">
-                  {scopeOptionsLoading ? (
-                    <p className="ann-program-loading">Loading programs...</p>
-                  ) : (
-                    <Form.Control
-                      as="select"
-                      value={programKey}
-                      onChange={e => setProgramKey(e.target.value)}
-                    >
-                      <option value="">— Select a program —</option>
-                      {programs.map(p => (
-                        <option key={p.program_key} value={p.program_key}>{p.name} ({p.program_key})</option>
-                      ))}
-                    </Form.Control>
-                  )}
-                </div>
-              )}
-
-              <div className="ann-send-to-row">
-                <span className="ann-send-to-label">Send to</span>
-                <div className="ann-pills">
-                  {(RECIPIENT_TYPE_OPTIONS[scope] || []).map(opt => (
-                    <button
-                      key={opt.value}
-                      type="button"
-                      className={`ann-pill${recipientTypes.includes(opt.value) ? ' ann-pill--active' : ''}`}
-                      onClick={() => setRecipientTypes(
-                        prev => (prev.includes(opt.value)
-                          ? prev.filter(t => t !== opt.value)
-                          : [...prev, opt.value]),
-                      )}
-                    >
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
               </div>
             </div>
           </div>
         </div>
+      </ModalDialog.Body>
 
-        <div className="ann-recipient-bar">
+      <ModalDialog.Footer className={isMobile ? 'ann-footer ann-footer--stacked' : 'ann-footer'}>
+        <span className="ann-recipient-bar">
           {recipientCountLoading && 'Calculating recipients...'}
           {!recipientCountLoading && recipientCount !== null && (
             <span>
@@ -437,16 +451,15 @@ const CreateAnnouncementModal = ({ onClose, onCreated }) => {
           {!recipientCountLoading && recipientCount === null && (
             <span className="ann-recipient-muted">Select a scope above to see recipient count</span>
           )}
-        </div>
-
-        <div className="ann-footer">
+        </span>
+        <ActionRow isStacked={isMobile}>
           <Button variant="outline-primary" onClick={onClose} disabled={submitting}>Cancel</Button>
           <Button variant="primary" onClick={handleSubmit} disabled={submitting || !isFormReady}>
             {submitting ? 'Sending...' : 'Send Announcement'}
           </Button>
-        </div>
-      </div>
-    </div>
+        </ActionRow>
+      </ModalDialog.Footer>
+    </ModalDialog>
   );
 };
 

@@ -1,72 +1,11 @@
-.eexp-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.45);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1200;
-  padding: 24px;
-}
-
-.eexp-modal {
-  background: var(--pgn-color-bg-base);
-  border-radius: 12px;
-  width: 100%;
-  max-width: 420px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
-}
-
-.eexp-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 20px 24px 16px;
-  border-bottom: 1px solid var(--pgn-color-border);
-}
-
-.eexp-title {
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--pgn-color-gray-900);
-  margin: 0;
-}
-
-.eexp-close-btn {
-  background: none;
-  border: none;
-  font-size: 22px;
-  color: var(--pgn-color-gray-500);
-  cursor: pointer;
-  line-height: 1;
-  padding: 0 4px;
-}
-
-.eexp-body {
-  padding: 20px 24px;
-}
-
-.eexp-subject {
-  font-size: 13px;
-  color: var(--pgn-color-gray-600);
-  margin: 0 0 16px;
-  font-style: italic;
-}
-
-.eexp-error {
-  background: #fef2f2;
-  border: 1px solid #fecaca;
-  border-radius: 6px;
-  padding: 8px 12px;
-  font-size: 13px;
-  color: #991b1b;
-  margin-bottom: 14px;
-}
-
 .eexp-field {
   display: flex;
   flex-direction: column;
   gap: 6px;
+
+  .react-datepicker-wrapper {
+    width: 100%;
+  }
 }
 
 .eexp-label {
@@ -79,35 +18,4 @@
   font-weight: 400;
   color: var(--pgn-color-gray-500);
   font-size: 12px;
-}
-
-.eexp-note {
-  margin-top: 10px;
-  font-size: 12px;
-  color: #065f46;
-  background: #d1fae5;
-  border-radius: 6px;
-  padding: 7px 10px;
-}
-
-.eexp-footer {
-  padding: 16px 24px;
-  border-top: 1px solid var(--pgn-color-border);
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-}
-
-/* ── Dark variant ────────────────────────────────────────────────────────────
-   The tints left above are pale fills built to carry dark ink. On a dark ground
-   each needs its own pairing rather than a token that flips, so the hue keeps
-   carrying its meaning. */
-:root[data-paragon-theme-variant="dark"] .eexp-error {
-  background: rgba(239, 68, 68, 0.14);
-  border-color: rgba(239, 68, 68, 0.38);
-  color: #F5A3A3;
-}
-:root[data-paragon-theme-variant="dark"] .eexp-note {
-  background: rgba(34, 197, 94, 0.16);
-  color: #8FE0AC;
 }

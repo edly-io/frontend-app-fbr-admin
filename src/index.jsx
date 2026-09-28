@@ -1,5 +1,6 @@
 import 'core-js/stable';
 import 'regenerator-runtime/runtime';
+import 'react-datepicker/dist/react-datepicker.css';
 
 import {
   APP_INIT_ERROR, APP_READY, subscribe, initialize,
