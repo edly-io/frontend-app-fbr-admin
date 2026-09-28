@@ -115,7 +115,7 @@ body {
   align-items: stretch;
 }
 
-@media (width <= 576px) {
+@media (--pgn-size-breakpoint-max-width-xs) {
   .datepicker-custom-control {
     padding-right: 2rem;
     padding-left: 0.5rem;
@@ -128,6 +128,7 @@ body {
   }
 }
 
+// Paragon has no breakpoint below xs (576px), so the narrowest phones need their own query.
 @media (width <= 360px) {
   .react-datepicker__day,
   .react-datepicker__day-name {

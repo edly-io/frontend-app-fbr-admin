@@ -15,11 +15,13 @@ import 'tinymce/plugins/link';
 import 'tinymce/plugins/image';
 import 'tinymce/plugins/lists';
 import { getConfig } from '@edx/frontend-platform';
+import { useIntl } from '@edx/frontend-platform/i18n';
 import { getAuthenticatedHttpClient } from '@edx/frontend-platform/auth';
 import {
   createAnnouncement, sendAnnouncement, uploadAttachment, previewRecipients,
 } from './api';
 import DatepickerControl from '../shared/date-picker-control/DatepickerControl';
+import messages from './messages';
 import './CreateAnnouncementModal.css';
 
 const extractResults = (data) => {
@@ -96,6 +98,7 @@ const tinymceInit = () => {
 const todayIsoDate = () => new Date().toISOString().split('T')[0];
 
 const CreateAnnouncementModal = ({ onClose, onCreated }) => {
+  const intl = useIntl();
   const isMobile = useMediaQuery({ maxWidth: breakpoints.small.maxWidth });
   const [subject, setSubject] = useState('');
   const [bodyHtml, setBodyHtml] = useState('');
@@ -313,7 +316,7 @@ const CreateAnnouncementModal = ({ onClose, onCreated }) => {
           <span className="ann-label">Delivery Channels</span>
           {bannerAtLimit && (
           <Alert variant="warning" className="mb-2">
-            Maximum 2 active banners reached. Banner channel is unavailable until an existing banner expires.
+            {intl.formatMessage(messages.bannerLimitReached)}
           </Alert>
           )}
           <div className="ann-channels-grid">

@@ -5,6 +5,7 @@ import {
 import '@testing-library/jest-dom';
 import { IntlProvider } from 'react-intl';
 import CreateAnnouncementModal from './CreateAnnouncementModal';
+import messages from './messages';
 import { createAnnouncement, sendAnnouncement, previewRecipients } from './api';
 
 // Stub out TinyMCE and its side-effecting imports (they touch browser APIs jsdom doesn't
@@ -31,11 +32,16 @@ jest.mock('@edx/frontend-platform', () => ({
   getConfig: () => ({ LMS_BASE_URL: 'http://lms.test', STUDIO_BASE_URL: 'http://studio.test' }),
 }));
 
+const mockHttpGet = jest.fn();
 jest.mock('@edx/frontend-platform/auth', () => ({
   getAuthenticatedHttpClient: () => ({
-    get: () => Promise.resolve({ data: { results: [] } }),
+    get: (...args) => mockHttpGet(...args),
   }),
 }));
+
+beforeEach(() => {
+  mockHttpGet.mockResolvedValue({ data: { results: [] } });
+});
 
 jest.mock('./api', () => ({
   createAnnouncement: jest.fn(),
@@ -99,5 +105,29 @@ describe('<CreateAnnouncementModal /> banner expiry field', () => {
         expect.objectContaining({ banner_expires_at: '2026-10-15' }),
       );
     });
+  });
+});
+
+describe('<CreateAnnouncementModal /> active banner limit', () => {
+  beforeEach(() => {
+    previewRecipients.mockResolvedValue({ data: { count: 3 } });
+  });
+
+  afterEach(() => jest.clearAllMocks());
+
+  it('warns that the Banner channel is unavailable once two banners are active', async () => {
+    mockHttpGet.mockImplementation((url) => Promise.resolve({
+      data: { results: url.includes('active-banners') ? [{ id: 1 }, { id: 2 }] : [] },
+    }));
+    renderModal();
+
+    expect(await screen.findByText(messages.bannerLimitReached.defaultMessage)).toBeInTheDocument();
+  });
+
+  it('does not warn while fewer than two banners are active', async () => {
+    renderModal();
+    await flushLocaleLoad();
+
+    expect(screen.queryByText(messages.bannerLimitReached.defaultMessage)).not.toBeInTheDocument();
   });
 });
