@@ -45,6 +45,10 @@
   .filter-bar__group--dateRange {
     flex: 0 1 auto;
     max-width: none;
+
+    @media (--pgn-size-breakpoint-max-width-xs) {
+      width: 100%;
+    }
   }
 
   .filter-bar__label {
@@ -59,8 +63,31 @@
   }
 
   .filter-bar__date-range {
-    // Paragon's Bootstrap 4 base has no .gap-* utilities (added in Bootstrap 5).
     gap: 0.5rem;
+    margin-right: 10px;
+
+    // The wrapper react-datepicker renders around its <input> has no width of its own, so it
+    // needs one explicitly - wide enough to fit the DD/MM/YYYY placeholder/value alongside the
+    // calendar icon without clipping either.
+    .react-datepicker-wrapper {
+      width: 11.6rem;
+      flex: 0 0 auto;
+    }
+
+    @media (--pgn-size-breakpoint-max-width-xs) {
+      width: 100%;
+      margin-right: 0;
+
+      > div {
+        flex-grow: 1;
+      }
+
+      .react-datepicker-wrapper {
+        width: 100%;
+        flex: 1 1 0;
+        min-width: 0;
+      }
+    }
   }
 
   .filter-bar__date-range-separator {

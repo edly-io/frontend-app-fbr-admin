@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-  render, screen, waitFor,
+  render, screen, waitFor, fireEvent,
 } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { IntlProvider } from 'react-intl';
@@ -88,5 +88,33 @@ describe('AuditLogTable', () => {
     expect(select).toBeInTheDocument();
     // Should have the "All actions" option
     expect(screen.getByText('All actions')).toBeInTheDocument();
+  });
+
+  it('date range "From" input updates state and queries the API with the ISO value', async () => {
+    getAuditLogs.mockResolvedValue({ results: [], count: 0 });
+    renderTable();
+    const fromInput = screen.getByLabelText('From');
+    fireEvent.change(fromInput, { target: { value: '01/09/2026' } });
+    expect(fromInput.value).toBe('01/09/2026');
+    await waitFor(() => {
+      expect(getAuditLogs).toHaveBeenCalledWith(
+        expect.objectContaining({ dateFrom: '2026-09-01' }),
+      );
+    });
+  });
+
+  it('date range "To" input disables calendar days before the "From" value', async () => {
+    getAuditLogs.mockResolvedValue({ results: [], count: 0 });
+    renderTable();
+    const fromInput = screen.getByLabelText('From');
+    fireEvent.change(fromInput, { target: { value: '10/09/2026' } });
+
+    const toInput = screen.getByLabelText('To');
+    fireEvent.focus(toInput);
+    const disabledDay = await screen.findByText(
+      '1',
+      { selector: '.react-datepicker__day--disabled' },
+    );
+    expect(disabledDay).toBeInTheDocument();
   });
 });

@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { Button, Form } from '@openedx/paragon';
+import DatepickerControl from '../../../shared/date-picker-control/DatepickerControl';
 import './filter-bar-styles.scss';
 
 /**
@@ -51,23 +52,27 @@ const FilterBar = ({
             </Form.Label>
             {filter.type === 'dateRange' ? (
               <div className="filter-bar__date-range d-flex align-items-center">
-                <Form.Control
-                  type="date"
-                  lang="en-GB"
+                <DatepickerControl
+                  renderGroup={false}
+                  id={`${filter.id}-start`}
+                  dataTestId={`${filter.id}-start`}
+                  controlName={`${filter.id}-start`}
                   value={filter.startValue}
-                  max={filter.startMax}
-                  onChange={e => filter.onStartChange(e.target.value)}
-                  aria-label={filter.startLabel}
+                  maxDate={filter.startMax}
+                  onChange={filter.onStartChange}
+                  ariaLabel={filter.startLabel}
                 />
                 <span className="filter-bar__date-range-separator" aria-hidden="true">–</span>
-                <Form.Control
-                  type="date"
-                  lang="en-GB"
+                <DatepickerControl
+                  renderGroup={false}
+                  id={`${filter.id}-end`}
+                  dataTestId={`${filter.id}-end`}
+                  controlName={`${filter.id}-end`}
                   value={filter.endValue}
-                  min={filter.endMin}
-                  max={filter.endMax}
-                  onChange={e => filter.onEndChange(e.target.value)}
-                  aria-label={filter.endLabel}
+                  minDate={filter.endMin}
+                  maxDate={filter.endMax}
+                  onChange={filter.onEndChange}
+                  ariaLabel={filter.endLabel}
                 />
               </div>
             ) : (

@@ -1,71 +1,10 @@
-/* Overlay */
-.ann-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.45);
-  z-index: 1000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* Modal container */
-.ann-modal {
-  background: var(--pgn-color-bg-base);
-  border-radius: 12px;
-  width: 680px;
-  max-width: 95vw;
-  max-height: 90vh;
-  display: flex;
-  flex-direction: column;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
-}
-
-/* Header */
-.ann-header {
-  padding: 20px 24px 16px;
-  border-bottom: 1px solid var(--pgn-color-border);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.ann-modal-title {
-  margin: 0;
-  font-size: 17px;
-  font-weight: 700;
-  color: var(--pgn-color-text-base);
-}
-
-.ann-close-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 20px;
-  color: var(--pgn-color-gray-400);
-  line-height: 1;
-  padding: 0;
-}
-
-/* Body */
-.ann-body {
-  padding: 20px 24px;
-  overflow-y: auto;
-  flex: 1;
-}
-
-/* Footer */
-.ann-footer {
-  padding: 14px 24px;
-  border-top: 1px solid var(--pgn-color-border);
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-}
-
 /* Form fields */
 .ann-field {
   margin-bottom: 16px;
+
+  .react-datepicker-wrapper {
+    width: 100%;
+  }
 }
 
 .ann-label {
@@ -89,17 +28,6 @@
   color: var(--pgn-color-gray-400);
   font-size: 11px;
   margin-top: 3px;
-}
-
-/* Error box */
-.ann-error {
-  background: #fde8e8;
-  color: #9b1c1c;
-  border: 1px solid #f8b4b4;
-  border-radius: 6px;
-  padding: 10px 12px;
-  margin-bottom: 14px;
-  font-size: 13.5px;
 }
 
 /* Attachment list */
@@ -202,16 +130,6 @@
   background: var(--pgn-color-light-200);
 }
 
-.ann-banner-limit-note {
-  font-size: 12px;
-  color: #b45309;
-  background: #fef3c7;
-  border: 1px solid #fde68a;
-  border-radius: 6px;
-  padding: 6px 10px;
-  margin-bottom: 8px;
-}
-
 /* Program selector */
 .ann-program-selector {
   padding: 10px 14px;
@@ -267,13 +185,25 @@
   color: var(--pgn-color-bg-base);
 }
 
-/* Recipient count bar */
+/* Footer: recipient count on the left, actions on the right; stacked on mobile */
+.ann-footer {
+  align-items: center;
+  gap: 1rem;
+}
+
+.ann-footer--stacked {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.75rem;
+}
+
 .ann-recipient-bar {
-  padding: 10px 24px;
-  border-top: 1px solid var(--pgn-color-border);
-  background: var(--pgn-color-gray-100);
   font-size: 13px;
   color: var(--pgn-color-gray-700);
+}
+
+.ann-footer--stacked .ann-recipient-bar {
+  text-align: center;
 }
 
 .ann-recipient-muted {
@@ -284,16 +214,6 @@
    The tints left above are pale fills built to carry dark ink. On a dark ground
    each needs its own pairing rather than a token that flips, so the hue keeps
    carrying its meaning. */
-:root[data-paragon-theme-variant="dark"] .ann-error {
-  background: rgba(239, 68, 68, 0.14);
-  border-color: rgba(239, 68, 68, 0.38);
-  color: #F5A3A3;
-}
 :root[data-paragon-theme-variant="dark"] .ann-tile.ann-tile--selected {
   background: var(--pgn-color-primary-light);
-}
-:root[data-paragon-theme-variant="dark"] .ann-banner-limit-note {
-  background: rgba(245, 158, 11, 0.16);
-  border-color: rgba(245, 158, 11, 0.38);
-  color: #F5C97A;
 }

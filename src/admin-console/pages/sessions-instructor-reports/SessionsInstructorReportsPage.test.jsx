@@ -62,8 +62,8 @@ describe('SessionsInstructorReportsPage date filters', () => {
   it('hands the table the applied date range, not the draft one', () => {
     renderPage();
 
-    fireEvent.change(screen.getByLabelText('Start date'), { target: { value: '2026-04-01' } });
-    fireEvent.change(screen.getByLabelText('End date'), { target: { value: '2026-06-30' } });
+    fireEvent.change(screen.getByLabelText('Start date'), { target: { value: '01/04/2026' } });
+    fireEvent.change(screen.getByLabelText('End date'), { target: { value: '30/06/2026' } });
 
     // Draft only: nothing has been applied yet.
     expect(lastTableProps()).toMatchObject({ startDate: '', endDate: '' });
@@ -79,7 +79,7 @@ describe('SessionsInstructorReportsPage date filters', () => {
   it('clears the range it hands the table', () => {
     renderPage();
 
-    fireEvent.change(screen.getByLabelText('Start date'), { target: { value: '2026-04-01' } });
+    fireEvent.change(screen.getByLabelText('Start date'), { target: { value: '01/04/2026' } });
     fireEvent.click(screen.getByRole('button', { name: 'Apply Filters' }));
     fireEvent.click(screen.getByRole('button', { name: 'Clear all filters' }));
 

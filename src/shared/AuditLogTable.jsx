@@ -9,6 +9,7 @@ import {
   Difference, History, InfoOutline, Search,
 } from '@openedx/paragon/icons';
 import UserIdentity from '../admin-console/components/UserIdentity';
+import DatepickerControl from './date-picker-control/DatepickerControl';
 import { useAuditLogs, useRecordHistory } from './auditLogApiHooks';
 import './AuditLogTable.scss';
 
@@ -404,13 +405,16 @@ const AuditLogTable = ({
     setPage(1);
   };
 
-  const handleDateFromChange = (e) => {
-    setDateFrom(e.target.value);
+  // DatepickerControl reports a plain 'yyyy-MM-dd' string directly (not a change event) - the
+  // same value shape a native <input type="date"> produced via e.target.value, so dateFrom/
+  // dateTo and the API query params below (dateFrom/dateTo) are unaffected.
+  const handleDateFromChange = (value) => {
+    setDateFrom(value);
     setPage(1);
   };
 
-  const handleDateToChange = (e) => {
-    setDateTo(e.target.value);
+  const handleDateToChange = (value) => {
+    setDateTo(value);
     setPage(1);
   };
 
@@ -632,9 +636,11 @@ const AuditLogTable = ({
         <div className="audit-log__date-range">
           <div className="audit-log__date-field">
             <Form.Label htmlFor="audit-date-from-admin" className="audit-log__date-label">From</Form.Label>
-            <Form.Control
+            <DatepickerControl
+              renderGroup={false}
               id="audit-date-from-admin"
-              type="date"
+              dataTestId="audit-date-from-admin"
+              controlName="audit-date-from-admin"
               value={dateFrom}
               onChange={handleDateFromChange}
               className="audit-log__date-input"
@@ -642,11 +648,13 @@ const AuditLogTable = ({
           </div>
           <div className="audit-log__date-field">
             <Form.Label htmlFor="audit-date-to-admin" className="audit-log__date-label">To</Form.Label>
-            <Form.Control
+            <DatepickerControl
+              renderGroup={false}
               id="audit-date-to-admin"
-              type="date"
+              dataTestId="audit-date-to-admin"
+              controlName="audit-date-to-admin"
               value={dateTo}
-              min={dateFrom || undefined}
+              minDate={dateFrom || undefined}
               onChange={handleDateToChange}
               className="audit-log__date-input"
             />

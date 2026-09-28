@@ -45,6 +45,23 @@
     align-items: center;
     gap: 0.375rem;
     min-width: 0;
+
+    > div {
+      width: 100%;
+    }
+
+    // react-datepicker wraps its <input> in a couple of extra divs
+    // (.react-datepicker-wrapper > .react-datepicker__input-container > input), so the flex
+    // sizing below needs to target that wrapper - the actual flex child of this container -
+    // rather than the innermost input the .audit-log__date-input class lands on.
+    .react-datepicker-wrapper {
+      width: 100%;
+      flex: 1 1 auto;
+      min-width: 0;
+      @media (--pgn-size-breakpoint-min-width-sm) {
+        width: 11.6rem;
+      }
+    }
   }
 
   &__date-label {
@@ -60,7 +77,7 @@
   }
 
   &__date-input {
-    flex: 1 1 auto;
+    width: 100%;
     min-width: 0;
   }
 

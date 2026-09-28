@@ -25,6 +25,119 @@ body {
   left: auto;
 }
 
+// ─── Datepicker (DatepickerControl / react-datepicker) theming ─────────────
+// Matches frontend-app-authoring's src/assets/scss/_form.scss: the calendar popup keeps
+// react-datepicker's own default look, and only the input's icon overlay + the popper's
+// stacking are themed here.
+.datepicker-custom-control {
+  padding-right: 2.75rem;
+}
+
+.datepicker-custom-control-icon {
+  position: absolute;
+  z-index: 2;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--pgn-color-black);
+  pointer-events: none;
+}
+
+.react-datepicker-popper {
+  z-index: 3;
+  max-width: calc(100vw - 1rem);
+}
+
+// react-datepicker's default CSS hard-codes a light calendar; dark mode repaints it
+// from the app's dark palette, and selected days reuse the primary button tokens.
+:root[data-paragon-theme-variant="dark"] {
+  .react-datepicker {
+    background-color: var(--pgn-color-dropdown-bg, var(--pgn-color-bg-base));
+    border-color: var(--pgn-color-border);
+    color: var(--pgn-color-gray-800);
+  }
+
+  .react-datepicker__header {
+    background-color: var(--pgn-color-light-200);
+    border-bottom-color: var(--pgn-color-border);
+  }
+
+  .react-datepicker__current-month,
+  .react-datepicker-year-header,
+  .react-datepicker__day-name,
+  .react-datepicker__day {
+    color: var(--pgn-color-gray-800);
+  }
+
+  .react-datepicker__day:hover {
+    background-color: var(--pgn-color-light-400);
+  }
+
+  .react-datepicker__day--keyboard-selected {
+    background-color: var(--pgn-color-btn-hover-bg-outline-primary);
+    color: var(--pgn-color-btn-hover-text-outline-primary);
+  }
+
+  .react-datepicker__day--selected,
+  .react-datepicker__day--in-range,
+  .react-datepicker__day--in-selecting-range {
+    background-color: var(--pgn-color-btn-bg-primary);
+    color: var(--pgn-color-btn-text-primary);
+
+    &:hover {
+      background-color: var(--pgn-color-btn-hover-bg-primary);
+      color: var(--pgn-color-btn-hover-text-primary);
+    }
+  }
+
+  .react-datepicker__day--disabled,
+  .react-datepicker__day--disabled:hover {
+    background-color: transparent;
+    color: var(--pgn-color-gray-400);
+  }
+
+  .react-datepicker__navigation-icon::before {
+    border-color: var(--pgn-color-gray-500);
+  }
+
+  .react-datepicker__navigation:hover *::before {
+    border-color: var(--pgn-color-gray-800);
+  }
+}
+
+// Keep the calendar above the modal's sticky header and close button.
+.pgn__modal .react-datepicker-popper {
+  z-index: 11;
+}
+
+// Stacked modal footers (mobile): full-width action buttons.
+.pgn__modal-footer .pgn__action-row-stacked {
+  align-items: stretch;
+}
+
+@media (--pgn-size-breakpoint-max-width-xs) {
+  .datepicker-custom-control {
+    padding-right: 2rem;
+    padding-left: 0.5rem;
+  }
+
+  .datepicker-custom-control-icon {
+    width: 1rem;
+    height: 1rem;
+    right: 0.625rem;
+  }
+}
+
+// Paragon has no breakpoint below xs (576px), so the narrowest phones need their own query.
+@media (width <= 360px) {
+  .react-datepicker__day,
+  .react-datepicker__day-name {
+    width: 1.6rem;
+    line-height: 1.6rem;
+    margin: 0.1rem;
+  }
+}
+
 .user-identity {
   display: flex;
   align-items: center;
