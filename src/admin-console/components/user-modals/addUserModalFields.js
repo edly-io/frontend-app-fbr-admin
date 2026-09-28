@@ -170,13 +170,19 @@ export const getSubmissionErrorState = (error, { fallbackMessage, correctHighlig
 };
 
 export const getCreateFieldsForRole = (role, traineeType, shouldShowCity) => {
+  // City goes into every non-super-admin creation flow. It's required
+  // downstream by every city-scoped filter (program enrollable pool,
+  // add-instructor dropdown, sessions locations). Only hidden when the
+  // caller is a middle admin (backend auto-locks to their own city).
+  const cityRow = shouldShowCity ? [[F.city]] : [];
+
   if (ADMIN_ROLES.includes(role)) {
     return [
       [F.fullName],
       [F.email, { ...F.cnic, required: true }],
       [{ ...F.mobile, required: false }],
       [F.fieldOrganisation],
-      ...(shouldShowCity ? [[F.city]] : []),
+      ...cityRow,
     ];
   }
 
@@ -187,6 +193,7 @@ export const getCreateFieldsForRole = (role, traineeType, shouldShowCity) => {
       [F.cnic],
       [F.fieldOfExpertise],
       [F.fieldOrganisation],
+      ...cityRow,
       [{ ...F.languagesAwardsPublications, group: 'instructor_profile' }],
     ];
   }
@@ -197,6 +204,7 @@ export const getCreateFieldsForRole = (role, traineeType, shouldShowCity) => {
     [F.cnic, F.dateOfBirth],
     [F.designation, F.bpsGrade],
     [F.fieldOrganisation],
+    ...cityRow,
     ...(traineeType === 'stp' ? [[{ ...F.batch, required: true }, F.hostelPreference]] : [[F.hostelPreference]]),
     [F.serviceHistory],
     [{ ...F.languagesAwardsPublications, group: 'trainee_profile' }],

@@ -13,7 +13,6 @@ import { ROLE_LABELS } from '../../pages/users/constants';
 import {
   ROLE_OPTIONS,
   TRAINEE_TYPES,
-  ADMIN_ROLES,
   getCreateFieldsForRole,
   toCreatePayload,
   toAssignPayload,
@@ -233,7 +232,11 @@ const AddUserModal = ({ onClose, assignmentUser }) => {
   }, [isAssignment, selectedRole, traineeType]);
 
   const isMiddleAdminCaller = callerProfile.roles.includes('middle_admin') && !callerProfile.roles.includes('super_admin');
-  const shouldShowCity = ADMIN_ROLES.includes(selectedRole) && selectedRole !== 'super_admin' && !isMiddleAdminCaller;
+  // City is a hard requirement for every non-super_admin role — a NULL city
+  // silently pulls the user out of city-scoped filters (program enrollable
+  // pool, add-instructor dropdown, etc.). Only hidden for the middle admin
+  // caller flow where the backend auto-assigns the caller's own city.
+  const shouldShowCity = selectedRole !== 'super_admin' && !isMiddleAdminCaller;
   const createFields = getCreateFieldsForRole(selectedRole, traineeType, shouldShowCity);
   const contextText = getRoleContextText(intl, selectedRole, traineeType, isMiddleAdminCaller);
   const assignmentEmail = assignmentUser?.email || assignmentUser?.username;
