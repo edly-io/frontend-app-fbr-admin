@@ -38,7 +38,7 @@ export const mapProfileToUser = profile => ({
  * that comes back is the filtered total and paging walks the filtered set.
  */
 export const getUsers = async ({
-  page, pageSize, role, search, status,
+  page, pageSize, role, search, status, batch,
 }) => {
   const params = new URLSearchParams({
     page: String(page),
@@ -48,6 +48,7 @@ export const getUsers = async ({
   if (role) { params.set('role', role); }
   if (status && status !== STATUS_FILTER_ALL) { params.set('status', status); }
   if (search && search.trim()) { params.set('search', search.trim()); }
+  if (batch) { params.set('batch', String(batch)); }
 
   const { data } = await getAuthenticatedHttpClient().get(`${getUsersUrl()}?${params.toString()}`);
   const results = getPaginatedResults(data);

@@ -66,6 +66,16 @@ const messages = defineMessages({
     defaultMessage: 'Status: {status}',
     description: 'Status filter dropdown toggle label showing the current filter value.',
   },
+  batchFilterLabel: {
+    id: 'fbrAdmin.users.batchFilter.label',
+    defaultMessage: 'Batch: {batch}',
+    description: 'Batch filter dropdown toggle label showing the current filter value.',
+  },
+  batchFilterAll: {
+    id: 'fbrAdmin.users.batchFilter.all',
+    defaultMessage: 'All batches',
+    description: 'Menu item that clears the batch filter.',
+  },
   usersCount: {
     id: 'fbrAdmin.users.count',
     defaultMessage: '{count} {label}',

@@ -6,6 +6,7 @@ import {
   assignUserRole,
   bulkImportUsers,
   getReportFilters,
+  createBatch,
 } from './api';
 import { getReportsCapabilities } from './permissions';
 import { usersQueryKeys } from '../pages/users/data/apiHooks';
@@ -39,6 +40,28 @@ export const useAdminConsoleBootstrap = () => useQuery({
   queryFn: getAdminConsoleBootstrap,
   retry: retryExceptClientErrors,
 });
+
+/**
+ * Create a batch inline (used by the "+ New batch" affordance on the
+ * Add User modal). Optimistically appends the new batch to the bootstrap
+ * cache so the picker refreshes without a page reload; also invalidates
+ * bootstrap so any other consumer stays in sync.
+ */
+export const useCreateBatchMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: createBatch,
+    onSuccess: (batch) => {
+      queryClient.setQueryData(adminConsoleQueryKeys.bootstrap, (prev) => {
+        if (!prev) { return prev; }
+        // Server responds with `{ id, name, city: {id, name} }`. The bootstrap
+        // cache stores batches in the same shape.
+        return { ...prev, batches: [...(prev.batches ?? []), batch] };
+      });
+      queryClient.invalidateQueries({ queryKey: adminConsoleQueryKeys.bootstrap });
+    },
+  });
+};
 
 /**
  * Derives the caller's Reports capabilities from the shared bootstrap query,

@@ -204,6 +204,25 @@
   margin-right: 7px;
 }
 
+.add-user-modal__batch-input {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.add-user-modal__batch-new-btn {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.add-user-modal__inline-batch {
+  padding: 12px;
+  margin-bottom: 12px;
+  border: 1px dashed var(--pgn-color-gray-400);
+  border-radius: 4px;
+  background: var(--pgn-color-gray-100);
+}
+
 /* BulkImportUsersModal */
 
 .bulk-import-modal__result-status {

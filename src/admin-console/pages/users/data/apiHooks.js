@@ -18,13 +18,13 @@ const retryExceptClientErrors = (failureCount, error) => {
 };
 
 export const useUsers = ({
-  page, pageSize, role, search, status,
+  page, pageSize, role, search, status, batch,
 }) => useQuery({
   queryKey: usersQueryKeys.list({
-    page, pageSize, role, search, status,
+    page, pageSize, role, search, status, batch,
   }),
   queryFn: () => getUsers({
-    page, pageSize, role, search, status,
+    page, pageSize, role, search, status, batch,
   }),
   retry: retryExceptClientErrors,
   placeholderData: previousData => previousData,

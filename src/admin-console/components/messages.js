@@ -357,6 +357,26 @@ const messages = defineMessages({
     defaultMessage: 'Saving...',
     description: 'Button label shown while the Add User form is submitting.',
   },
+  batchNewButton: {
+    id: 'fbrAdmin.addUserModal.batch.newButton',
+    defaultMessage: '+ New batch',
+    description: 'Button next to the Batch dropdown for inline batch creation.',
+  },
+  batchNewInputLabel: {
+    id: 'fbrAdmin.addUserModal.batch.newInputLabel',
+    defaultMessage: 'New batch name',
+    description: 'Label for the name input when creating a new batch inline.',
+  },
+  batchNewInputPlaceholder: {
+    id: 'fbrAdmin.addUserModal.batch.newInputPlaceholder',
+    defaultMessage: 'e.g. Batch 2026-A',
+    description: 'Placeholder for the new-batch name input.',
+  },
+  batchNewSaveButton: {
+    id: 'fbrAdmin.addUserModal.batch.newSaveButton',
+    defaultMessage: 'Create batch',
+    description: 'Button to submit the inline new-batch form.',
+  },
   fieldRequiredError: {
     id: 'fbrAdmin.addUserModal.error.fieldRequired',
     defaultMessage: 'This field is required',

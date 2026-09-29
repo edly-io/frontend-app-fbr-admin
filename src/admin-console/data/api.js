@@ -137,8 +137,21 @@ export const getCities = async () => {
   return data;
 };
 
-export const getBatches = async () => {
-  const { data } = await getAuthenticatedHttpClient().get(getLmsUrl(BIODATA_USER_BATCHES_PATH));
+export const getBatches = async (cityId) => {
+  const params = cityId ? { params: { city: cityId } } : undefined;
+  const { data } = await getAuthenticatedHttpClient().get(getLmsUrl(BIODATA_USER_BATCHES_PATH), params);
+  return data;
+};
+
+/**
+ * Create a new batch. Body: `{ name, city_id }`. Middle-admin callers have
+ * their city auto-locked server-side, so `city_id` is optional for them.
+ * Returns the created batch as `{ id, name, city }`.
+ */
+export const createBatch = async ({ name, cityId }) => {
+  const body = { name };
+  if (cityId) { body.city_id = cityId; }
+  const { data } = await getAuthenticatedHttpClient().post(getLmsUrl(BIODATA_USER_BATCHES_PATH), body);
   return data;
 };
 

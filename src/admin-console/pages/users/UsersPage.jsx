@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { Alert, Button, ButtonGroup } from '@openedx/paragon';
 import { useIntl } from '@edx/frontend-platform/i18n';
 import { getProfileMfeUserUrl } from '../../data/api';
+import { useAdminConsoleBootstrap } from '../../data/apiHooks';
 import {
   useUsers, useSuperAdminAccessProbe, useUserDetailMutation, useUpdateUserStatus,
 } from './data/apiHooks';
@@ -41,6 +42,7 @@ const UsersPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState(STATUS_FILTER_ALL);
+  const [batchFilter, setBatchFilter] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(DEFAULT_USERS_ROWS_PER_PAGE);
   const [openMenuId, setOpenMenuId] = useState(null);
@@ -89,10 +91,18 @@ const UsersPage = () => {
   const activeTab = visibleTabs.find(tab => tab.role === searchParams.get('role'))?.id || 'all';
   const activeRole = visibleTabs.find(tab => tab.id === activeTab)?.role || null;
 
+  const { data: bootstrap } = useAdminConsoleBootstrap();
+  const batchOptions = bootstrap?.batches ?? [];
+
   const {
     data, isLoading, isError, error,
   } = useUsers({
-    page: currentPage, pageSize: rowsPerPage, role: activeRole, search, status: statusFilter,
+    page: currentPage,
+    pageSize: rowsPerPage,
+    role: activeRole,
+    search,
+    status: statusFilter,
+    batch: batchFilter || undefined,
   });
 
   const totalUsers = data?.total ?? 0;
@@ -121,6 +131,7 @@ const UsersPage = () => {
   };
   const handleSearchChange = (value) => { setSearch(value); setCurrentPage(1); };
   const handleStatusFilterChange = (value) => { setStatusFilter(value); setCurrentPage(1); };
+  const handleBatchFilterChange = (value) => { setBatchFilter(value); setCurrentPage(1); };
 
   const tabCounts = visibleTabs.reduce((acc, tab) => {
     acc[tab.id] = tab.id === activeTab ? totalUsers : null;
@@ -207,6 +218,9 @@ const UsersPage = () => {
             onSearchChange={handleSearchChange}
             statusFilter={statusFilter}
             onStatusFilterChange={handleStatusFilterChange}
+            batchFilter={batchFilter}
+            onBatchFilterChange={handleBatchFilterChange}
+            batchOptions={batchOptions}
             countLabel={countLabel}
           />
 

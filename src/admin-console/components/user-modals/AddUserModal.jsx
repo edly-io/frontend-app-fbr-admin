@@ -8,7 +8,9 @@ import {
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCheck, faHome, faUserCircle } from '@fortawesome/free-solid-svg-icons';
 import { useIntl } from '@edx/frontend-platform/i18n';
-import { useAdminConsoleBootstrap, useCreateUserMutation, useAssignUserRoleMutation } from '../../data/apiHooks';
+import {
+  useAdminConsoleBootstrap, useCreateUserMutation, useAssignUserRoleMutation, useCreateBatchMutation,
+} from '../../data/apiHooks';
 import { ROLE_LABELS } from '../../pages/users/constants';
 import {
   ROLE_OPTIONS,
@@ -54,7 +56,7 @@ const getRoleContextText = (intl, role, traineeType, isCityLocked) => {
 };
 
 const FieldRow = ({
-  fields, values, onChange, errors, cities, batches,
+  fields, values, onChange, errors, cities, batches, onCreateBatch, canCreateBatch,
 }) => {
   const intl = useIntl();
 
@@ -75,10 +77,22 @@ const FieldRow = ({
           );
         } else if (field.type === 'select' && field.id === 'batch') {
           input = (
-            <Form.Control id={field.id} as="select" value={values[field.id] || ''} onChange={e => onChange(field.id, e.target.value)} isInvalid={!!err}>
-              <option value="">{placeholder}</option>
-              {batches.map(batch => <option key={batch.id} value={batch.id}>{batch.name}</option>)}
-            </Form.Control>
+            <div className="add-user-modal__batch-input">
+              <Form.Control id={field.id} as="select" value={values[field.id] || ''} onChange={e => onChange(field.id, e.target.value)} isInvalid={!!err}>
+                <option value="">{placeholder}</option>
+                {batches.map(batch => <option key={batch.id} value={batch.id}>{batch.name}</option>)}
+              </Form.Control>
+              {canCreateBatch && (
+                <Button
+                  variant="outline-primary"
+                  size="sm"
+                  onClick={onCreateBatch}
+                  className="add-user-modal__batch-new-btn"
+                >
+                  {intl.formatMessage(messages.batchNewButton)}
+                </Button>
+              )}
+            </div>
           );
         } else if (field.type === 'textarea') {
           input = (
@@ -153,6 +167,13 @@ FieldRow.propTypes = {
     id: PropTypes.number.isRequired,
     name: PropTypes.string.isRequired,
   })).isRequired,
+  onCreateBatch: PropTypes.func,
+  canCreateBatch: PropTypes.bool,
+};
+
+FieldRow.defaultProps = {
+  onCreateBatch: () => {},
+  canCreateBatch: false,
 };
 
 const SectionHeader = ({ title, note }) => (
@@ -238,6 +259,58 @@ const AddUserModal = ({ onClose, assignmentUser }) => {
   // caller flow where the backend auto-assigns the caller's own city.
   const shouldShowCity = selectedRole !== 'super_admin' && !isMiddleAdminCaller;
   const createFields = getCreateFieldsForRole(selectedRole, traineeType, shouldShowCity);
+
+  // Batch is city-scoped — a batch can only hold trainees of one city. The
+  // trainee's resolved city comes from the picker (for super/data admin) or
+  // is auto-locked to the caller's city (for middle admin). Filtering the
+  // batch dropdown by this city stops mixed-city batches at the source.
+  let resolvedCityId = null;
+  if (isMiddleAdminCaller) {
+    resolvedCityId = callerProfile.city?.id ?? null;
+  } else if (values.city) {
+    resolvedCityId = Number(values.city);
+  }
+  const filteredBatches = useMemo(
+    () => (resolvedCityId
+      ? batches.filter(b => b.city?.id === resolvedCityId)
+      : []),
+    [batches, resolvedCityId],
+  );
+
+  const [showNewBatch, setShowNewBatch] = useState(false);
+  const [newBatchName, setNewBatchName] = useState('');
+  const createBatchMutation = useCreateBatchMutation();
+  const canCreateBatch = selectedRole === 'trainee'
+    && traineeType === 'stp'
+    && !!resolvedCityId
+    && !isAssignment;
+
+  useEffect(() => {
+    // Clear any half-typed batch name and close the inline form when the
+    // city changes — the new batch would land in a different city.
+    setShowNewBatch(false);
+    setNewBatchName('');
+  }, [resolvedCityId]);
+
+  const handleOpenNewBatch = () => { setShowNewBatch(true); setNewBatchName(''); };
+  const handleCancelNewBatch = () => { setShowNewBatch(false); setNewBatchName(''); };
+  const handleSubmitNewBatch = async () => {
+    const name = newBatchName.trim();
+    if (!name || !resolvedCityId) { return; }
+    try {
+      const batch = await createBatchMutation.mutateAsync({ name, cityId: resolvedCityId });
+      // Auto-select the newly created batch on the form. Not going through
+      // handleChange to avoid the use-before-declare ordering trap.
+      setValues(prev => ({ ...prev, batch: batch.id }));
+      setErrors(prev => ({ ...prev, batch: null }));
+      handleCancelNewBatch();
+    } catch (err) {
+      // Error is surfaced by the mutation state below.
+    }
+  };
+  const newBatchApiError = createBatchMutation.error?.response?.data?.name
+    || createBatchMutation.error?.response?.data?.city
+    || createBatchMutation.error?.message;
   const contextText = getRoleContextText(intl, selectedRole, traineeType, isMiddleAdminCaller);
   const assignmentEmail = assignmentUser?.email || assignmentUser?.username;
   let submitLabel = intl.formatMessage(messages.createUserButton);
@@ -484,9 +557,51 @@ const AddUserModal = ({ onClose, assignmentUser }) => {
                 onChange={handleChange}
                 errors={errors}
                 cities={cities}
-                batches={batches}
+                batches={filteredBatches}
+                canCreateBatch={canCreateBatch}
+                onCreateBatch={handleOpenNewBatch}
               />
             ))}
+            {showNewBatch && (
+              <div className="add-user-modal__inline-batch">
+                <Form.Group className="mb-2">
+                  <Form.Label className="x-small font-weight-bold text-uppercase">
+                    {intl.formatMessage(messages.batchNewInputLabel)}
+                  </Form.Label>
+                  <Form.Control
+                    value={newBatchName}
+                    onChange={(e) => setNewBatchName(e.target.value)}
+                    placeholder={intl.formatMessage(messages.batchNewInputPlaceholder)}
+                    autoFocus
+                  />
+                </Form.Group>
+                {newBatchApiError && (
+                  <Alert variant="danger" className="py-2 mb-2">
+                    {String(newBatchApiError)}
+                  </Alert>
+                )}
+                <div className="d-flex" style={{ gap: '.5rem' }}>
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    onClick={handleSubmitNewBatch}
+                    disabled={createBatchMutation.isPending || !newBatchName.trim()}
+                  >
+                    {createBatchMutation.isPending
+                      ? intl.formatMessage(messages.savingButton)
+                      : intl.formatMessage(messages.batchNewSaveButton)}
+                  </Button>
+                  <Button
+                    variant="tertiary"
+                    size="sm"
+                    onClick={handleCancelNewBatch}
+                    disabled={createBatchMutation.isPending}
+                  >
+                    {intl.formatMessage(messages.cancelButton)}
+                  </Button>
+                </div>
+              </div>
+            )}
           </>
         )}
 
