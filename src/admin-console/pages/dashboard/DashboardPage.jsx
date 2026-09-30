@@ -13,12 +13,9 @@ import {
   useDashboardSessionDelivery, useDashboardUserComposition,
 } from './data/apiHooks';
 import { useReportsAccess } from '../../data/apiHooks';
+import { formatDateTime } from '../../utils/date';
 import messages from './messages';
 import './styles.scss';
-
-const AS_OF_FORMAT = {
-  day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit',
-};
 
 /**
  * Admin dashboard. Every section owns its own query under
@@ -81,7 +78,7 @@ const DashboardPage = () => {
       {generatedAt && (
         <p className="dashboard-page__as-of mb-4">
           {intl.formatMessage(messages.asOf, {
-            timestamp: intl.formatDate(generatedAt, AS_OF_FORMAT),
+            timestamp: formatDateTime(generatedAt, { seconds: false }),
           })}
         </p>
       )}

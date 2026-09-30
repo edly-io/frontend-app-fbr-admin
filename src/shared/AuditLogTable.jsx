@@ -9,6 +9,7 @@ import {
   Difference, History, InfoOutline, Search,
 } from '@openedx/paragon/icons';
 import UserIdentity from '../admin-console/components/UserIdentity';
+import { formatDateTime } from '../admin-console/utils/date';
 import DatepickerControl from './date-picker-control/DatepickerControl';
 import { useAuditLogs, useRecordHistory } from './auditLogApiHooks';
 import './AuditLogTable.scss';
@@ -163,9 +164,7 @@ const ChangesModal = ({ entry, onClose }) => {
       <ModalDialog.Header>
         <ModalDialog.Title>Change Details — {repr}</ModalDialog.Title>
         <small className="audit-modal__subtitle">
-          {date.toLocaleString('en-GB', {
-            day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit',
-          })}
+          {formatDateTime(date, { seconds: false })}
           {' · '}
           <Badge variant={ACTION_VARIANT[action] || 'light'}>{action}</Badge>
           {' · '}
@@ -271,9 +270,7 @@ const RecordHistoryModal = ({
                   {
                     Header: 'Timestamp',
                     id: 'timestamp',
-                    Cell: ({ row }) => new Date(row.original.timestamp).toLocaleString('en-GB', {
-                      day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit',
-                    }),
+                    Cell: ({ row }) => formatDateTime(row.original.timestamp, { seconds: false }),
                     cellClassName: 'audit-log__timestamp',
                   },
                   {
@@ -445,16 +442,11 @@ const AuditLogTable = ({
     {
       Header: 'Timestamp',
       accessor: 'timestamp',
-      Cell: ({ row }) => {
-        const date = new Date(row.original.timestamp);
-        return (
-          <span className="audit-log__timestamp">
-            {date.toLocaleString('en-GB', {
-              day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit',
-            })}
-          </span>
-        );
-      },
+      Cell: ({ row }) => (
+        <span className="audit-log__timestamp">
+          {formatDateTime(row.original.timestamp, { seconds: false })}
+        </span>
+      ),
     },
     {
       Header: 'Actor',

@@ -4,6 +4,7 @@ import {
   ActionRow, Button, ModalDialog, breakpoints, useMediaQuery,
 } from '@openedx/paragon';
 import UserIdentity from '../admin-console/components/UserIdentity';
+import { formatCalendarDate, formatDateTime } from '../admin-console/utils/date';
 import './ViewAnnouncementModal.css';
 
 const CHANNEL_LABELS = { send_email: 'Email', send_banner: 'Banner', send_notification: 'Notification' };
@@ -18,15 +19,9 @@ const ROLE_DISPLAY = {
 const BANNER_STATUS_LABELS = { active: 'Active', expired: 'Expired' };
 const BANNER_STATUS_CLS = { active: 'vann-banner--active', expired: 'vann-banner--expired' };
 
-const formatDate = (val) => (val ? new Date(val).toLocaleString() : '—');
-// Backend stores banner expiry as end-of-day UTC; formatting via `new Date`
-// shifts to the next day in tz > UTC. Parse the YYYY-MM-DD portion into a
-// local Date so the display matches the calendar date the admin picked.
-const formatExpiryDate = (val) => {
-  if (!val) { return '—'; }
-  const [y, m, d] = val.split('T')[0].split('-').map(Number);
-  return new Date(y, m - 1, d).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
-};
+const displayDateTime = (val) => formatDateTime(val) || '—';
+// Banner expiry is stored as end-of-day UTC; show the calendar day the admin picked.
+const displayExpiryDate = (val) => formatCalendarDate(val) || '—';
 
 const Field = ({ label, children }) => (
   <div className="vann-field">
@@ -56,7 +51,7 @@ const ViewAnnouncementModal = ({ item, onClose }) => {
         <h3 className="vann-subject">{item.subject}</h3>
 
         <div className="vann-meta-grid">
-          <Field label="Sent at">{formatDate(item.sent_at)}</Field>
+          <Field label="Sent at">{displayDateTime(item.sent_at)}</Field>
           <Field label="Scope">{SCOPE_LABELS[item.scope] || item.scope}</Field>
           {item.scope === 'program' && item.program_key && (
           <Field label="Program"><code className="vann-code">{item.program_key}</code></Field>
@@ -71,7 +66,7 @@ const ViewAnnouncementModal = ({ item, onClose }) => {
           )}
           {item.send_banner && (
           <Field label="Banner expiry">
-            <span>{formatExpiryDate(item.banner_expires_at)}</span>
+            <span>{displayExpiryDate(item.banner_expires_at)}</span>
             {item.banner_status && (
             <span className={`vann-banner-badge ${BANNER_STATUS_CLS[item.banner_status] || ''}`}>
               {BANNER_STATUS_LABELS[item.banner_status] || item.banner_status}

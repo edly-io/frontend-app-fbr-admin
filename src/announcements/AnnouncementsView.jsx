@@ -15,6 +15,7 @@ import CreateAnnouncementModal from './CreateAnnouncementModal';
 import ViewAnnouncementModal from './ViewAnnouncementModal';
 import EditBannerExpiryModal from './EditBannerExpiryModal';
 import UserIdentity from '../admin-console/components/UserIdentity';
+import { formatCalendarDate, formatDateTime } from '../admin-console/utils/date';
 import './AnnouncementsView.css';
 
 const CHANNEL_LABELS = { send_email: 'Email', send_banner: 'Banner', send_notification: 'Notification' };
@@ -34,15 +35,6 @@ const DELIVERY_CLASS = {
   failed: 'ann-delivery--failed',
   skipped: 'ann-delivery--skipped',
   pending: 'ann-delivery--pending',
-};
-
-// Render banner expiry as the calendar date the admin picked. The backend
-// stores end-of-day UTC, so `new Date(iso).toLocaleDateString()` shifts to the
-// next day in tz > UTC. Parse the YYYY-MM-DD portion into a local Date instead.
-const formatExpiryDate = (iso) => {
-  if (!iso) { return ''; }
-  const [y, m, d] = iso.split('T')[0].split('-').map(Number);
-  return new Date(y, m - 1, d).toLocaleDateString();
 };
 
 const DeliveryBadge = ({ status }) => {
@@ -71,8 +63,6 @@ const StatusBadge = ({ status }) => {
   );
 };
 StatusBadge.propTypes = { status: PropTypes.string.isRequired };
-
-const formatDate = (val) => (val ? new Date(val).toLocaleString() : '—');
 
 const BANNER_STATUS_META = {
   active: { label: 'Banner Active', cls: 'ann-banner-status--active' },
@@ -227,7 +217,8 @@ const ChannelsCell = ({ row }) => {
           {item.banner_expires_at && (
             <span className="ann-banner-expiry">
               {item.banner_status === 'expired' ? 'Expired' : 'Expires'}{' '}
-              {formatExpiryDate(item.banner_expires_at)}
+              {/* Banner expiry is stored as end-of-day UTC; show the calendar day the admin picked. */}
+              {formatCalendarDate(item.banner_expires_at)}
             </span>
           )}
         </div>
@@ -300,7 +291,7 @@ const ActionsCell = ({ row, column }) => {
 };
 const StatusCell = ({ row }) => <StatusBadge status={row.original.status} />;
 
-const SentAtCell = ({ row }) => formatDate(row.original.sent_at);
+const SentAtCell = ({ row }) => formatDateTime(row.original.sent_at) || '—';
 
 const RecipientsSubRow = ({ row }) => (
   <RecipientsLog
