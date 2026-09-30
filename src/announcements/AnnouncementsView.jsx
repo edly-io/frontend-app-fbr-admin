@@ -36,6 +36,15 @@ const DELIVERY_CLASS = {
   pending: 'ann-delivery--pending',
 };
 
+// Render banner expiry as the calendar date the admin picked. The backend
+// stores end-of-day UTC, so `new Date(iso).toLocaleDateString()` shifts to the
+// next day in tz > UTC. Parse the YYYY-MM-DD portion into a local Date instead.
+const formatExpiryDate = (iso) => {
+  if (!iso) { return ''; }
+  const [y, m, d] = iso.split('T')[0].split('-').map(Number);
+  return new Date(y, m - 1, d).toLocaleDateString();
+};
+
 const DeliveryBadge = ({ status }) => {
   const cls = DELIVERY_CLASS[status] || DELIVERY_CLASS.pending;
   return <span className={`ann-tag ${cls}`}>{status}</span>;
@@ -218,7 +227,7 @@ const ChannelsCell = ({ row }) => {
           {item.banner_expires_at && (
             <span className="ann-banner-expiry">
               {item.banner_status === 'expired' ? 'Expired' : 'Expires'}{' '}
-              {new Date(item.banner_expires_at).toLocaleDateString()}
+              {formatExpiryDate(item.banner_expires_at)}
             </span>
           )}
         </div>
