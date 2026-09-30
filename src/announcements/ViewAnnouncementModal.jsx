@@ -19,9 +19,14 @@ const BANNER_STATUS_LABELS = { active: 'Active', expired: 'Expired' };
 const BANNER_STATUS_CLS = { active: 'vann-banner--active', expired: 'vann-banner--expired' };
 
 const formatDate = (val) => (val ? new Date(val).toLocaleString() : '—');
-const formatDateShort = (val) => (val
-  ? new Date(val).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })
-  : '—');
+// Backend stores banner expiry as end-of-day UTC; formatting via `new Date`
+// shifts to the next day in tz > UTC. Parse the YYYY-MM-DD portion into a
+// local Date so the display matches the calendar date the admin picked.
+const formatExpiryDate = (val) => {
+  if (!val) { return '—'; }
+  const [y, m, d] = val.split('T')[0].split('-').map(Number);
+  return new Date(y, m - 1, d).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
+};
 
 const Field = ({ label, children }) => (
   <div className="vann-field">
@@ -66,7 +71,7 @@ const ViewAnnouncementModal = ({ item, onClose }) => {
           )}
           {item.send_banner && (
           <Field label="Banner expiry">
-            <span>{formatDateShort(item.banner_expires_at)}</span>
+            <span>{formatExpiryDate(item.banner_expires_at)}</span>
             {item.banner_status && (
             <span className={`vann-banner-badge ${BANNER_STATUS_CLS[item.banner_status] || ''}`}>
               {BANNER_STATUS_LABELS[item.banner_status] || item.banner_status}
