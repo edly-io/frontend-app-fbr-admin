@@ -14,7 +14,7 @@ body {
 // viewport hold a minimum width and scroll instead, so a fixed cap reads
 // correctly at every size.
 .pgn__data-table-cell-wrap {
-  max-width: 20rem;
+  max-width: none;
 }
 
 // Move Paragon toast to top-right
