@@ -12,7 +12,7 @@ import {
   faPlus, faFileImage, faFilePdf, faFileArchive, faFileAlt,
 } from '@fortawesome/free-solid-svg-icons';
 import { getConfig } from '@edx/frontend-platform';
-import UserIdentity from '../admin-console/components/UserIdentity';
+import { UserIdentity } from '@edly-io/frontend-component-fbr';
 import { formatDate } from '../admin-console/utils/date';
 import {
   listDocuments, deleteDocument, listDocumentTypes, updateDocument,

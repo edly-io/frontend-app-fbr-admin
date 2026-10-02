@@ -4,7 +4,7 @@ import { Button, ModalDialog } from '@openedx/paragon';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPen, faTimes } from '@fortawesome/free-solid-svg-icons';
 import { useIntl } from '@edx/frontend-platform/i18n';
-import UserIdentity from '../UserIdentity';
+import { UserIdentity } from '@edly-io/frontend-component-fbr';
 import DetailCell from '../detail-cell/DetailCell';
 import DetailSection from '../detail-section/DetailSection';
 import { ROLE_LABELS } from '../../pages/users/constants';

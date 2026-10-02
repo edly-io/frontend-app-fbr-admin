@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import {
   ActionRow, Button, ModalDialog, breakpoints, useMediaQuery,
 } from '@openedx/paragon';
-import UserIdentity from '../admin-console/components/UserIdentity';
+import { UserIdentity } from '@edly-io/frontend-component-fbr';
 import { formatCalendarDate, formatDateTime } from '../admin-console/utils/date';
 import './ViewAnnouncementModal.css';
 

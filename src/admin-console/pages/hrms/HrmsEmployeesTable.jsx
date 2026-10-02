@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import PropTypes from 'prop-types';
 import { Button, DataTable } from '@openedx/paragon';
 import { useIntl } from '@edx/frontend-platform/i18n';
-import UserIdentity from '../../components/UserIdentity';
+import { UserIdentity } from '@edly-io/frontend-component-fbr';
 import messages from './messages';
 
 const ROWS_PER_PAGE = 25;

@@ -8,9 +8,12 @@ jest.mock('@edx/frontend-platform', () => ({
   getConfig: () => ({ LMS_BASE_URL: 'http://lms.test' }),
 }));
 
-jest.mock('../../components/UserIdentity', () => /* eslint-disable react/prop-types */ function MockUserIdentity({ name }) {
-  return <span>{name}</span>;
-});
+jest.mock('@edly-io/frontend-component-fbr', () => ({
+  /* eslint-disable react/prop-types */
+  UserIdentity: function MockUserIdentity({ name }) {
+    return <span>{name}</span>;
+  },
+}));
 
 const PENDING = {
   id: 7,

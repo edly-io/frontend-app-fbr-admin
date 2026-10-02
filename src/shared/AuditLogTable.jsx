@@ -8,7 +8,7 @@ import {
 import {
   Difference, History, InfoOutline, Search,
 } from '@openedx/paragon/icons';
-import UserIdentity from '../admin-console/components/UserIdentity';
+import { UserIdentity } from '@edly-io/frontend-component-fbr';
 import { formatDateTime } from '../admin-console/utils/date';
 import DatepickerControl from './date-picker-control/DatepickerControl';
 import { useAuditLogs, useRecordHistory } from './auditLogApiHooks';
@@ -242,7 +242,7 @@ const RecordHistoryModal = ({
       isOpen
       onClose={onClose}
       title="Full History"
-      size="xl"
+      size="lg"
       hasCloseButton
       isFullscreenOnMobile
       className="audit-modal"

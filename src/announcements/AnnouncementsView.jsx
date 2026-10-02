@@ -10,11 +10,11 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faPlus, faChevronDown, faChevronUp,
 } from '@fortawesome/free-solid-svg-icons';
+import { UserIdentity } from '@edly-io/frontend-component-fbr';
 import { listAnnouncements, getAnnouncementRecipients } from './api';
 import CreateAnnouncementModal from './CreateAnnouncementModal';
 import ViewAnnouncementModal from './ViewAnnouncementModal';
 import EditBannerExpiryModal from './EditBannerExpiryModal';
-import UserIdentity from '../admin-console/components/UserIdentity';
 import { formatCalendarDate, formatDateTime } from '../admin-console/utils/date';
 import './AnnouncementsView.css';
 
