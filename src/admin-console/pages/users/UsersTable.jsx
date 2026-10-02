@@ -5,7 +5,7 @@ import {
 } from '@openedx/paragon';
 import { Edit, Visibility } from '@openedx/paragon/icons';
 import { useIntl } from '@edx/frontend-platform/i18n';
-import UserIdentity from '../../components/UserIdentity';
+import { UserIdentity } from '@edly-io/frontend-component-fbr';
 import StatusBadge from '../../components/status-badge/StatusBadge';
 import ActionMenu from '../../components/action-menu/ActionMenu';
 import { getProfileMfeUserUrl } from '../../data/api';

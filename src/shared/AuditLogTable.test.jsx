@@ -106,8 +106,13 @@ describe('AuditLogTable', () => {
   it('date range "To" input disables calendar days before the "From" value', async () => {
     getAuditLogs.mockResolvedValue({ results: [], count: 0 });
     renderTable();
+
+    const today = new Date();
+    const pad = n => String(n).padStart(2, '0');
+    const midMonth = `15/${pad(today.getMonth() + 1)}/${today.getFullYear()}`;
+
     const fromInput = screen.getByLabelText('From');
-    fireEvent.change(fromInput, { target: { value: '10/09/2026' } });
+    fireEvent.change(fromInput, { target: { value: midMonth } });
 
     const toInput = screen.getByLabelText('To');
     fireEvent.focus(toInput);

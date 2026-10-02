@@ -4,7 +4,7 @@ import { Button } from '@openedx/paragon';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCheck } from '@fortawesome/free-solid-svg-icons';
 import { useIntl } from '@edx/frontend-platform/i18n';
-import UserIdentity from '../../components/UserIdentity';
+import { UserIdentity } from '@edly-io/frontend-component-fbr';
 import PaginationFooter from '../../components/pagination-footer/PaginationFooter';
 import { getInitials } from '../../data/api';
 import { formatDate } from '../../utils/date';

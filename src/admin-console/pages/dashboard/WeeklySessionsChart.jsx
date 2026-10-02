@@ -2,6 +2,7 @@ import React, { useId } from 'react';
 import PropTypes from 'prop-types';
 import { OverlayTrigger, Tooltip } from '@openedx/paragon';
 import { useIntl } from '@edx/frontend-platform/i18n';
+import { formatDate } from '../../utils/date';
 import messages from './messages';
 
 /**
@@ -15,8 +16,6 @@ import messages from './messages';
  * otherwise round to a hairline and read as nothing delivered.
  */
 const MIN_VISIBLE_PERCENTAGE = 8;
-
-const WEEK_DATE_FORMAT = { day: '2-digit', month: 'short' };
 
 const getBarHeight = (hours, peakHours) => {
   if (!hours || !peakHours) {
@@ -45,7 +44,7 @@ const WeeklySessionsChart = ({ weeks, label }) => {
       {weeks.map((week, index) => {
         const weekStart = parseWeekStart(week.weekStart);
         const values = {
-          date: weekStart ? intl.formatDate(weekStart, WEEK_DATE_FORMAT) : '',
+          date: weekStart ? formatDate(weekStart) : '',
           hours: week.hours,
         };
         const modifier = index === currentWeekIndex ? ' dashboard-weekly-chart__week--current' : '';

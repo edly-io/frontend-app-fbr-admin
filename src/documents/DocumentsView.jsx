@@ -12,7 +12,8 @@ import {
   faPlus, faFileImage, faFilePdf, faFileArchive, faFileAlt,
 } from '@fortawesome/free-solid-svg-icons';
 import { getConfig } from '@edx/frontend-platform';
-import UserIdentity from '../admin-console/components/UserIdentity';
+import { UserIdentity } from '@edly-io/frontend-component-fbr';
+import { formatDate } from '../admin-console/utils/date';
 import {
   listDocuments, deleteDocument, listDocumentTypes, updateDocument,
 } from './api';
@@ -85,7 +86,7 @@ const formatBytes = (bytes) => {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 };
 
-const formatDate = (val) => (val ? new Date(val).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '—');
+const displayDate = (val) => formatDate(val) || '—';
 
 const ROLE_DISPLAY = {
   super_admin: 'Super Admin',
@@ -205,7 +206,7 @@ const ActionsCell = ({ row, column }) => {
 };
 const SizeCell = ({ row }) => formatBytes(row.original.file_size);
 
-const DateCell = ({ row }) => formatDate(row.original.created);
+const DateCell = ({ row }) => displayDate(row.original.created);
 
 const docShape = PropTypes.shape({
   id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
