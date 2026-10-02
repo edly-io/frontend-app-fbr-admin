@@ -112,7 +112,10 @@ describe('ProgramReportsPage date range keeps its ends in order', () => {
     fireEvent.focus(endInput());
     expect(document.querySelector('.react-datepicker__day--disabled')).not.toBeInTheDocument();
 
-    fireEvent.change(startInput(), { target: { value: toDisplay('2026-09-20') } });
+    const today = new Date();
+    const pad = n => String(n).padStart(2, '0');
+    const midMonth = `${today.getFullYear()}-${pad(today.getMonth() + 1)}-20`;
+    fireEvent.change(startInput(), { target: { value: toDisplay(midMonth) } });
 
     fireEvent.focus(endInput());
     const disabledDay = screen.getByText('1', { selector: '.react-datepicker__day--disabled' });

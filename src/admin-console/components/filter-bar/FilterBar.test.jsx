@@ -71,7 +71,10 @@ describe('<FilterBar />', () => {
   });
 
   it('disables end-field calendar days before startMax/endMin bounds', async () => {
-    renderBar({ startValue: '2026-09-10', endMin: '2026-09-10' });
+    const today = new Date();
+    const pad = n => String(n).padStart(2, '0');
+    const midMonth = `${today.getFullYear()}-${pad(today.getMonth() + 1)}-15`;
+    renderBar({ startValue: midMonth, endMin: midMonth });
     await flushLocaleLoad();
     fireEvent.focus(screen.getByLabelText('End date'));
     const disabledDay = await screen.findByText('1', { selector: '.react-datepicker__day--disabled' });
