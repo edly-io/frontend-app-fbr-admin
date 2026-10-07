@@ -78,7 +78,7 @@ export const probeSuperAdminAccess = async () => {
 
 export const updateUserStatus = async (profileId, newStatus) => {
   const url = `${getConfig().LMS_BASE_URL}/fbr/api/biodata/v1/users/${profileId}/status/`;
-  const { data } = await getAuthenticatedHttpClient().post(url, { status: newStatus });
+  const { data } = await getAuthenticatedHttpClient().patch(url, { status: newStatus });
   return data;
 };
 

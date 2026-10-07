@@ -34,7 +34,7 @@ const TAB_LABEL_MESSAGES = {
  * Every filter - tab, search and status - is a query param on the list
  * endpoint, so the count and the pagination describe the filtered set.
  *
- * "Deactivate/Activate" calls POST /v1/users/{id}/status/ and uses
+ * "Deactivate/Activate" calls PATCH /v1/users/{id}/status/ and uses
  * `statusOverrides` for an optimistic update while the request is in flight.
  */
 const UsersPage = () => {
