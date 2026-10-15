@@ -23,6 +23,13 @@
   }
 }
 
+.admin-console-page--loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - 200px);
+}
+
 // Below `lg` the rail is replaced by the sticky context bar, which carries the
 // section/page trail itself - see `breadcrumb-styles.scss`.
 @media (--pgn-size-breakpoint-max-width-md) {
