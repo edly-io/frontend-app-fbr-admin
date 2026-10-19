@@ -1,6 +1,7 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import AdminConsolePage from './AdminConsolePage';
+import AuthGate from './AuthGate';
 import DashboardPage from './pages/dashboard/DashboardPage';
 import UsersPage from './pages/users/UsersPage';
 import SignupApprovalsPage from './pages/signup-approvals/SignupApprovalsPage';
@@ -23,26 +24,28 @@ import DocumentsPage from './pages/documents/DocumentsPage';
  * `activeNav` default of `'users'`.
  */
 const AdminConsoleRoutes = () => (
-  <Routes>
-    <Route path="/" element={<AdminConsolePage />}>
-      <Route index element={<Navigate to="dashboard" replace />} />
-      <Route path="dashboard" element={<DashboardPage />} />
-      <Route path="users" element={<UsersPage />} />
-      <Route path="signup-approvals" element={<SignupApprovalsPage />} />
-      <Route path="biodata-edit-requests" element={<BiodataEditRequestsPage />} />
-      <Route path="hrms" element={<HrmsPage />} />
-      <Route path="program-reports" element={<ProgramReportsPage />} />
-      <Route path="sessions-reports" element={<SessionsInstructorReportsPage />} />
-      <Route path="attendance-reports" element={<AttendanceReportsPage />} />
-      <Route path="courses" element={<CoursesPage />} />
-      <Route path="regional-offices" element={<RegionalOfficesPage />} />
-      <Route path="access-policies" element={<AccessPoliciesPage />} />
-      <Route path="audit-log" element={<AuditLogPage />} />
-      <Route path="announcements" element={<AnnouncementsPage />} />
-      <Route path="documents" element={<DocumentsPage />} />
-      <Route path="*" element={<Navigate to="dashboard" replace />} />
-    </Route>
-  </Routes>
+  <AuthGate>
+    <Routes>
+      <Route path="/" element={<AdminConsolePage />}>
+        <Route index element={<Navigate to="dashboard" replace />} />
+        <Route path="dashboard" element={<DashboardPage />} />
+        <Route path="users" element={<UsersPage />} />
+        <Route path="signup-approvals" element={<SignupApprovalsPage />} />
+        <Route path="biodata-edit-requests" element={<BiodataEditRequestsPage />} />
+        <Route path="hrms" element={<HrmsPage />} />
+        <Route path="program-reports" element={<ProgramReportsPage />} />
+        <Route path="sessions-reports" element={<SessionsInstructorReportsPage />} />
+        <Route path="attendance-reports" element={<AttendanceReportsPage />} />
+        <Route path="courses" element={<CoursesPage />} />
+        <Route path="regional-offices" element={<RegionalOfficesPage />} />
+        <Route path="access-policies" element={<AccessPoliciesPage />} />
+        <Route path="audit-log" element={<AuditLogPage />} />
+        <Route path="announcements" element={<AnnouncementsPage />} />
+        <Route path="documents" element={<DocumentsPage />} />
+        <Route path="*" element={<Navigate to="dashboard" replace />} />
+      </Route>
+    </Routes>
+  </AuthGate>
 );
 
 export default AdminConsoleRoutes;

@@ -171,6 +171,21 @@ const messages = defineMessages({
     defaultMessage: 'You are not authorized to view this page. If you feel you should have access, please reach out to your administrator.',
     description: 'Alert shown when a caller without the required role navigates to a restricted page.',
   },
+  unauthorizedTitle: {
+    id: 'fbrAdmin.shell.unauthorized.title',
+    defaultMessage: 'You are not authorized to view this page',
+    description: 'Heading on the full-page unauthorized screen shown to signed-in users without any admin role.',
+  },
+  unauthorizedBody: {
+    id: 'fbrAdmin.shell.unauthorized.body',
+    defaultMessage: 'If you feel you should have access, please reach out to your administrator. Or sign in with a different account.',
+    description: 'Body text on the full-page unauthorized screen shown to signed-in users without any admin role.',
+  },
+  unauthorizedSignIn: {
+    id: 'fbrAdmin.shell.unauthorized.signIn',
+    defaultMessage: 'Sign in with a different account',
+    description: 'Button on the unauthorized screen that signs the current user out and sends them to the LMS login.',
+  },
 });
 
 export default messages;

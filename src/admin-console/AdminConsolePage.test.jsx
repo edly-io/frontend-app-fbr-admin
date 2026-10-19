@@ -5,8 +5,12 @@ import { IntlProvider } from 'react-intl';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import AdminConsolePage from './AdminConsolePage';
 import useAdminNavigation from './components/navigation/useAdminNavigation';
+import { useReportsAccess } from './data/apiHooks';
 
 jest.mock('./components/navigation/useAdminNavigation');
+jest.mock('./data/apiHooks', () => ({
+  useReportsAccess: jest.fn(),
+}));
 
 const icon = { iconName: 'stub', prefix: 'fas', icon: [1, 1, [], '', ''] };
 
@@ -50,6 +54,11 @@ beforeEach(() => {
     activeItem: sections[0].items[1],
     activeSectionId: 'communications',
   });
+
+  useReportsAccess.mockReturnValue({
+    capabilities: { canAccessPrograms: true, canAccessSessions: true, canAccessAttendance: true },
+    isLoading: false,
+  });
 });
 
 afterEach(() => jest.clearAllMocks());
@@ -77,5 +86,31 @@ describe('AdminConsolePage shell', () => {
     expect(contextBarTrigger()).toHaveAccessibleName(
       'Change section. Currently viewing Communications, Documents.',
     );
+  });
+
+  it('renders a loading spinner (no shell) while the role check is in flight', () => {
+    useReportsAccess.mockReturnValue({
+      capabilities: { canAccessPrograms: false, canAccessSessions: false, canAccessAttendance: false },
+      isLoading: true,
+    });
+
+    renderShell();
+
+    expect(screen.queryByRole('complementary')).not.toBeInTheDocument();
+    expect(screen.queryByText('Documents page')).not.toBeInTheDocument();
+  });
+
+  it('renders the unauthorized page (no shell) when the caller has no admin role', () => {
+    useReportsAccess.mockReturnValue({
+      capabilities: { canAccessPrograms: false, canAccessSessions: false, canAccessAttendance: false },
+      isLoading: false,
+    });
+
+    renderShell();
+
+    expect(screen.queryByRole('complementary')).not.toBeInTheDocument();
+    expect(screen.queryByText('Documents page')).not.toBeInTheDocument();
+    expect(screen.getByText(/You are not authorized to view this page/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Sign in with a different account/i })).toBeInTheDocument();
   });
 });
