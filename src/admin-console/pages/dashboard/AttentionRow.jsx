@@ -114,7 +114,7 @@ AttentionRow.propTypes = {
     description: PropTypes.string,
     /** Route inside this MFE. */
     to: PropTypes.string,
-    /** Absolute URL; `null` when the Sessions MFE base is not configured. */
+    /** Absolute URL; `null` when the fbr-home MFE base is not configured. */
     href: PropTypes.string,
     /** Small label above the title, saying what the row belongs to. */
     eyebrow: PropTypes.string,

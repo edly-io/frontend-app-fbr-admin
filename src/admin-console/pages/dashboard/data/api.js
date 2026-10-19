@@ -113,33 +113,33 @@ export const mapAttendanceOverview = data => ({
 });
 
 /**
- * The marking, requests and substitute screens live in the Sessions MFE, whose
+ * The marking, requests and substitute screens live in the fbr-home MFE, whose
  * base comes from `MFE_CONFIG` like every other cross-MFE link. Returns `null`
  * when it is not configured, and the rows then render without a link rather
  * than a URL guessed from this environment.
  */
-const getSessionsMfeBaseUrl = () => {
-  const configured = getConfig().SESSIONS_BASE_URL;
+const getFbrHomeMfeBaseUrl = () => {
+  const configured = getConfig().FBR_HOME_BASE_URL;
   return configured ? configured.replace(/\/+$/, '') : null;
 };
 
 /**
- * `:` and `+` are legal in a path segment and the Sessions MFE routes on the
+ * `:` and `+` are legal in a path segment and the fbr-home MFE routes on the
  * raw key, so they are left intact - everything else is still escaped, so a key
  * carrying anything unusual cannot break the URL.
  */
 const encodeKey = key => encodeURIComponent(key).replace(/%3A/g, ':').replace(/%2B/g, '+');
 
 const getSessionsMfeUrl = (path) => {
-  const base = getSessionsMfeBaseUrl();
+  const base = getFbrHomeMfeBaseUrl();
   return base ? `${base}${path}` : null;
 };
 
-/** The Sessions MFE's sentinel for the sessions that belong to no course. */
+/** The fbr-home MFE's sentinel for the sessions that belong to no course. */
 const NO_COURSE_VALUE = '__none__';
 
 /**
- * The roster for one session, built the same way the Sessions MFE builds its
+ * The roster for one session, built the same way the fbr-home MFE builds its
  * own session links: `course_id` rides in the query string, where a literal `+`
  * would decode to a space, so it stays fully encoded unlike the path segments.
  * The roster loads on `sessionId` alone; `course_id` only seeds the page's
