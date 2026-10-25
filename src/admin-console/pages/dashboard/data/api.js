@@ -113,50 +113,53 @@ export const mapAttendanceOverview = data => ({
 });
 
 /**
- * The marking, requests and substitute screens live in the fbr-home MFE, whose
- * base comes from `MFE_CONFIG` like every other cross-MFE link. Returns `null`
- * when it is not configured, and the rows then render without a link rather
- * than a URL guessed from this environment.
+ * The marking, requests and substitute screens now live in Studio tabs reached
+ * via the authoring MFE. Returns `null` when `AUTHORING_BASE_URL` is not
+ * configured so the rows render without a link rather than a URL guessed from
+ * this environment.
  */
-const getFbrHomeMfeBaseUrl = () => {
-  const configured = getConfig().FBR_HOME_BASE_URL;
-  return configured ? configured.replace(/\/+$/, '') : null;
+const getStudioProgramsBaseUrl = () => {
+  const configured = getConfig().AUTHORING_BASE_URL;
+  if (!configured) {
+    return null;
+  }
+  return `${configured.replace(/\/+$/, '')}/authoring/programs`;
 };
 
 /**
- * `:` and `+` are legal in a path segment and the fbr-home MFE routes on the
- * raw key, so they are left intact - everything else is still escaped, so a key
- * carrying anything unusual cannot break the URL.
+ * `:` and `+` are legal in a path segment and the Studio program tabs route on
+ * the raw key, so they are left intact - everything else is still escaped, so a
+ * key carrying anything unusual cannot break the URL.
  */
 const encodeKey = key => encodeURIComponent(key).replace(/%3A/g, ':').replace(/%2B/g, '+');
 
-const getSessionsMfeUrl = (path) => {
-  const base = getFbrHomeMfeBaseUrl();
+const getStudioProgramUrl = (path) => {
+  const base = getStudioProgramsBaseUrl();
   return base ? `${base}${path}` : null;
 };
 
-/** The fbr-home MFE's sentinel for the sessions that belong to no course. */
+/** The Studio attendance tab's sentinel for the sessions that belong to no course. */
 const NO_COURSE_VALUE = '__none__';
 
 /**
- * The roster for one session, built the same way the fbr-home MFE builds its
- * own session links: `course_id` rides in the query string, where a literal `+`
- * would decode to a space, so it stays fully encoded unlike the path segments.
- * The roster loads on `sessionId` alone; `course_id` only seeds the page's
- * by-course back link, which recognises the sentinel and leaves an empty value
- * on nothing.
+ * The roster for one session, built the same way the Studio attendance tab
+ * builds its own session links: `course_id` rides in the query string, where a
+ * literal `+` would decode to a space, so it stays fully encoded unlike the
+ * path segments. The roster loads on `sessionId` alone; `course_id` only seeds
+ * the page's by-course back link, which recognises the sentinel and leaves an
+ * empty value on nothing.
  */
-export const getSessionAttendanceUrl = (programKey, sessionId, courseId) => getSessionsMfeUrl(
+export const getSessionAttendanceUrl = (programKey, sessionId, courseId) => getStudioProgramUrl(
   `/${encodeKey(programKey)}/attendance/sessions/${encodeURIComponent(sessionId)}`
   + `?course_id=${encodeURIComponent(courseId || NO_COURSE_VALUE)}`,
 );
 
 /** Lands on the leaves tab, which is where the requests page opens. */
-export const getProgramRequestsUrl = programKey => getSessionsMfeUrl(
+export const getProgramRequestsUrl = programKey => getStudioProgramUrl(
   `/${encodeKey(programKey)}/requests/leaves`,
 );
 
-export const getSubstituteRequestsUrl = programKey => getSessionsMfeUrl(
+export const getSubstituteRequestsUrl = programKey => getStudioProgramUrl(
   `/${encodeKey(programKey)}/requests/substitute-requests`,
 );
 
