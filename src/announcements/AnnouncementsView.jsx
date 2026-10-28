@@ -343,43 +343,59 @@ ActionsCell.propTypes = {
   }).isRequired,
 };
 
+const PAGE_SIZE = 25;
+
 const AnnouncementsView = ({ sectionLabel }) => {
   const [announcements, setAnnouncements] = useState([]);
+  const [count, setCount] = useState(0);
+  const [pageIndex, setPageIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [showCreate, setShowCreate] = useState(false);
   const [viewItem, setViewItem] = useState(null);
   const [editExpiryItem, setEditExpiryItem] = useState(null);
+  // `searchInput` keeps the textbox responsive; `search` is the debounced
+  // value that feeds the API and the useCallback deps.
+  const [searchInput, setSearchInput] = useState('');
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('');
   const searchTimerRef = useRef(null);
+  const abortRef = useRef(null);
 
-  const fetchAnnouncements = useCallback(async (searchVal, filterVal) => {
+  const fetchAnnouncements = useCallback(async ({ pageIndex: nextIndex } = {}) => {
+    const targetIndex = nextIndex ?? 0;
+    if (abortRef.current) { abortRef.current.abort(); }
+    const controller = new AbortController();
+    abortRef.current = controller;
     setIsLoading(true);
     setError('');
     try {
-      const { data } = await listAnnouncements({ search: searchVal, filter: filterVal });
-      let results = [];
-      if (Array.isArray(data?.results)) { results = data.results; } else if (Array.isArray(data)) { results = data; }
+      const { data } = await listAnnouncements({
+        search, filter, page: targetIndex + 1, pageSize: PAGE_SIZE, signal: controller.signal,
+      });
+      const results = Array.isArray(data) ? data : (data?.results ?? []);
+      const total = Array.isArray(data) ? data.length : (data?.count ?? results.length);
       setAnnouncements(results);
+      setCount(total);
+      setPageIndex(targetIndex);
     } catch (err) {
+      if (err?.name === 'CanceledError' || err?.code === 'ERR_CANCELED') { return; }
       setError(err?.response?.data?.detail || 'Unable to load announcements.');
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [search, filter]);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => { fetchAnnouncements(search, filter); }, [fetchAnnouncements, filter]);
+  useEffect(() => { fetchAnnouncements({ pageIndex: 0 }); }, [fetchAnnouncements]);
 
   const handleSearchChange = (e) => {
     const val = e.target.value;
-    setSearch(val);
+    setSearchInput(val);
     clearTimeout(searchTimerRef.current);
-    searchTimerRef.current = setTimeout(() => fetchAnnouncements(val, filter), 350);
+    searchTimerRef.current = setTimeout(() => setSearch(val), 350);
   };
 
-  const handleCreated = () => { setShowCreate(false); fetchAnnouncements(search, filter); };
+  const handleCreated = () => { setShowCreate(false); fetchAnnouncements({ pageIndex: 0 }); };
 
   // The widths the old `th`s carried inline now travel with the column.
   const columns = [
@@ -441,7 +457,7 @@ const AnnouncementsView = ({ sectionLabel }) => {
       <div className="ann-toolbar">
         <Form.Control
           type="search"
-          value={search}
+          value={searchInput}
           onChange={handleSearchChange}
           placeholder="Search by subject…"
           className="ann-search-input"
@@ -462,15 +478,22 @@ const AnnouncementsView = ({ sectionLabel }) => {
 
       <div className="ann-table-wrap">
         <DataTable
+          key={`${filter}-${search}`}
           isExpandable
+          isPaginated
+          manualPagination
           isLoading={isLoading}
+          fetchData={fetchAnnouncements}
+          pageCount={Math.max(1, Math.ceil(count / PAGE_SIZE))}
+          itemCount={count}
           data={announcements}
-          itemCount={announcements.length}
           columns={columns}
+          initialState={{ pageIndex, pageSize: PAGE_SIZE }}
           renderRowSubComponent={RecipientsSubRow}
         >
           <DataTable.Table />
-          <DataTable.EmptyTable content="No announcements yet." />
+          <DataTable.EmptyTable content={search || filter ? 'No announcements match your filters.' : 'No announcements yet.'} />
+          <DataTable.TableFooter />
         </DataTable>
       </div>
 
@@ -484,7 +507,7 @@ const AnnouncementsView = ({ sectionLabel }) => {
         <EditBannerExpiryModal
           item={editExpiryItem}
           onClose={() => setEditExpiryItem(null)}
-          onSaved={() => { setEditExpiryItem(null); fetchAnnouncements(search, filter); }}
+          onSaved={() => { setEditExpiryItem(null); fetchAnnouncements({ pageIndex }); }}
         />
       )}
     </>

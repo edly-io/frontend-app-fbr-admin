@@ -2,13 +2,18 @@ import { getConfig } from '@edx/frontend-platform';
 import { getAuthenticatedHttpClient } from '@edx/frontend-platform/auth';
 
 const getBaseUrl = () => `${getConfig().LMS_BASE_URL}/fbr/announcements/api/v1`;
+const getProgramsUrl = () => `${getConfig().STUDIO_BASE_URL}/fbr/api/programs`;
 
-export const listAnnouncements = ({ search = '', filter = '' } = {}) => {
+// Announcements uses DefaultPagination → flat { count, next, previous, results }.
+export const listAnnouncements = ({
+  search = '', filter = '', page = 1, pageSize = 25, signal,
+} = {}) => {
   const params = new URLSearchParams();
   if (search) { params.set('search', search); }
   if (filter) { params.set('filter', filter); }
-  const qs = params.toString();
-  return getAuthenticatedHttpClient().get(`${getBaseUrl()}/announcements/${qs ? `?${qs}` : ''}`);
+  params.set('page', String(page));
+  params.set('page_size', String(pageSize));
+  return getAuthenticatedHttpClient().get(`${getBaseUrl()}/announcements/?${params.toString()}`, { signal });
 };
 
 export const createAnnouncement = (payload) => getAuthenticatedHttpClient().post(`${getBaseUrl()}/announcements/`, payload);
@@ -34,3 +39,16 @@ export const previewRecipients = (scope, programKey = '', recipientTypes = []) =
 });
 
 export const getAnnouncementRecipients = (announcementId) => getAuthenticatedHttpClient().get(`${getBaseUrl()}/announcements/${announcementId}/recipients/`);
+
+// Programs uses NamespacedPageNumberPagination → nested { pagination: { count, num_pages, ... }, results }.
+export const listPrograms = ({
+  search = '', page = 1, pageSize = 20, signal,
+} = {}) => {
+  const params = new URLSearchParams();
+  if (search) { params.set('search', search); }
+  params.set('page', String(page));
+  params.set('page_size', String(pageSize));
+  return getAuthenticatedHttpClient().get(`${getProgramsUrl()}/?${params.toString()}`, { signal });
+};
+
+export const getProgram = (programKey) => getAuthenticatedHttpClient().get(`${getProgramsUrl()}/${encodeURIComponent(programKey)}/`);
