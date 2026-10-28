@@ -19,20 +19,13 @@ import { useIntl } from '@edx/frontend-platform/i18n';
 import { getAuthenticatedHttpClient } from '@edx/frontend-platform/auth';
 import {
   createAnnouncement, sendAnnouncement, uploadAttachment, previewRecipients,
+  listPrograms, getProgram,
 } from './api';
 import DatepickerControl from '../shared/date-picker-control/DatepickerControl';
 import messages from './messages';
 import './CreateAnnouncementModal.css';
 
-const extractResults = (data) => {
-  if (Array.isArray(data?.results)) { return data.results; }
-  if (Array.isArray(data)) { return data; }
-  return [];
-};
-
-const fetchPrograms = () => getAuthenticatedHttpClient()
-  .get(`${getConfig().STUDIO_BASE_URL}/fbr/api/programs/`)
-  .then(({ data }) => extractResults(data));
+const programLabel = (p) => `${p.name} (${p.program_key})`;
 
 const fetchActiveBannerCount = () => getAuthenticatedHttpClient()
   .get(`${getConfig().LMS_BASE_URL}/fbr/announcements/api/v1/active-banners/`)
@@ -114,13 +107,17 @@ const CreateAnnouncementModal = ({ onClose, onCreated }) => {
   const [files, setFiles] = useState([]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
-  const [programs, setPrograms] = useState([]);
-  const [scopeOptionsLoading, setScopeOptionsLoading] = useState(false);
+  const [programQuery, setProgramQuery] = useState('');
+  const [programOptions, setProgramOptions] = useState([]);
+  const [programsLoading, setProgramsLoading] = useState(false);
+  const [selectedProgram, setSelectedProgram] = useState(null);
   const [recipientCount, setRecipientCount] = useState(null);
   const [recipientCountLoading, setRecipientCountLoading] = useState(false);
   const fileInputRef = useRef(null);
   const editorInit = useMemo(tinymceInit, []);
   const previewTimerRef = useRef(null);
+  const programAbortRef = useRef(null);
+  const programSearchTimerRef = useRef(null);
 
   useEffect(() => {
     fetchActiveBannerCount().then(setActiveBannerCount);
@@ -128,14 +125,38 @@ const CreateAnnouncementModal = ({ onClose, onCreated }) => {
 
   useEffect(() => {
     setRecipientTypes(DEFAULT_RECIPIENT_TYPES[scope] || []);
-    if (scope === 'program' && programs.length === 0) {
-      setScopeOptionsLoading(true);
-      fetchPrograms()
-        .then(setPrograms)
-        .catch(() => {})
-        .finally(() => setScopeOptionsLoading(false));
-    }
-  }, [scope]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [scope]);
+
+  // Debounced server-side program search: fires whenever the typed query
+  // changes while scope === 'program'. Aborts in-flight requests on each new
+  // keystroke so stale responses can't overwrite fresh options.
+  useEffect(() => {
+    if (scope !== 'program') { return undefined; }
+    clearTimeout(programSearchTimerRef.current);
+    programSearchTimerRef.current = setTimeout(() => {
+      if (programAbortRef.current) { programAbortRef.current.abort(); }
+      const controller = new AbortController();
+      programAbortRef.current = controller;
+      setProgramsLoading(true);
+      listPrograms({ search: programQuery, pageSize: 20, signal: controller.signal })
+        .then(({ data }) => { setProgramOptions(Array.isArray(data?.results) ? data.results : []); })
+        .catch((err) => {
+          if (err?.name === 'CanceledError' || err?.code === 'ERR_CANCELED') { return; }
+          setProgramOptions([]);
+        })
+        .finally(() => setProgramsLoading(false));
+    }, 300);
+    return () => clearTimeout(programSearchTimerRef.current);
+  }, [scope, programQuery]);
+
+  // Hydrate the selected program's label if `programKey` was set elsewhere
+  // (e.g. a future edit flow) but no matching option is in `programOptions`.
+  useEffect(() => {
+    if (!programKey || selectedProgram) { return; }
+    getProgram(programKey)
+      .then(({ data }) => setSelectedProgram({ program_key: data.program_key, name: data.name }))
+      .catch(() => {});
+  }, [programKey, selectedProgram]);
 
   useEffect(() => {
     const canPreview = scope === 'sitewide' || (scope === 'program' && programKey);
@@ -403,20 +424,30 @@ const CreateAnnouncementModal = ({ onClose, onCreated }) => {
 
             {scope === 'program' && (
             <div className="ann-program-selector">
-              {scopeOptionsLoading ? (
-                <p className="ann-program-loading">Loading programs...</p>
-              ) : (
-                <Form.Control
-                  as="select"
-                  value={programKey}
-                  onChange={e => setProgramKey(e.target.value)}
-                >
-                  <option value="">— Select a program —</option>
-                  {programs.map(p => (
-                    <option key={p.program_key} value={p.program_key}>{p.name} ({p.program_key})</option>
-                  ))}
-                </Form.Control>
-              )}
+              <Form.Autosuggest
+                isLoading={programsLoading}
+                placeholder="Search programs…"
+                value={selectedProgram
+                  ? { userProvidedText: programLabel(selectedProgram), selectionValue: programLabel(selectedProgram) }
+                  : { userProvidedText: '', selectionValue: '' }}
+                onChange={({ userProvidedText, selectionValue }) => {
+                  setProgramQuery(userProvidedText ?? '');
+                  if (!selectionValue) {
+                    setProgramKey('');
+                    setSelectedProgram(null);
+                    return;
+                  }
+                  const chosen = programOptions.find(p => programLabel(p) === selectionValue);
+                  if (chosen) {
+                    setProgramKey(chosen.program_key);
+                    setSelectedProgram(chosen);
+                  }
+                }}
+              >
+                {programOptions.map(p => (
+                  <Form.AutosuggestOption key={p.program_key}>{programLabel(p)}</Form.AutosuggestOption>
+                ))}
+              </Form.Autosuggest>
             </div>
             )}
 
