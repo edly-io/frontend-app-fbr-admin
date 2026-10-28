@@ -93,24 +93,26 @@ const ProgramPerformance = ({ kpis, isLoading, isError }) => {
                   style={{ borderLeftColor: TONE_COLORS[tile.tone] }}
                 >
                   <Card.Section className="dashboard-kpi__body">
-                    <div className="dashboard-kpi__head d-flex align-items-center">
-                      <span
-                        className="dashboard-kpi__icon"
-                        style={{
-                          backgroundColor: TONE_SURFACES[tile.tone],
-                          color: TONE_COLORS[tile.tone],
-                        }}
-                      >
-                        <Icon src={tile.icon} aria-hidden />
+                    <h3 className="dashboard-metric-heading mb-0">
+                      <span className="dashboard-kpi__head d-flex align-items-center">
+                        <span
+                          className="dashboard-kpi__icon"
+                          style={{
+                            backgroundColor: TONE_SURFACES[tile.tone],
+                            color: TONE_COLORS[tile.tone],
+                          }}
+                        >
+                          <Icon src={tile.icon} aria-hidden />
+                        </span>
+                        <span className="dashboard-kpi__label">{intl.formatMessage(label)}</span>
                       </span>
-                      <p className="dashboard-kpi__label mb-0">{intl.formatMessage(label)}</p>
-                    </div>
 
-                    <p className="dashboard-kpi__value mb-0">
-                      {/* Decorative: the caption below says why there is no number. */}
-                      {figure ? figure.value : <span aria-hidden="true">{NO_VALUE}</span>}
-                      {figure?.unit && <small className="dashboard-kpi__unit">{figure.unit}</small>}
-                    </p>
+                      <span className="dashboard-kpi__value d-block">
+                        {/* Decorative: the caption below says why there is no number. */}
+                        {figure ? figure.value : <span aria-hidden="true">{NO_VALUE}</span>}
+                        {figure?.unit && <small className="dashboard-kpi__unit">{figure.unit}</small>}
+                      </span>
+                    </h3>
 
                     <p className="dashboard-kpi__caption mb-0">
                       {intl.formatMessage(figure ? caption : (emptyCaption || caption))}

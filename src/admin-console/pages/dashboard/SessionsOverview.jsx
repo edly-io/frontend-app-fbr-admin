@@ -68,19 +68,19 @@ const SessionsOverview = ({ sessions, isLoading, isError }) => {
           >
             <>
               <div className="dashboard-sessions__top d-flex align-items-end flex-wrap">
-                <div className="dashboard-sessions__headline">
-                  <p className="dashboard-figure dashboard-figure--lg mb-0">
+                <h3 className="dashboard-sessions__headline dashboard-metric-heading mb-0">
+                  <span className="dashboard-figure dashboard-figure--lg d-block">
                     {sessions?.totalHours}
                     <small className="dashboard-figure__unit">
                       {` ${intl.formatMessage(messages.hoursUnit)}`}
                     </small>
-                  </p>
-                  <p className="dashboard-figure__caption mb-0">
+                  </span>
+                  <span className="dashboard-figure__caption d-block">
                     {intl.formatMessage(messages.sessionsCaption, {
                       count: sessions?.sessionsDelivered,
                     })}
-                  </p>
-                </div>
+                  </span>
+                </h3>
 
                 <div className="dashboard-sessions__trend">
                   <WeeklySessionsChart
@@ -150,15 +150,15 @@ const SessionsOverview = ({ sessions, isLoading, isError }) => {
                       const { value, unit } = glanceValues[stat.id];
                       return (
                         <div className="col-6 dashboard-stat-col" key={stat.id}>
-                          <div className="dashboard-stat">
-                            <p className="dashboard-stat__value mb-0">
+                          <h4 className="dashboard-stat dashboard-metric-heading mb-0">
+                            <span className="dashboard-stat__value d-block">
                               {value}
                               {unit && <small className="dashboard-stat__unit">{unit}</small>}
-                            </p>
-                            <p className="dashboard-stat__label mb-0">
+                            </span>
+                            <span className="dashboard-stat__label d-block">
                               {intl.formatMessage(messages[stat.labelKey])}
-                            </p>
-                          </div>
+                            </span>
+                          </h4>
                         </div>
                       );
                     })}

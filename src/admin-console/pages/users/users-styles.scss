@@ -70,6 +70,7 @@
 
 .users-filters__controls {
   flex: 1 1 220px;
+  align-items: center;
   gap: 10px;
 }
 
@@ -79,9 +80,28 @@
 
 .users-filters__count {
   flex-shrink: 0;
+  margin-left: auto;
   font-size: 13px;
   font-weight: 500;
   color: var(--pgn-color-text-light);
+}
+
+@media (--pgn-size-breakpoint-max-width-sm) {
+  .users-filters__search {
+    flex-basis: 100%;
+    max-width: none;
+  }
+
+  .users-filters__controls {
+    flex: 1 1 100%;
+    flex-direction: column;
+    align-items: stretch;
+
+    .dropdown,
+    .users-filters__status-toggle {
+      width: 100%;
+    }
+  }
 }
 
 .users-table {

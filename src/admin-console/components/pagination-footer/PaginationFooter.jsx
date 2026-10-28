@@ -51,6 +51,7 @@ const PaginationFooter = ({
           value={rowsPerPage}
           onChange={e => onRowsPerPageChange(Number(e.target.value))}
           className="pagination-footer__rows-select"
+          aria-label={intl.formatMessage(messages.paginationRowsPerPage)}
         >
           {ROWS_PER_PAGE_OPTIONS.map(n => <option key={n} value={n}>{n}</option>)}
         </Form.Control>

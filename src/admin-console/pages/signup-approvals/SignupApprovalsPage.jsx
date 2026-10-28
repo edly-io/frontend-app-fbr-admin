@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import {
-  Alert, Button, ButtonGroup, Toast,
+  Alert, Toast,
 } from '@openedx/paragon';
 import { useIntl } from '@edx/frontend-platform/i18n';
 import { useSignupApprovals } from './data/apiHooks';
@@ -12,6 +12,7 @@ import DebouncedSearchInput from '../../components/debounced-search-input/Deboun
 import AuditLogTable from '../../../shared/AuditLogTable';
 import messages from './messages';
 import './signup-approvals-styles.scss';
+import ViewToggle from '../../components/view-toggle/ViewToggle';
 
 const ROWS_PER_PAGE = 10;
 
@@ -79,21 +80,15 @@ const SignupApprovalsPage = () => {
 
   return (
     <div className="signup-approvals-page">
-      <div className="d-flex justify-content-end mb-3">
-        <ButtonGroup size="sm">
-          {['list', 'audit-log'].map(view => (
-            <Button
-              key={view}
-              variant={activeView === view ? 'primary' : 'outline-primary'}
-              size="sm"
-              aria-pressed={activeView === view}
-              onClick={() => handleViewChange(view)}
-            >
-              {view === 'list' ? 'Signup Approvals' : 'Audit Log'}
-            </Button>
-          ))}
-        </ButtonGroup>
-      </div>
+      <ViewToggle
+        views={[
+          { id: 'list', label: 'Signup Approvals' },
+          { id: 'audit-log', label: 'Audit Log' },
+        ]}
+        activeView={activeView}
+        onChange={handleViewChange}
+        label="Choose a view"
+      />
 
       {activeView === 'audit-log' ? (
         <AuditLogTable

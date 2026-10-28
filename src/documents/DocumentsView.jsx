@@ -12,6 +12,7 @@ import {
   faPlus, faFileImage, faFilePdf, faFileArchive, faFileAlt,
 } from '@fortawesome/free-solid-svg-icons';
 import { getConfig } from '@edx/frontend-platform';
+import { useIntl } from '@edx/frontend-platform/i18n';
 import { UserIdentity } from '@edly-io/frontend-component-fbr';
 import { formatDate } from '../admin-console/utils/date';
 import {
@@ -19,6 +20,7 @@ import {
 } from './api';
 import DocumentModal from './DocumentModal';
 import DebouncedSearchInput from '../admin-console/components/debounced-search-input/DebouncedSearchInput';
+import messages from './messages';
 import './DocumentsView.scss';
 
 // Each entry carries the hue its pastel is built from, so the dark variant can
@@ -241,6 +243,7 @@ ActionsCell.propTypes = {
 };
 
 const DocumentsView = () => {
+  const intl = useIntl();
   const [documents, setDocuments] = useState([]);
   const [totalCount, setTotalCount] = useState(0);
   const [numPages, setNumPages] = useState(1);
@@ -421,6 +424,7 @@ const DocumentsView = () => {
           value={typeFilter}
           onChange={(e) => setTypeFilter(e.target.value)}
           className="docs-type-filter"
+          aria-label={intl.formatMessage(messages.typeFilterLabel)}
         >
           <option value="">All types</option>
           {docTypes.map(t => (

@@ -477,6 +477,13 @@ $dashboard-attention-step: 1.75rem;
     padding: 0.9375rem 1rem 0.9375rem;
   }
 
+  .dashboard-metric-heading {
+    font-size: inherit;
+    font-weight: inherit;
+    line-height: inherit;
+    color: inherit;
+  }
+
   .dashboard-kpi__head {
     // Paragon's Bootstrap 4 base has no .gap-* utilities (added in Bootstrap 5).
     gap: 0.5rem;

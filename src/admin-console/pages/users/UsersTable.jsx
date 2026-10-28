@@ -266,6 +266,7 @@ const UsersTable = ({
             value={rowsPerPage}
             onChange={e => onRowsPerPageChange(Number(e.target.value))}
             className="users-table__rows-select"
+            aria-label={intl.formatMessage(adminMessages.paginationRowsPerPage)}
           >
             {ROWS_PER_PAGE_OPTIONS.map(n => <option key={n} value={n}>{n}</option>)}
           </Form.Control>

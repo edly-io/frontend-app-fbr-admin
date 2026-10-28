@@ -7,7 +7,7 @@
   font-size: 12px;
   font-weight: 500;
   background: var(--pgn-color-gray-100);
-  color: var(--pgn-color-gray-base);
+  color: var(--pgn-color-gray-700);
 
   .status-badge__dot {
     flex-shrink: 0;
@@ -20,10 +20,10 @@
 
 .status-badge--active {
   background: #EDFAF1;
-  color: var(--pgn-color-green);
+  color: #166534;
 
   .status-badge__dot {
-    background: var(--pgn-color-green);
+    background: #166534;
   }
 }
 

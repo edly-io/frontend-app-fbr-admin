@@ -20,6 +20,14 @@
 
 .request-status-badge--resolved {
   background: #EDFAF1;
+  color: #166534;
+
+  .request-status-badge__dot {
+    background: #166534;
+  }
+}
+
+[data-paragon-theme-variant="dark"] .request-status-badge--resolved {
   color: var(--pgn-color-green);
 
   .request-status-badge__dot {

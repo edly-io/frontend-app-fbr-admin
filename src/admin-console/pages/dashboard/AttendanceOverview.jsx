@@ -75,17 +75,17 @@ const AttendanceOverview = ({ attendance, isLoading, isError }) => {
             emptyMessage={intl.formatMessage(messages.attendanceEmpty)}
           >
             <div className="dashboard-attendance__top d-flex align-items-end flex-wrap">
-              <div>
-                <p className="dashboard-figure mb-0">
+              <h3 className="dashboard-metric-heading mb-0">
+                <span className="dashboard-figure d-block">
                   {attendance?.rate === null
                     ? <span aria-hidden="true">{NO_VALUE}</span>
                     : attendance?.rate.toFixed(1)}
                   {attendance?.rate !== null && <small className="dashboard-figure__unit">%</small>}
-                </p>
-                <p className="dashboard-figure__caption mb-0">
+                </span>
+                <span className="dashboard-figure__caption d-block">
                   {intl.formatMessage(messages.attendanceCaption, { total: attendance?.total })}
-                </p>
-              </div>
+                </span>
+              </h3>
 
               <ul className="dashboard-attendance__split list-unstyled mb-0 d-flex flex-wrap">
                 {breakdown.map(state => (

@@ -100,11 +100,15 @@ const NoteCell = ({ row, column }) => {
     );
   }
 
+  const name = request.profile_name
+    || intl.formatMessage(messages.profileFallback, { profileId: request.profile_id });
+
   return (
     <Form.Control
       as="textarea"
       rows={2}
       className="biodata-edit-requests-table__note-cell"
+      aria-label={intl.formatMessage(messages.adminNoteLabel, { name })}
       value={column.adminNotes[request.id] || ''}
       placeholder={intl.formatMessage(messages.adminNotePlaceholder)}
       onChange={event => column.onAdminNoteChange(request.id, event.target.value)}

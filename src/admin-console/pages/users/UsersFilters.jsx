@@ -72,7 +72,7 @@ const UsersFilters = ({
             placeholder={intl.formatMessage(messages.searchPlaceholder)}
           />
         </div>
-        <div className="users-filters__controls d-flex align-items-center justify-content-between">
+        <div className="users-filters__controls d-flex">
           <Dropdown>
             <Dropdown.Toggle variant="outline-secondary" id="status-filter" className="users-filters__status-toggle">
               {intl.formatMessage(messages.statusFilterLabel, { status: selectedStatusLabel })}
@@ -85,7 +85,7 @@ const UsersFilters = ({
               ))}
             </Dropdown.Menu>
           </Dropdown>
-          <Dropdown className="ml-2">
+          <Dropdown>
             <Dropdown.Toggle variant="outline-secondary" id="batch-filter" className="users-filters__status-toggle">
               {intl.formatMessage(messages.batchFilterLabel, { batch: selectedBatchLabel })}
             </Dropdown.Toggle>

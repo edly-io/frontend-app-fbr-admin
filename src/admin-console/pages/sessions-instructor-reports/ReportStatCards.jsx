@@ -14,12 +14,14 @@ const ReportStatCard = ({ statKey, value, accentIndex }) => {
   return (
     <Card className={`report-stat-card${accentIndex ? ` report-stat-card--accent-${accentIndex}` : ''}`}>
       <Card.Section>
-        <p className="report-stat-card__label text-uppercase mb-2">
-          {labelKey ? intl.formatMessage(messages[labelKey]) : statKey}
-        </p>
-        <p className="report-stat-card__value mb-0">
-          {value}
-        </p>
+        <h2 className="report-stat-card__heading mb-0">
+          <span className="report-stat-card__label text-uppercase d-block mb-2">
+            {labelKey ? intl.formatMessage(messages[labelKey]) : statKey}
+          </span>
+          <span className="report-stat-card__value d-block">
+            {value}
+          </span>
+        </h2>
       </Card.Section>
     </Card>
   );

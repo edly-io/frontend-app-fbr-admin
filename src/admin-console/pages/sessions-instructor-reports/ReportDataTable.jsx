@@ -272,7 +272,7 @@ const ReportDataTable = ({
 
       {rows.length > 0 && (
         <div className="report-data-table__footer d-flex flex-wrap align-items-center justify-content-between gap-2 mt-2">
-          <span className="small text-muted" data-testid="row-status">
+          <span className="small text-gray-700" data-testid="row-status">
             {intl.formatMessage(messages.rowStatus, { firstRow, lastRow, itemCount: count })}
           </span>
           {pageCount > 1 && (

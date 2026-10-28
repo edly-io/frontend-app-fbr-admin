@@ -40,7 +40,7 @@ const AdminConsolePage = () => {
   }
 
   return (
-    <main className="admin-console-page">
+    <main id="main" className="admin-console-page">
       <Sidebar />
       <AdminNavContextBar />
       <div className="admin-console-page__content">

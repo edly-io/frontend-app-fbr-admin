@@ -83,12 +83,12 @@ const UsersOverview = ({ users, isLoading, isError }) => {
         <Card className="dashboard-users">
           <Card.Section>
             <div className="dashboard-users__top d-flex align-items-center flex-wrap">
-              <div className="dashboard-users__total">
-                <p className="dashboard-users__total-value mb-0">{users?.totalUsers}</p>
-                <p className="dashboard-users__total-label mb-0">
+              <h3 className="dashboard-users__total dashboard-metric-heading mb-0">
+                <span className="dashboard-users__total-value d-block">{users?.totalUsers}</span>
+                <span className="dashboard-users__total-label d-block">
                   {intl.formatMessage(messages.usersTotalLabel, { roles: users?.visibleRoles })}
-                </p>
-              </div>
+                </span>
+              </h3>
 
               <Link
                 to="/signup-approvals"
