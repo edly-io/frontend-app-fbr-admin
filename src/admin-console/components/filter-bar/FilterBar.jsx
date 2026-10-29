@@ -47,11 +47,21 @@ const FilterBar = ({
       <div className="filter-bar__row d-flex flex-wrap align-items-end py-3">
         {filters.map(filter => (
           <Form.Group key={filter.id} className={`filter-bar__group filter-bar__group--${filter.id} mb-0`}>
-            <Form.Label className="filter-bar__label text-uppercase mb-1">
-              {filter.label}
-            </Form.Label>
             {filter.type === 'dateRange' ? (
-              <div className="filter-bar__date-range d-flex align-items-center">
+              <span id={`${filter.id}-label`} className="pgn__form-label filter-bar__label text-uppercase mb-1 d-block">
+                {filter.label}
+              </span>
+            ) : (
+              <Form.Label className="filter-bar__label text-uppercase mb-1">
+                {filter.label}
+              </Form.Label>
+            )}
+            {filter.type === 'dateRange' ? (
+              <div
+                className="filter-bar__date-range d-flex align-items-center"
+                role="group"
+                aria-labelledby={`${filter.id}-label`}
+              >
                 <DatepickerControl
                   renderGroup={false}
                   id={`${filter.id}-start`}

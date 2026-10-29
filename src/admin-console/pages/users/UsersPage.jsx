@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Alert, Button, ButtonGroup } from '@openedx/paragon';
+import { Alert } from '@openedx/paragon';
 import { useIntl } from '@edx/frontend-platform/i18n';
 import { getProfileMfeUserUrl } from '../../data/api';
 import { useAdminConsoleBootstrap } from '../../data/apiHooks';
@@ -16,6 +16,7 @@ import BulkImportUsersModal from '../../components/user-modals/BulkImportUsersMo
 import ViewUserModal from '../../components/user-modals/ViewUserModal';
 import AuditLogTable from '../../../shared/AuditLogTable';
 import messages from './messages';
+import ViewToggle from '../../components/view-toggle/ViewToggle';
 
 const TAB_LABEL_MESSAGES = {
   all: messages.tabAll,
@@ -182,21 +183,15 @@ const UsersPage = () => {
 
   return (
     <>
-      <div className="d-flex justify-content-end mb-3">
-        <ButtonGroup size="sm">
-          {['list', 'audit-log'].map(view => (
-            <Button
-              key={view}
-              variant={activeView === view ? 'primary' : 'outline-primary'}
-              size="sm"
-              aria-pressed={activeView === view}
-              onClick={() => handleViewChange(view)}
-            >
-              {view === 'list' ? 'Users' : 'Audit Log'}
-            </Button>
-          ))}
-        </ButtonGroup>
-      </div>
+      <ViewToggle
+        views={[
+          { id: 'list', label: 'Users' },
+          { id: 'audit-log', label: 'Audit Log' },
+        ]}
+        activeView={activeView}
+        onChange={handleViewChange}
+        label="Choose a view"
+      />
 
       {activeView === 'audit-log' ? (
         <AuditLogTable

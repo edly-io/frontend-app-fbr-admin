@@ -460,6 +460,7 @@ const AnnouncementsView = ({ sectionLabel }) => {
           value={searchInput}
           onChange={handleSearchChange}
           placeholder="Search by subject…"
+          aria-label="Search by subject"
           className="ann-search-input"
         />
         <div className="ann-filter-pills">

@@ -87,7 +87,7 @@ describe('BiodataEditRequestsTable', () => {
   it('reports a typed admin note against its request', () => {
     renderTable();
 
-    fireEvent.change(screen.getByRole('textbox'), { target: { value: 'Looks fine' } });
+    fireEvent.change(screen.getByRole('textbox', { name: 'Admin note for Hamza Nawaz' }), { target: { value: 'Looks fine' } });
 
     expect(onAdminNoteChange).toHaveBeenCalledWith(7, 'Looks fine');
   });

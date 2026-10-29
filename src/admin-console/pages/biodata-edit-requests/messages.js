@@ -91,6 +91,11 @@ const messages = defineMessages({
     defaultMessage: 'Optional note',
     description: 'Placeholder for the admin note textarea on a pending edit request.',
   },
+  adminNoteLabel: {
+    id: 'fbrAdmin.biodataEditRequests.adminNote.label',
+    defaultMessage: 'Admin note for {name}',
+    description: 'Accessible label for the admin note textarea on a pending edit request.',
+  },
   resolveButton: {
     id: 'fbrAdmin.biodataEditRequests.resolve',
     defaultMessage: 'Resolve',

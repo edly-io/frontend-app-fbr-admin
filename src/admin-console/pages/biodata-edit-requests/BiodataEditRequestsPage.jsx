@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import {
-  Alert, Button, ButtonGroup, Dropdown, Toast,
+  Alert, Dropdown, Toast,
 } from '@openedx/paragon';
 import { useIntl } from '@edx/frontend-platform/i18n';
 import { useBiodataEditRequests, useResolveEditRequest } from './data/apiHooks';
@@ -10,6 +10,7 @@ import BiodataEditRequestsTable from './BiodataEditRequestsTable';
 import AuditLogTable from '../../../shared/AuditLogTable';
 import messages from './messages';
 import './biodata-edit-requests-styles.scss';
+import ViewToggle from '../../components/view-toggle/ViewToggle';
 
 const ROWS_PER_PAGE = 10;
 
@@ -99,21 +100,15 @@ const BiodataEditRequestsPage = () => {
 
   return (
     <div className="biodata-edit-requests-page">
-      <div className="d-flex justify-content-end mb-3">
-        <ButtonGroup size="sm">
-          {['list', 'audit-log'].map(view => (
-            <Button
-              key={view}
-              variant={activeView === view ? 'primary' : 'outline-primary'}
-              size="sm"
-              aria-pressed={activeView === view}
-              onClick={() => handleViewChange(view)}
-            >
-              {view === 'list' ? 'Edit Requests' : 'Audit Log'}
-            </Button>
-          ))}
-        </ButtonGroup>
-      </div>
+      <ViewToggle
+        views={[
+          { id: 'list', label: 'Edit Requests' },
+          { id: 'audit-log', label: 'Audit Log' },
+        ]}
+        activeView={activeView}
+        onChange={handleViewChange}
+        label="Choose a view"
+      />
 
       {activeView === 'audit-log' ? (
         <AuditLogTable

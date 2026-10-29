@@ -1,0 +1,12 @@
+@use "@openedx/paragon/styles/css/core/custom-media-breakpoints" as paragonCustomMediaBreakpoints;
+
+@media (--pgn-size-breakpoint-max-width-sm) {
+  .view-toggle__group {
+    display: flex;
+    width: 100%;
+  }
+
+  .view-toggle__button.btn {
+    flex: 1 1 0;
+  }
+}

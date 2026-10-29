@@ -104,4 +104,12 @@ describe('<FilterBar />', () => {
     expect(onApply).toHaveBeenCalledTimes(1);
     expect(onClearAll).toHaveBeenCalledTimes(1);
   });
+
+  it('names the date range inputs as a group after the filter label', async () => {
+    renderBar();
+    await flushLocaleLoad();
+
+    expect(screen.getByRole('group', { name: 'Date range' })).toBeInTheDocument();
+    expect(document.querySelector('label.filter-bar__label')).toBeNull();
+  });
 });

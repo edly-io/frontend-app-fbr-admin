@@ -11,9 +11,11 @@ const DebouncedSearchInput = ({
   onChange,
   delay,
   placeholder,
+  label,
   width,
 }) => {
   const intl = useIntl();
+  const resolvedPlaceholder = placeholder ?? intl.formatMessage(messages.defaultSearchPlaceholder);
   const [localValue, setLocalValue] = useState(value);
   const onChangeRef = useRef(onChange);
   const emittedValue = useRef(value);
@@ -43,10 +45,11 @@ const DebouncedSearchInput = ({
   }, [delay, localValue]);
 
   return (
-    <div className="debounced-search-input" style={{ maxWidth: width }}>
+    <div className="debounced-search-input" style={{ '--debounced-search-input-max-width': width }}>
       <Form.Control
-        type="text"
-        placeholder={placeholder ?? intl.formatMessage(messages.defaultSearchPlaceholder)}
+        type="search"
+        placeholder={resolvedPlaceholder}
+        aria-label={label ?? resolvedPlaceholder.replace(/(…|\.{3})$/, '')}
         value={localValue}
         onChange={event => setLocalValue(event.target.value)}
         leadingElement={<Icon src={Search} />}
@@ -60,6 +63,8 @@ DebouncedSearchInput.propTypes = {
   onChange: PropTypes.func.isRequired,
   delay: PropTypes.number,
   placeholder: PropTypes.string,
+  /** Accessible name for the field; defaults to the placeholder text. */
+  label: PropTypes.string,
   /** Ceiling for the field, which otherwise fills the space it is given. */
   width: PropTypes.string,
 };
@@ -67,6 +72,7 @@ DebouncedSearchInput.propTypes = {
 DebouncedSearchInput.defaultProps = {
   delay: 350,
   placeholder: undefined,
+  label: undefined,
   width: '340px',
 };
 
