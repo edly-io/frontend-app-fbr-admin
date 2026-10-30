@@ -12,6 +12,11 @@ const ActionMenu = ({
   const intl = useIntl();
   const isOpen = openId === userId;
   const isActive = userStatus === 'Active';
+  // Deactivate/Activate is admin-triggered only between Active and Deactivated.
+  // Invited users auto-activate on first login; other statuses (On Leave,
+  // Programme Closed, Lapsed) have their own flows — hide the toggle for all
+  // of them so admins can't trigger an endpoint call that will fail.
+  const canToggleStatus = isActive || userStatus === 'Deactivated';
 
   return (
     <Dropdown
@@ -40,15 +45,19 @@ const ActionMenu = ({
         >
           {intl.formatMessage(messages.actionMenuEditUser)}
         </Dropdown.Item>
-        <Dropdown.Divider />
-        <Dropdown.Item
-          className={isActive ? 'action-menu__item--danger' : 'action-menu__item--success'}
-          onClick={onDeactivate}
-        >
-          {isActive
-            ? intl.formatMessage(messages.actionMenuDeactivate)
-            : intl.formatMessage(messages.actionMenuActivate)}
-        </Dropdown.Item>
+        {canToggleStatus && (
+          <>
+            <Dropdown.Divider />
+            <Dropdown.Item
+              className={isActive ? 'action-menu__item--danger' : 'action-menu__item--success'}
+              onClick={onDeactivate}
+            >
+              {isActive
+                ? intl.formatMessage(messages.actionMenuDeactivate)
+                : intl.formatMessage(messages.actionMenuActivate)}
+            </Dropdown.Item>
+          </>
+        )}
       </Dropdown.Menu>
     </Dropdown>
   );
