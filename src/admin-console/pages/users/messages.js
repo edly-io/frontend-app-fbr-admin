@@ -176,6 +176,11 @@ const messages = defineMessages({
     defaultMessage: 'Activate',
     description: 'Action menu item to activate an inactive user.',
   },
+  statusChangeError: {
+    id: 'fbrAdmin.users.statusChange.error',
+    defaultMessage: "Couldn't change this user's status. Please try again.",
+    description: 'Fallback toast when activating or deactivating a user fails.',
+  },
 });
 
 export default messages;

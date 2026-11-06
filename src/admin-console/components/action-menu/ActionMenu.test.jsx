@@ -11,6 +11,7 @@ const renderMenu = (props = {}) => render(
     <ActionMenu
       userId={42}
       userStatus="Active"
+      canChangeStatus
       onView={jest.fn()}
       onEdit={onEdit}
       onDeactivate={jest.fn()}
@@ -41,5 +42,19 @@ describe('ActionMenu edit item', () => {
     fireEvent.click(screen.getByText('Edit User'));
 
     expect(onEdit).toHaveBeenCalled();
+  });
+});
+
+describe('ActionMenu status item', () => {
+  it('offers Deactivate when the caller may change this status', () => {
+    renderMenu();
+
+    expect(screen.getByText('Deactivate')).toBeInTheDocument();
+  });
+
+  it('hides Deactivate when the caller may not', () => {
+    renderMenu({ canChangeStatus: false });
+
+    expect(screen.queryByText('Deactivate')).toBeNull();
   });
 });
