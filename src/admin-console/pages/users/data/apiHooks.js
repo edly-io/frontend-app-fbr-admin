@@ -7,6 +7,7 @@ import {
 export const usersQueryKeys = {
   all: ['users'],
   list: params => ['users', 'list', params],
+  detail: profileId => ['users', 'detail', profileId],
   superAdminProbe: ['users', 'super-admin-probe'],
 };
 

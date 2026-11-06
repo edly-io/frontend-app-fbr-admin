@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
-import { Button, ModalDialog } from '@openedx/paragon';
+import { Alert, Button, ModalDialog } from '@openedx/paragon';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPen, faTimes } from '@fortawesome/free-solid-svg-icons';
+import { faPen, faPlus, faTimes } from '@fortawesome/free-solid-svg-icons';
 import { useIntl } from '@edx/frontend-platform/i18n';
 import { UserIdentity } from '@edly-io/frontend-component-fbr';
 import DetailCell from '../detail-cell/DetailCell';
@@ -10,6 +10,7 @@ import DetailSection from '../detail-section/DetailSection';
 import { ROLE_LABELS } from '../../pages/users/constants';
 import { formatDate } from '../../utils/date';
 import messages from '../messages';
+import AddRoleModal from './AddRoleModal';
 import './user-modals-styles.scss';
 
 const userShape = PropTypes.shape({
@@ -20,6 +21,7 @@ const userShape = PropTypes.shape({
   mobile: PropTypes.string,
   cnic: PropTypes.string,
   status: PropTypes.string,
+  statusValue: PropTypes.string,
   color: PropTypes.string,
   photo: PropTypes.string,
   initials: PropTypes.string,
@@ -33,6 +35,7 @@ const userShape = PropTypes.shape({
   education_institute: PropTypes.string,
   education_year: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   city: PropTypes.shape({
+    id: PropTypes.number,
     name: PropTypes.string,
   }),
   instructor_profile: PropTypes.shape({
@@ -83,6 +86,32 @@ const getInitialProfileTab = (user, sourceTab) => {
   return null;
 };
 
+const ADMIN_ROLES = ['data_admin', 'middle_admin', 'super_admin'];
+const ADDABLE_ROLES = ['trainee', 'instructor'];
+
+export const getAddableRole = (user, callerRoles = []) => {
+  if (!user || !callerRoles.some(role => ADMIN_ROLES.includes(role))) {
+    return null;
+  }
+
+  const targetRoles = Array.isArray(user.roles) ? user.roles : [];
+  const targetStatus = String(user.statusValue || user.status || '').toLowerCase().replace(/\s+/g, '_');
+  const hasOnlyAddableRoles = targetRoles.length > 0
+    && targetRoles.every(role => ADDABLE_ROLES.includes(role));
+
+  if (!hasOnlyAddableRoles || targetStatus === 'deactivated') {
+    return null;
+  }
+
+  if (targetRoles.length === 1 && targetRoles[0] === 'trainee') {
+    return 'instructor';
+  }
+  if (targetRoles.length === 1 && targetRoles[0] === 'instructor') {
+    return 'trainee';
+  }
+  return null;
+};
+
 /**
  * Read-only user detail modal opened from the Users table / Signup
  * Approvals / Biodata Edit Requests "view" actions. Shows base profile
@@ -90,7 +119,7 @@ const getInitialProfileTab = (user, sourceTab) => {
  * both, in which case a tab switcher is shown).
  */
 const ViewUserModal = ({
-  user, onClose, onEdit, sourceTab, onAuditHistory,
+  user, onClose, onEdit, sourceTab, onAuditHistory, callerProfile, onUserUpdated,
 }) => {
   const intl = useIntl();
 
@@ -107,8 +136,27 @@ const ViewUserModal = ({
   const [activeProfileTab, setActiveProfileTab] = useState(
     () => getInitialProfileTab(user, sourceTab),
   );
+  const [addingRole, setAddingRole] = useState(null);
+  const [successRole, setSuccessRole] = useState(null);
 
   if (!user) { return null; }
+
+  if (addingRole) {
+    return (
+      <AddRoleModal
+        user={user}
+        role={addingRole}
+        callerProfile={callerProfile}
+        onCancel={() => setAddingRole(null)}
+        onSuccess={(profile, role) => {
+          onUserUpdated(profile);
+          setActiveProfileTab(role);
+          setSuccessRole(role);
+          setAddingRole(null);
+        }}
+      />
+    );
+  }
 
   const roles = getRoleLabels(user);
   const instructor = user.instructor_profile;
@@ -117,6 +165,7 @@ const ViewUserModal = ({
   const showProfileTabs = availableProfileTabs.length > 1;
   const showInstructor = instructor && (!showProfileTabs || activeProfileTab === 'instructor');
   const showTrainee = trainee && (!showProfileTabs || activeProfileTab === 'trainee');
+  const addableRole = getAddableRole(user, callerProfile.roles);
 
   return (
     <ModalDialog
@@ -152,6 +201,15 @@ const ViewUserModal = ({
       </div>
 
       <ModalDialog.Body className="view-user-modal__body">
+        {successRole && (
+          <Alert variant="success" dismissible onClose={() => setSuccessRole(null)}>
+            {intl.formatMessage(
+              successRole === 'instructor'
+                ? messages.addInstructorRoleSuccess
+                : messages.addTraineeRoleSuccess,
+            )}
+          </Alert>
+        )}
         <div className="view-user-modal__identity">
           <UserIdentity
             name={user.full_name || user.name}
@@ -270,6 +328,16 @@ const ViewUserModal = ({
           <FontAwesomeIcon icon={faTimes} className="view-user-modal__btn-icon" />
           {intl.formatMessage(messages.viewUserCloseButton)}
         </ModalDialog.CloseButton>
+        {addableRole && (
+          <Button variant="outline-primary" onClick={() => setAddingRole(addableRole)}>
+            <FontAwesomeIcon icon={faPlus} className="view-user-modal__btn-icon" />
+            {intl.formatMessage(
+              addableRole === 'instructor'
+                ? messages.addInstructorRoleAction
+                : messages.addTraineeRoleAction,
+            )}
+          </Button>
+        )}
         <Button variant="primary" onClick={() => { onClose(); onEdit(user); }}>
           <FontAwesomeIcon icon={faPen} className="view-user-modal__btn-icon" />
           {intl.formatMessage(messages.viewUserEditButton)}
@@ -285,12 +353,19 @@ ViewUserModal.propTypes = {
   onEdit: PropTypes.func.isRequired,
   sourceTab: PropTypes.string,
   onAuditHistory: PropTypes.func,
+  callerProfile: PropTypes.shape({
+    roles: PropTypes.arrayOf(PropTypes.string),
+    city: PropTypes.shape({ id: PropTypes.number }),
+  }),
+  onUserUpdated: PropTypes.func,
 };
 
 ViewUserModal.defaultProps = {
   user: null,
   sourceTab: 'all',
   onAuditHistory: null,
+  callerProfile: { roles: [], city: null },
+  onUserUpdated: () => {},
 };
 
 export default ViewUserModal;

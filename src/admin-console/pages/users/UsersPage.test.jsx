@@ -22,6 +22,10 @@ jest.mock('./data/apiHooks', () => ({
   useUpdateUserStatus: jest.fn(),
 }));
 
+jest.mock('../../data/apiHooks', () => ({
+  useAdminConsoleBootstrap: jest.fn(),
+}));
+
 // Mock admin-console data api
 jest.mock('../../data/api', () => ({
   getProfileMfeUserUrl: jest.fn(() => null),
@@ -73,6 +77,7 @@ const {
   useUserDetailMutation,
   useUpdateUserStatus,
 } = require('./data/apiHooks');
+const { useAdminConsoleBootstrap } = require('../../data/apiHooks');
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -100,6 +105,9 @@ const renderPage = (initialEntries = ['/']) => render(
 
 describe('UsersPage', () => {
   beforeEach(() => {
+    useAdminConsoleBootstrap.mockReturnValue({
+      data: { callerProfile: { roles: ['data_admin'], city: { id: 1 } }, batches: [] },
+    });
     useUsers.mockReturnValue({
       data: { users: [], total: 0 },
       isLoading: false,
