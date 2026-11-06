@@ -138,6 +138,7 @@ const ActionsCell = ({ row, column }) => {
       <ActionMenu
         userId={user.id}
         userStatus={user.status}
+        canChangeStatus={user.canChangeStatus}
         openId={column.openMenuId}
         setOpenId={column.setOpenMenuId}
         onView={() => column.onView(user)}
@@ -154,6 +155,7 @@ ActionsCell.propTypes = {
     original: PropTypes.shape({
       id: PropTypes.number.isRequired,
       status: PropTypes.string,
+      canChangeStatus: PropTypes.bool,
     }).isRequired,
   }).isRequired,
   column: PropTypes.shape({

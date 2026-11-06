@@ -63,7 +63,9 @@ describe('getUsers status filter', () => {
   it('reads the filtered total off the paginated envelope', async () => {
     mockGet.mockResolvedValue({
       data: {
-        results: [{ id: 1, full_name: 'Ali Raza', status: 'active' }],
+        results: [{
+          id: 1, full_name: 'Ali Raza', status: 'active', can_change_status: true,
+        }],
         pagination: { count: 1 },
       },
     });
@@ -71,6 +73,6 @@ describe('getUsers status filter', () => {
     const { users, total } = await listUsers({ status: 'active' });
 
     expect(total).toBe(1);
-    expect(users[0]).toMatchObject({ status: 'Active', statusValue: 'active' });
+    expect(users[0]).toMatchObject({ status: 'Active', statusValue: 'active', canChangeStatus: true });
   });
 });

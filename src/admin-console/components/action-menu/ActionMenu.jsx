@@ -7,7 +7,7 @@ import messages from '../../pages/users/messages';
 import './action-menu-styles.scss';
 
 const ActionMenu = ({
-  userId, userStatus, onView, onEdit, editHref, onDeactivate, openId, setOpenId,
+  userId, userStatus, canChangeStatus, onView, onEdit, editHref, onDeactivate, openId, setOpenId,
 }) => {
   const intl = useIntl();
   const isOpen = openId === userId;
@@ -15,8 +15,9 @@ const ActionMenu = ({
   // Deactivate/Activate is admin-triggered only between Active and Deactivated.
   // Invited users auto-activate on first login; other statuses (On Leave,
   // Programme Closed, Lapsed) have their own flows — hide the toggle for all
-  // of them so admins can't trigger an endpoint call that will fail.
-  const canToggleStatus = isActive || userStatus === 'Deactivated';
+  // of them so admins can't trigger an endpoint call that will fail. The same
+  // goes for people the caller may not manage (canChangeStatus, from the API).
+  const canToggleStatus = canChangeStatus && (isActive || userStatus === 'Deactivated');
 
   return (
     <Dropdown
@@ -66,6 +67,7 @@ const ActionMenu = ({
 ActionMenu.propTypes = {
   userId: PropTypes.number.isRequired,
   userStatus: PropTypes.string.isRequired,
+  canChangeStatus: PropTypes.bool.isRequired,
   onView: PropTypes.func.isRequired,
   onEdit: PropTypes.func.isRequired,
   // When set, Edit renders as a link to the profile MFE instead of a button.

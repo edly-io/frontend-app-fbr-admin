@@ -252,20 +252,20 @@ const AddUserModal = ({ onClose, assignmentUser }) => {
     }
   }, [isAssignment, selectedRole, traineeType]);
 
-  const isMiddleAdminCaller = callerProfile.roles.includes('middle_admin') && !callerProfile.roles.includes('super_admin');
+  const isCityLockedCaller = !callerProfile.roles.includes('super_admin');
   // City is a hard requirement for every non-super_admin role — a NULL city
   // silently pulls the user out of city-scoped filters (program enrollable
-  // pool, add-instructor dropdown, etc.). Only hidden for the middle admin
-  // caller flow where the backend auto-assigns the caller's own city.
-  const shouldShowCity = selectedRole !== 'super_admin' && !isMiddleAdminCaller;
+  // pool, add-instructor dropdown, etc.). Only hidden for the middle / data
+  // admin caller flow where the backend auto-assigns the caller's own city.
+  const shouldShowCity = selectedRole !== 'super_admin' && !isCityLockedCaller;
   const createFields = getCreateFieldsForRole(selectedRole, traineeType, shouldShowCity);
 
   // Batch is city-scoped — a batch can only hold trainees of one city. The
-  // trainee's resolved city comes from the picker (for super/data admin) or
-  // is auto-locked to the caller's city (for middle admin). Filtering the
+  // trainee's resolved city comes from the picker (for super admin) or is
+  // auto-locked to the caller's city (for middle / data admin). Filtering the
   // batch dropdown by this city stops mixed-city batches at the source.
   let resolvedCityId = null;
-  if (isMiddleAdminCaller) {
+  if (isCityLockedCaller) {
     resolvedCityId = callerProfile.city?.id ?? null;
   } else if (values.city) {
     resolvedCityId = Number(values.city);
@@ -311,7 +311,7 @@ const AddUserModal = ({ onClose, assignmentUser }) => {
   const newBatchApiError = createBatchMutation.error?.response?.data?.name
     || createBatchMutation.error?.response?.data?.city
     || createBatchMutation.error?.message;
-  const contextText = getRoleContextText(intl, selectedRole, traineeType, isMiddleAdminCaller);
+  const contextText = getRoleContextText(intl, selectedRole, traineeType, isCityLockedCaller);
   const assignmentEmail = assignmentUser?.email || assignmentUser?.username;
   let submitLabel = intl.formatMessage(messages.createUserButton);
   if (isSubmitting) {
