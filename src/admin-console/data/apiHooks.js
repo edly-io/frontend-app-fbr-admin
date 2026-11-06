@@ -7,6 +7,9 @@ import {
   bulkImportUsers,
   getReportFilters,
   createBatch,
+  addUserRole,
+  getCities,
+  getBatches,
 } from './api';
 import { getReportsCapabilities } from './permissions';
 import { usersQueryKeys } from '../pages/users/data/apiHooks';
@@ -15,6 +18,8 @@ import { signupApprovalsQueryKeys } from '../pages/signup-approvals/data/apiHook
 export const adminConsoleQueryKeys = {
   all: ['adminConsole'],
   bootstrap: ['adminConsole', 'bootstrap'],
+  roleCities: ['adminConsole', 'add-role', 'cities'],
+  roleBatches: cityId => ['adminConsole', 'add-role', 'batches', cityId],
 };
 
 const REPORT_FILTERS_STALE_TIME = 5 * 60 * 1000;
@@ -38,6 +43,20 @@ const retryExceptClientErrors = (failureCount, error) => {
 export const useAdminConsoleBootstrap = () => useQuery({
   queryKey: adminConsoleQueryKeys.bootstrap,
   queryFn: getAdminConsoleBootstrap,
+  retry: retryExceptClientErrors,
+});
+
+export const useAddRoleCities = ({ enabled }) => useQuery({
+  queryKey: adminConsoleQueryKeys.roleCities,
+  queryFn: getCities,
+  enabled,
+  retry: retryExceptClientErrors,
+});
+
+export const useAddRoleBatches = ({ cityId, enabled }) => useQuery({
+  queryKey: adminConsoleQueryKeys.roleBatches(cityId),
+  queryFn: () => getBatches(cityId),
+  enabled: enabled && !!cityId,
   retry: retryExceptClientErrors,
 });
 
@@ -100,6 +119,20 @@ export const useAssignUserRoleMutation = () => {
     mutationFn: assignUserRole,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: signupApprovalsQueryKeys.all });
+      queryClient.invalidateQueries({ queryKey: usersQueryKeys.all });
+    },
+  });
+};
+
+export const useAddUserRoleMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: addUserRole,
+    onSuccess: (profile) => {
+      // The detail dialog treats this full response as the new source of truth;
+      // the list is invalidated so every other cached user representation also
+      // picks up the new roles and role-specific profile.
+      queryClient.setQueryData(usersQueryKeys.detail(profile.id), profile);
       queryClient.invalidateQueries({ queryKey: usersQueryKeys.all });
     },
   });

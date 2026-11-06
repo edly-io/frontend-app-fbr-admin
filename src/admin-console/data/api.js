@@ -20,6 +20,7 @@ export const getLmsUrl = path => `${getConfig().LMS_BASE_URL}${path}`;
 
 export const getBiodataUserDetailUrl = id => `${getConfig().LMS_BASE_URL}/fbr/api/biodata/v1/users/${id}/`;
 export const getBiodataAssignRoleUrl = id => `${getConfig().LMS_BASE_URL}/fbr/api/biodata/v1/users/${id}/assign-role/`;
+export const getBiodataAddRoleUrl = profileId => `${getConfig().LMS_BASE_URL}/fbr/api/biodata/v1/users/${profileId}/roles/`;
 export const getBiodataBulkImportSampleUrl = role => `${getConfig().LMS_BASE_URL}${BIODATA_USER_BULK_IMPORT_SAMPLE_PATH}?role=${encodeURIComponent(role)}`;
 export const getBiodataBulkImportUrl = () => `${getConfig().LMS_BASE_URL}${BIODATA_USER_BULK_IMPORT_PATH}`;
 
@@ -205,6 +206,16 @@ export const createUserProfile = async ({ role, payload }) => {
 
 export const assignUserRole = async ({ assignmentUserId, payload }) => {
   const { data } = await getAuthenticatedHttpClient().post(getBiodataAssignRoleUrl(assignmentUserId), payload);
+  return data;
+};
+
+/**
+ * Adds the only supported secondary role (trainee or instructor) to an
+ * existing FBR profile. `profileId` is the biodata profile id, not the Django
+ * user id. This is intentionally separate from the sign-in approval endpoint.
+ */
+export const addUserRole = async ({ profileId, payload }) => {
+  const { data } = await getAuthenticatedHttpClient().post(getBiodataAddRoleUrl(profileId), payload);
   return data;
 };
 

@@ -7,6 +7,7 @@ import { useAdminConsoleBootstrap } from '../../data/apiHooks';
 import {
   useUsers, useSuperAdminAccessProbe, useUserDetailMutation, useUpdateUserStatus,
 } from './data/apiHooks';
+import { mapProfileToUserDetail } from './data/api';
 import { TABS, DEFAULT_USERS_ROWS_PER_PAGE, STATUS_FILTER_ALL } from './constants';
 import UsersToolbar from './UsersToolbar';
 import UsersFilters from './UsersFilters';
@@ -93,6 +94,7 @@ const UsersPage = () => {
   const activeRole = visibleTabs.find(tab => tab.id === activeTab)?.role || null;
 
   const { data: bootstrap } = useAdminConsoleBootstrap();
+  const callerProfile = bootstrap?.callerProfile || { roles: [], city: null };
   const batchOptions = bootstrap?.batches ?? [];
 
   const {
@@ -254,10 +256,14 @@ const UsersPage = () => {
       {viewingUser && (
         <ViewUserModal
           user={viewingUser}
+          callerProfile={callerProfile}
           sourceTab={viewSourceTab}
           onClose={() => setViewingUser(null)}
           onEdit={(user) => { setViewingUser(null); handleEdit(user); }}
           onAuditHistory={handleAuditHistory}
+          onUserUpdated={(profile) => {
+            setViewingUser(current => mapProfileToUserDetail(current, profile));
+          }}
         />
       )}
     </>

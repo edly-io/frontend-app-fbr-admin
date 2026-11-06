@@ -600,6 +600,153 @@ const messages = defineMessages({
     description: 'Fallback error message when the bulk import fails.',
   },
 
+  // ─── Add role modal ──────────────────────────────────────────────────────
+  addInstructorRoleTitle: {
+    id: 'fbrAdmin.addRoleModal.title.instructor',
+    defaultMessage: 'Add instructor role',
+    description: 'Title for the form that adds an instructor role to a trainee.',
+  },
+  addTraineeRoleTitle: {
+    id: 'fbrAdmin.addRoleModal.title.trainee',
+    defaultMessage: 'Add trainee role',
+    description: 'Title for the form that adds a trainee role to an instructor.',
+  },
+  addRoleSubtitle: {
+    id: 'fbrAdmin.addRoleModal.subtitle',
+    defaultMessage: 'Complete the additional profile information for {name}.',
+    description: 'Instructions shown under the Add role form title.',
+  },
+  addRoleCityLabel: {
+    id: 'fbrAdmin.addRoleModal.field.city.label',
+    defaultMessage: 'City',
+    description: 'Label for the city selector in the Add role form.',
+  },
+  addRoleCityPlaceholder: {
+    id: 'fbrAdmin.addRoleModal.field.city.placeholder',
+    defaultMessage: 'Select a city',
+    description: 'Placeholder for the city selector in the Add role form.',
+  },
+  addRoleFieldOfExpertiseLabel: {
+    id: 'fbrAdmin.addRoleModal.field.fieldOfExpertise.label',
+    defaultMessage: 'Field of expertise',
+    description: 'Label for the instructor expertise field.',
+  },
+  addRoleLanguagesLabel: {
+    id: 'fbrAdmin.addRoleModal.field.languagesAwardsPublications.label',
+    defaultMessage: 'Languages, awards and publications',
+    description: 'Label for the optional languages, awards and publications field.',
+  },
+  addRoleTraineeTypeLabel: {
+    id: 'fbrAdmin.addRoleModal.field.traineeType.label',
+    defaultMessage: 'Trainee type',
+    description: 'Label for the trainee type selector.',
+  },
+  addRoleDateOfBirthLabel: {
+    id: 'fbrAdmin.addRoleModal.field.dateOfBirth.label',
+    defaultMessage: 'Date of birth',
+    description: 'Label for the trainee date of birth field.',
+  },
+  addRoleDesignationLabel: {
+    id: 'fbrAdmin.addRoleModal.field.designation.label',
+    defaultMessage: 'Designation',
+    description: 'Label for the trainee designation field.',
+  },
+  addRoleBpsGradeLabel: {
+    id: 'fbrAdmin.addRoleModal.field.bpsGrade.label',
+    defaultMessage: 'BPS grade',
+    description: 'Label for the trainee BPS grade field.',
+  },
+  addRoleBatchLabel: {
+    id: 'fbrAdmin.addRoleModal.field.batch.label',
+    defaultMessage: 'Batch',
+    description: 'Label for the STP batch selector.',
+  },
+  addRoleBatchPlaceholder: {
+    id: 'fbrAdmin.addRoleModal.field.batch.placeholder',
+    defaultMessage: 'Select a batch',
+    description: 'Placeholder for the STP batch selector.',
+  },
+  addRoleServiceHistoryLabel: {
+    id: 'fbrAdmin.addRoleModal.field.serviceHistory.label',
+    defaultMessage: 'Service history',
+    description: 'Label for the optional trainee service history field.',
+  },
+  addRoleHostelPreferenceLabel: {
+    id: 'fbrAdmin.addRoleModal.field.hostelPreference.label',
+    defaultMessage: 'Hostel preference',
+    description: 'Label for the optional trainee hostel preference field.',
+  },
+  addRoleCitiesLoading: {
+    id: 'fbrAdmin.addRoleModal.city.loading',
+    defaultMessage: 'Loading cities...',
+    description: 'Loading text shown while cities are fetched.',
+  },
+  addRoleCitiesError: {
+    id: 'fbrAdmin.addRoleModal.city.error',
+    defaultMessage: 'Unable to load cities.',
+    description: 'Error shown when cities cannot be fetched.',
+  },
+  addRoleBatchesLoading: {
+    id: 'fbrAdmin.addRoleModal.batch.loading',
+    defaultMessage: 'Loading batches...',
+    description: 'Loading text shown while batches are fetched.',
+  },
+  addRoleBatchesError: {
+    id: 'fbrAdmin.addRoleModal.batch.error',
+    defaultMessage: 'Unable to load batches for this city.',
+    description: 'Error shown when city-scoped batches cannot be fetched.',
+  },
+  addRoleRequiredError: {
+    id: 'fbrAdmin.addRoleModal.error.required',
+    defaultMessage: 'This field is required.',
+    description: 'Validation error for a required Add role field.',
+  },
+  addRoleBpsGradeError: {
+    id: 'fbrAdmin.addRoleModal.error.bpsGrade',
+    defaultMessage: 'BPS grade must be at least 1.',
+    description: 'Validation error for an invalid BPS grade.',
+  },
+  addRoleFallbackError: {
+    id: 'fbrAdmin.addRoleModal.error.fallback',
+    defaultMessage: 'Unable to add the role.',
+    description: 'Fallback error shown when adding a role fails.',
+  },
+  addRoleCancelButton: {
+    id: 'fbrAdmin.addRoleModal.button.cancel',
+    defaultMessage: 'Cancel',
+    description: 'Button that returns to the user detail without adding a role.',
+  },
+  addRoleSubmitButton: {
+    id: 'fbrAdmin.addRoleModal.button.submit',
+    defaultMessage: 'Add role',
+    description: 'Button that submits the Add role form.',
+  },
+  addRoleSavingButton: {
+    id: 'fbrAdmin.addRoleModal.button.saving',
+    defaultMessage: 'Adding role...',
+    description: 'Button label shown while an Add role request is pending.',
+  },
+  addInstructorRoleAction: {
+    id: 'fbrAdmin.viewUserModal.button.addInstructorRole',
+    defaultMessage: 'Add instructor role',
+    description: 'Action shown for a trainee who can also become an instructor.',
+  },
+  addTraineeRoleAction: {
+    id: 'fbrAdmin.viewUserModal.button.addTraineeRole',
+    defaultMessage: 'Add trainee role',
+    description: 'Action shown for an instructor who can also become a trainee.',
+  },
+  addInstructorRoleSuccess: {
+    id: 'fbrAdmin.viewUserModal.success.instructorRole',
+    defaultMessage: 'Instructor role added successfully.',
+    description: 'Success message after an instructor role is added.',
+  },
+  addTraineeRoleSuccess: {
+    id: 'fbrAdmin.viewUserModal.success.traineeRole',
+    defaultMessage: 'Trainee role added successfully.',
+    description: 'Success message after a trainee role is added.',
+  },
+
   // ─── View User modal ──────────────────────────────────────────────────────
   viewUserSectionProfileInfo: {
     id: 'fbrAdmin.viewUserModal.section.profileInformation',

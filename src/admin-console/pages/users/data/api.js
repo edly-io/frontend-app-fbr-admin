@@ -82,6 +82,17 @@ export const updateUserStatus = async (profileId, newStatus) => {
   return data;
 };
 
+export const mapProfileToUserDetail = (user, data) => ({
+  ...user,
+  ...data,
+  photo: getPhotoUrl(data.photo) || user.photo,
+  initials: getInitials(data.full_name || user.name),
+  color: user.color || '#1B5E7A',
+  status: getStatusLabel(data.status) || user.status,
+  roleLabels: Array.isArray(data.roles) ? data.roles.map(getRoleLabel) : user.roleLabels,
+  batchNo: data.trainee_profile?.batch?.name || user.batchNo,
+});
+
 /**
  * Fetches full detail for a single user and merges it into the base user
  * object, mirroring the monolith's `fetchUserDetail` merge behavior. The
@@ -91,14 +102,5 @@ export const updateUserStatus = async (profileId, newStatus) => {
  */
 export const getUserDetail = async (user) => {
   const { data } = await fetchUserDetail(user);
-  return {
-    ...user,
-    ...data,
-    photo: getPhotoUrl(data.photo) || user.photo,
-    initials: getInitials(data.full_name || user.name),
-    color: user.color || '#1B5E7A',
-    status: getStatusLabel(data.status) || user.status,
-    roleLabels: Array.isArray(data.roles) ? data.roles.map(getRoleLabel) : user.roleLabels,
-    batchNo: data.trainee_profile?.batch?.name || user.batchNo,
-  };
+  return mapProfileToUserDetail(user, data);
 };

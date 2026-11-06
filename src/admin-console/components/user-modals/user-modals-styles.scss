@@ -223,6 +223,53 @@
   background: var(--pgn-color-gray-100);
 }
 
+/* AddRoleModal */
+
+.add-role-modal__subtitle {
+  margin: 4px 0 0;
+  color: var(--pgn-color-text-light);
+  font-size: 14px;
+}
+
+.add-role-modal__field-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.add-role-modal__field {
+  margin-bottom: 18px;
+}
+
+.add-role-modal__field label {
+  font-weight: 600;
+}
+
+.add-role-modal__field textarea {
+  resize: vertical;
+}
+
+.add-role-modal__required-mark {
+  margin-left: 3px;
+  color: var(--pgn-color-danger-500, #C32D3A);
+}
+
+.add-role-modal__loading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: -8px 0 16px;
+  color: var(--pgn-color-text-light);
+  font-size: 13px;
+}
+
+@media (max-width: 767px) {
+  .add-role-modal__field-row {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+}
+
 /* BulkImportUsersModal */
 
 .bulk-import-modal__result-status {
