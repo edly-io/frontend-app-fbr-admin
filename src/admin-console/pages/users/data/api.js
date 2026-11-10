@@ -24,6 +24,7 @@ export const mapProfileToUser = profile => ({
   color: '#1B5E7A',
   status: getStatusLabel(profile.status),
   statusValue: profile.status,
+  canChangeStatus: Boolean(profile.can_change_status),
   roles: Array.isArray(profile.roles) ? profile.roles : [],
   roleLabels: (Array.isArray(profile.roles) ? profile.roles : []).map(getRoleLabel),
   role: getRoleLabel((Array.isArray(profile.roles) ? profile.roles : [])[0]),

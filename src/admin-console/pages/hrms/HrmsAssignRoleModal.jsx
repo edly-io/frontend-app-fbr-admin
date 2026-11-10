@@ -82,9 +82,9 @@ const HrmsAssignRoleModal = ({ employee, onClose, onSuccess }) => {
   const assignRoleMutation = useAssignHrmsEmployeeRoleMutation();
   const isSubmitting = assignRoleMutation.isPending;
   const callerRoles = callerProfile.roles || [];
-  const isMiddleAdminCaller = callerRoles.includes('middle_admin') && !callerRoles.includes('super_admin');
+  const isCityLockedCaller = !callerRoles.includes('super_admin');
   const roleNeedsCity = ['middle_admin', 'data_admin'].includes(selectedRole);
-  const shouldShowCity = roleNeedsCity && !isMiddleAdminCaller;
+  const shouldShowCity = roleNeedsCity && !isCityLockedCaller;
   const shouldShowBatch = selectedRole === 'trainee' && traineeType === 'stp';
   const roleLabel = selectedRole ? ROLE_LABELS[selectedRole] || selectedRole : '';
   const assignmentEmail = employee.email || employee.fullName || employee.employeeCode || employee.paypeopleEmployeeId;
@@ -280,7 +280,7 @@ const HrmsAssignRoleModal = ({ employee, onClose, onSuccess }) => {
             </Form.Group>
           )}
 
-          {roleNeedsCity && isMiddleAdminCaller && (
+          {roleNeedsCity && isCityLockedCaller && (
             <Form.Text className="d-block mb-3">
               {intl.formatMessage(messages.cityLockedNote)}
             </Form.Text>

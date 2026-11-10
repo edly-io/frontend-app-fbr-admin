@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Alert } from '@openedx/paragon';
+import { Alert, Toast } from '@openedx/paragon';
 import { useIntl } from '@edx/frontend-platform/i18n';
 import { getProfileMfeUserUrl } from '../../data/api';
 import { useAdminConsoleBootstrap } from '../../data/apiHooks';
@@ -8,6 +8,7 @@ import {
   useUsers, useSuperAdminAccessProbe, useUserDetailMutation, useUpdateUserStatus,
 } from './data/apiHooks';
 import { mapProfileToUserDetail } from './data/api';
+import { getApiErrorMessage } from '../../utils/apiErrors';
 import { TABS, DEFAULT_USERS_ROWS_PER_PAGE, STATUS_FILTER_ALL } from './constants';
 import UsersToolbar from './UsersToolbar';
 import UsersFilters from './UsersFilters';
@@ -80,6 +81,7 @@ const UsersPage = () => {
   const { canViewSuperAdminTabs } = useSuperAdminAccessProbe();
   const userDetailMutation = useUserDetailMutation();
   const updateStatusMutation = useUpdateUserStatus();
+  const [statusError, setStatusError] = useState('');
 
   const visibleTabs = useMemo(
     () => TABS.filter(tab => !tab.superAdminOnly || canViewSuperAdminTabs),
@@ -172,8 +174,9 @@ const UsersPage = () => {
         onSuccess: () => {
           setStatusOverrides(prev => { const next = { ...prev }; delete next[user.id]; return next; });
         },
-        onError: () => {
+        onError: (statusChangeError) => {
           setStatusOverrides(prev => { const next = { ...prev }; delete next[user.id]; return next; });
+          setStatusError(getApiErrorMessage(statusChangeError, intl.formatMessage(messages.statusChangeError)));
         },
       },
     );
@@ -266,6 +269,10 @@ const UsersPage = () => {
           }}
         />
       )}
+
+      <Toast show={Boolean(statusError)} onClose={() => setStatusError('')}>
+        {statusError}
+      </Toast>
     </>
   );
 };

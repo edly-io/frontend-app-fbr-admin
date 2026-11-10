@@ -180,6 +180,19 @@ describe('UsersPage', () => {
     expect(lastTableProps().pageUsers).toHaveLength(2);
   });
 
+  it('shows the API message when a status change fails', async () => {
+    const mutate = jest.fn((_vars, { onError }) => onError({
+      response: { status: 403, data: { detail: 'You do not have permission to view or edit this profile.' } },
+    }));
+    useUpdateUserStatus.mockReturnValue({ mutate });
+    renderPage(['/']);
+    await waitFor(() => expect(screen.getByTestId('users-table')).toBeInTheDocument());
+
+    act(() => lastTableProps().onDeactivate({ id: 7, statusValue: 'active' }));
+
+    expect(await screen.findByText('You do not have permission to view or edit this profile.')).toBeInTheDocument();
+  });
+
   it('shows audit log view when ?view=audit-log is in URL', async () => {
     renderPage(['/?view=audit-log']);
 
