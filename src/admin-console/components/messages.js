@@ -439,6 +439,11 @@ const messages = defineMessages({
     defaultMessage: 'Upload a CSV to validate or create trainees and instructors.',
     description: 'Bulk Import modal subtitle.',
   },
+  bulkImportCityNotice: {
+    id: 'fbrAdmin.bulkImportModal.cityNotice',
+    defaultMessage: 'All users will be added to {city}. The city column in the file is ignored.',
+    description: 'Bulk Import notice for admins whose imports always go to their own city.',
+  },
   bulkImportNoPermission: {
     id: 'fbrAdmin.bulkImportModal.noPermission',
     defaultMessage: 'You do not have permission to import trainees or instructors.',
@@ -553,6 +558,11 @@ const messages = defineMessages({
     id: 'fbrAdmin.bulkImportModal.result.column.email',
     defaultMessage: 'EMAIL',
     description: 'Result table column header for the row email.',
+  },
+  resultColumnCity: {
+    id: 'fbrAdmin.bulkImportModal.result.column.city',
+    defaultMessage: 'CITY',
+    description: 'Result table column header for the city the row user is created in.',
   },
   resultColumnStatus: {
     id: 'fbrAdmin.bulkImportModal.result.column.status',
