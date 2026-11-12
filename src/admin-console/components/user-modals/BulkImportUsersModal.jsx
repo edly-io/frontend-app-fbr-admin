@@ -72,6 +72,11 @@ const BulkImportUsersModal = ({ onClose }) => {
   const intl = useIntl();
   const { data: bootstrapData } = useAdminConsoleBootstrap();
   const importMutation = useBulkImportUsersMutation();
+  const callerProfile = bootstrapData?.callerProfile;
+  // Mirrors AddUserModal: every admin below Super Admin imports into their own city.
+  const lockedCityName = callerProfile && !callerProfile.roles.includes('super_admin')
+    ? callerProfile.city?.name
+    : null;
 
   const allowedRoles = useMemo(
     () => bootstrapData?.callerProfile?.creatable_roles || ['instructor', 'trainee'],
@@ -190,6 +195,12 @@ const BulkImportUsersModal = ({ onClose }) => {
               <div className="small text-muted mt-2">{activeRoleOption && intl.formatMessage(activeRoleOption.hintMessage)}</div>
             </Form.Group>
 
+            {lockedCityName && (
+              <Alert variant="info" className="mb-3">
+                {intl.formatMessage(messages.bulkImportCityNotice, { city: lockedCityName })}
+              </Alert>
+            )}
+
             <div className="bulk-import-modal__actions-row">
               <Button variant="outline-primary" size="sm" onClick={handleDownloadSample} disabled={isDownloading}>
                 <FontAwesomeIcon icon={faDownload} className="bulk-import-modal__download-icon" />
@@ -244,6 +255,7 @@ const BulkImportUsersModal = ({ onClose }) => {
                     {[
                       messages.resultColumnRow,
                       messages.resultColumnEmail,
+                      messages.resultColumnCity,
                       messages.resultColumnStatus,
                       messages.resultColumnErrors,
                     ].map(labelMessage => (
@@ -259,6 +271,9 @@ const BulkImportUsersModal = ({ onClose }) => {
                       <td className="bulk-import-modal__table-cell bulk-import-modal__table-cell--strong">{row.row}</td>
                       <td className="bulk-import-modal__table-cell bulk-import-modal__table-cell--email">
                         {row.email || intl.formatMessage(messages.emptyValue)}
+                      </td>
+                      <td className="bulk-import-modal__table-cell">
+                        {row.city || intl.formatMessage(messages.emptyValue)}
                       </td>
                       <td className="bulk-import-modal__table-cell"><ResultStatus status={row.status} /></td>
                       <td
