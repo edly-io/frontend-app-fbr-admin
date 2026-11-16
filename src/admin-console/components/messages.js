@@ -464,15 +464,25 @@ const messages = defineMessages({
     defaultMessage: 'Instructors',
     description: 'Bulk import role option label for instructors.',
   },
-  bulkImportHintTrainee: {
-    id: 'fbrAdmin.bulkImportModal.hint.trainee',
-    defaultMessage: 'CSV columns include city, trainee_type, batch, date_of_birth, designation, and BPS grade.',
-    description: 'Hint describing the expected CSV columns for a trainee import.',
+  bulkImportFileLimits: {
+    id: 'fbrAdmin.bulkImportModal.fileLimits',
+    defaultMessage: '{extension} files only · Max {size} KB · Up to {rows} rows',
+    description: 'Help text under the CSV file input: accepted file type, maximum size and maximum data rows.',
   },
-  bulkImportHintInstructor: {
-    id: 'fbrAdmin.bulkImportModal.hint.instructor',
-    defaultMessage: 'CSV columns include city, field_of_expertise, and languages/awards/publications.',
-    description: 'Hint describing the expected CSV columns for an instructor import.',
+  bulkImportViewColumns: {
+    id: 'fbrAdmin.bulkImportModal.viewColumns',
+    defaultMessage: 'View CSV columns ({count})',
+    description: 'Title of the collapsible list of CSV columns for the selected import type.',
+  },
+  bulkImportRequiredColumns: {
+    id: 'fbrAdmin.bulkImportModal.requiredColumns',
+    defaultMessage: 'Required',
+    description: 'Label for the CSV columns that must have a value.',
+  },
+  bulkImportOptionalColumns: {
+    id: 'fbrAdmin.bulkImportModal.optionalColumns',
+    defaultMessage: 'Optional',
+    description: 'Label for the CSV columns that may be left empty.',
   },
   downloadSampleButton: {
     id: 'fbrAdmin.bulkImportModal.button.downloadSample',

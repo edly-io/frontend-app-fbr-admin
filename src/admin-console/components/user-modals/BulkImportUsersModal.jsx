@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import PropTypes from 'prop-types';
 import {
-  ActionRow, Alert, Button, Form, ModalDialog,
+  ActionRow, Alert, Button, Chip, Collapsible, Form, ModalDialog, Stack,
 } from '@openedx/paragon';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
@@ -9,14 +9,14 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { useIntl } from '@edx/frontend-platform/i18n';
 import { downloadBulkImportSample } from '../../data/api';
-import { useAdminConsoleBootstrap, useBulkImportUsersMutation } from '../../data/apiHooks';
+import { useAdminConsoleBootstrap, useBulkImportFormat, useBulkImportUsersMutation } from '../../data/apiHooks';
 import { downloadBlob } from '../../utils/download';
 import messages from '../messages';
 import './user-modals-styles.scss';
 
 const ROLE_OPTIONS = [
-  { id: 'trainee', labelMessage: messages.bulkImportRoleTrainees, hintMessage: messages.bulkImportHintTrainee },
-  { id: 'instructor', labelMessage: messages.bulkImportRoleInstructors, hintMessage: messages.bulkImportHintInstructor },
+  { id: 'trainee', labelMessage: messages.bulkImportRoleTrainees },
+  { id: 'instructor', labelMessage: messages.bulkImportRoleInstructors },
 ];
 
 const getApiErrorMessage = (error, fallback) => {
@@ -55,6 +55,24 @@ ResultStatus.propTypes = {
   status: PropTypes.string.isRequired,
 };
 
+const ColumnChips = ({ label, columns, testId }) => {
+  if (columns.length === 0) { return null; }
+  return (
+    <div className="mb-2" data-testid={testId}>
+      <div className="small font-weight-bold mb-1">{label}</div>
+      <Stack direction="horizontal" gap={2} className="flex-wrap">
+        {columns.map(({ name }) => <Chip key={name}>{name}</Chip>)}
+      </Stack>
+    </div>
+  );
+};
+
+ColumnChips.propTypes = {
+  label: PropTypes.string.isRequired,
+  columns: PropTypes.arrayOf(PropTypes.shape({ name: PropTypes.string.isRequired })).isRequired,
+  testId: PropTypes.string.isRequired,
+};
+
 const formatErrors = errors => {
   if (!errors || Object.keys(errors).length === 0) { return ''; }
   return Object.entries(errors)
@@ -72,6 +90,8 @@ const BulkImportUsersModal = ({ onClose }) => {
   const intl = useIntl();
   const { data: bootstrapData } = useAdminConsoleBootstrap();
   const importMutation = useBulkImportUsersMutation();
+  // Optional help: without it the dialog still imports, and the server's 400s explain any rejection.
+  const { data: importFormat } = useBulkImportFormat();
   const callerProfile = bootstrapData?.callerProfile;
   // Mirrors AddUserModal: every admin below Super Admin imports into their own city.
   const lockedCityName = callerProfile && !callerProfile.roles.includes('super_admin')
@@ -94,7 +114,7 @@ const BulkImportUsersModal = ({ onClose }) => {
   const [isDownloading, setIsDownloading] = useState(false);
 
   const isSubmitting = importMutation.isPending;
-  const activeRoleOption = ROLE_OPTIONS.find(option => option.id === role);
+  const roleColumns = importFormat?.columns?.[role] || [];
   const canSubmit = importableRoles.length > 0 && file && !isSubmitting;
   let submitLabel = intl.formatMessage(messages.importUsersButton);
   if (isSubmitting) {
@@ -192,7 +212,6 @@ const BulkImportUsersModal = ({ onClose }) => {
                   );
                 })}
               </div>
-              <div className="small text-muted mt-2">{activeRoleOption && intl.formatMessage(activeRoleOption.hintMessage)}</div>
             </Form.Group>
 
             {lockedCityName && (
@@ -230,7 +249,35 @@ const BulkImportUsersModal = ({ onClose }) => {
                   setError('');
                 }}
               />
+              {importFormat && (
+                <Form.Text muted>
+                  {intl.formatMessage(messages.bulkImportFileLimits, {
+                    extension: importFormat.extension,
+                    size: importFormat.max_file_size_kb,
+                    rows: importFormat.max_rows,
+                  })}
+                </Form.Text>
+              )}
             </Form.Group>
+
+            {roleColumns.length > 0 && (
+              <Collapsible
+                styling="basic"
+                className="mb-3"
+                title={intl.formatMessage(messages.bulkImportViewColumns, { count: roleColumns.length })}
+              >
+                <ColumnChips
+                  label={intl.formatMessage(messages.bulkImportRequiredColumns)}
+                  columns={roleColumns.filter(column => column.required)}
+                  testId="bulk-import-required-columns"
+                />
+                <ColumnChips
+                  label={intl.formatMessage(messages.bulkImportOptionalColumns)}
+                  columns={roleColumns.filter(column => !column.required)}
+                  testId="bulk-import-optional-columns"
+                />
+              </Collapsible>
+            )}
           </>
         )}
 
