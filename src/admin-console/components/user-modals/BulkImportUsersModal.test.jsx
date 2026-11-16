@@ -146,10 +146,10 @@ describe('BulkImportUsersModal import format', () => {
     expect(screen.getByText('.csv files only · Max 256 KB · Up to 200 rows')).toBeInTheDocument();
   });
 
-  it('keeps the column list closed until asked for', () => {
+  it('keeps the expected columns closed until asked for', () => {
     renderModal();
 
-    expect(screen.getByRole('button', { name: 'Show columns (2 required, 2 optional)' }))
+    expect(screen.getByRole('button', { name: 'Expected columns (2 required, 2 optional)' }))
       .toHaveAttribute('aria-expanded', 'false');
     expect(screen.queryByTestId('bulk-import-required-columns')).not.toBeInTheDocument();
   });
@@ -157,7 +157,7 @@ describe('BulkImportUsersModal import format', () => {
   it('lists the selected role\'s columns, split into required and optional, once opened', () => {
     renderModal(SUPER_ADMIN);
 
-    fireEvent.click(screen.getByRole('button', { name: /show columns/i }));
+    fireEvent.click(screen.getByRole('button', { name: /expected columns/i }));
 
     const required = screen.getByTestId('bulk-import-required-columns');
     const optional = screen.getByTestId('bulk-import-optional-columns');
@@ -171,7 +171,7 @@ describe('BulkImportUsersModal import format', () => {
     renderModal();
 
     fireEvent.click(screen.getByRole('button', { name: /instructors/i }));
-    fireEvent.click(screen.getByRole('button', { name: 'Show columns (2 required, 1 optional)' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Expected columns (2 required, 1 optional)' }));
 
     expect(screen.getByText('field_of_expertise')).toBeInTheDocument();
   });
@@ -179,7 +179,7 @@ describe('BulkImportUsersModal import format', () => {
   it('marks the city column as ignored for a city-locked admin', () => {
     renderModal(DATA_ADMIN);
 
-    fireEvent.click(screen.getByRole('button', { name: /show columns/i }));
+    fireEvent.click(screen.getByRole('button', { name: /expected columns/i }));
 
     expect(within(screen.getByTestId('bulk-import-optional-columns')).getByText('(ignored)'))
       .toBeInTheDocument();
@@ -188,7 +188,7 @@ describe('BulkImportUsersModal import format', () => {
   it('does not mark the city column as ignored for a Super Admin', () => {
     renderModal(SUPER_ADMIN);
 
-    fireEvent.click(screen.getByRole('button', { name: /show columns/i }));
+    fireEvent.click(screen.getByRole('button', { name: /expected columns/i }));
 
     expect(screen.queryByText('(ignored)')).not.toBeInTheDocument();
   });
@@ -198,7 +198,36 @@ describe('BulkImportUsersModal import format', () => {
     renderModal();
 
     expect(screen.queryByText(/files only/)).not.toBeInTheDocument();
-    expect(screen.queryByText(/show columns/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/expected columns/i)).not.toBeInTheDocument();
+  });
+});
+
+describe('BulkImportUsersModal file chooser', () => {
+  it('says no file is chosen, then shows the chosen file name', () => {
+    renderModal();
+
+    expect(screen.getByText('No file chosen')).toBeInTheDocument();
+
+    chooseFile();
+
+    expect(screen.getByText('users.csv')).toBeInTheDocument();
+    expect(screen.queryByText('No file chosen')).not.toBeInTheDocument();
+  });
+
+  it('opens the file picker from the Choose CSV file button', () => {
+    const click = jest.spyOn(HTMLInputElement.prototype, 'click').mockImplementation(() => {});
+    renderModal();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Choose CSV file' }));
+
+    expect(click).toHaveBeenCalled();
+    click.mockRestore();
+  });
+
+  it('keeps an accessible name on the file input', () => {
+    renderModal();
+
+    expect(screen.getByLabelText('CSV File')).toHaveAttribute('type', 'file');
   });
 });
 

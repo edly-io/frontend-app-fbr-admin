@@ -479,9 +479,9 @@ const messages = defineMessages({
     defaultMessage: '{extension} files only · Max {size} KB · Up to {rows} rows',
     description: 'Help text under the CSV file input: accepted file type, maximum size and maximum data rows.',
   },
-  bulkImportShowColumns: {
-    id: 'fbrAdmin.bulkImportModal.showColumns',
-    defaultMessage: 'Show columns ({required} required, {optional} optional)',
+  bulkImportExpectedColumns: {
+    id: 'fbrAdmin.bulkImportModal.expectedColumns',
+    defaultMessage: 'Expected columns ({required} required, {optional} optional)',
     description: 'Button that opens the list of CSV columns for the selected import type.',
   },
   bulkImportIgnoredColumn: {
@@ -512,7 +512,17 @@ const messages = defineMessages({
   csvFileLabel: {
     id: 'fbrAdmin.bulkImportModal.csvFile.label',
     defaultMessage: 'CSV File',
-    description: 'Label for the CSV file input in the Bulk Import modal.',
+    description: 'Accessible name of the hidden CSV file input in the Bulk Import modal.',
+  },
+  chooseCsvFileButton: {
+    id: 'fbrAdmin.bulkImportModal.chooseCsvFile',
+    defaultMessage: 'Choose CSV file',
+    description: 'Button that opens the file picker for the CSV to import.',
+  },
+  noFileChosen: {
+    id: 'fbrAdmin.bulkImportModal.noFileChosen',
+    defaultMessage: 'No file chosen',
+    description: 'Shown next to the Choose CSV file button before a file is picked.',
   },
   closeButton: {
     id: 'fbrAdmin.bulkImportModal.button.close',

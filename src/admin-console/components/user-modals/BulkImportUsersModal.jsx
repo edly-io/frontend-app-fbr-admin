@@ -1,4 +1,6 @@
-import React, { Fragment, useMemo, useState } from 'react';
+import React, {
+  Fragment, useMemo, useRef, useState,
+} from 'react';
 import PropTypes from 'prop-types';
 import {
   ActionRow, Alert, Button, Form, Icon, ModalDialog,
@@ -139,6 +141,7 @@ const BulkImportUsersModal = ({ onClose }) => {
   const [error, setError] = useState('');
   const [isDownloading, setIsDownloading] = useState(false);
   const [showColumns, setShowColumns] = useState(false);
+  const fileInputRef = useRef(null);
 
   const isSubmitting = importMutation.isPending;
   const roleColumns = importFormat?.columns?.[role] || [];
@@ -148,6 +151,12 @@ const BulkImportUsersModal = ({ onClose }) => {
   // Which action is running, so only that button says "Processing...".
   const pendingDryRun = isSubmitting ? importMutation.variables?.dryRun : undefined;
   const processingLabel = intl.formatMessage(messages.processingButton);
+
+  // Clear the input first: re-picking the same file (after fixing it in Excel) fires no change event otherwise.
+  const openFilePicker = () => {
+    fileInputRef.current.value = '';
+    fileInputRef.current.click();
+  };
 
   const handleDownloadSample = async () => {
     setIsDownloading(true);
@@ -247,11 +256,32 @@ const BulkImportUsersModal = ({ onClose }) => {
             )}
 
             <Form.Group>
-              <div className="d-flex flex-wrap align-items-center">
+              {/* The native file button's text is set by the browser; a Paragon button opens it instead. */}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".csv,text/csv"
+                className="d-none"
+                aria-label={intl.formatMessage(messages.csvFileLabel)}
+                onChange={event => {
+                  setFile(event.target.files?.[0] || null);
+                  setResult(null);
+                  setError('');
+                }}
+              />
+              <div className="d-flex flex-wrap justify-content-between align-items-center">
+                <div className="d-flex align-items-center">
+                  <Button variant="outline-primary" size="sm" onClick={openFilePicker}>
+                    {intl.formatMessage(messages.chooseCsvFileButton)}
+                  </Button>
+                  <span className={`ml-3 ${file ? '' : 'text-muted'}`}>
+                    {file ? file.name : intl.formatMessage(messages.noFileChosen)}
+                  </span>
+                </div>
                 <Button
-                  variant="outline-primary"
+                  variant="link"
                   size="sm"
-                  className="mr-3"
+                  className="px-0"
                   onClick={handleDownloadSample}
                   disabled={isDownloading}
                 >
@@ -260,22 +290,31 @@ const BulkImportUsersModal = ({ onClose }) => {
                     ? intl.formatMessage(messages.downloadingButton)
                     : intl.formatMessage(messages.downloadSampleButton)}
                 </Button>
-                {roleColumns.length > 0 && (
-                  <Button
-                    variant="link"
-                    size="sm"
-                    className="px-0"
-                    aria-expanded={showColumns}
-                    onClick={() => setShowColumns(!showColumns)}
-                  >
-                    {intl.formatMessage(messages.bulkImportShowColumns, {
-                      required: requiredColumns.length,
-                      optional: optionalColumns.length,
-                    })}
-                    <FontAwesomeIcon icon={showColumns ? faChevronUp : faChevronDown} className="ml-1" />
-                  </Button>
-                )}
               </div>
+              {importFormat && (
+                <Form.Text muted>
+                  {intl.formatMessage(messages.bulkImportFileLimits, {
+                    extension: importFormat.extension,
+                    size: importFormat.max_file_size_kb,
+                    rows: importFormat.max_rows,
+                  })}
+                </Form.Text>
+              )}
+              {roleColumns.length > 0 && (
+                <Button
+                  variant="link"
+                  size="sm"
+                  className="d-block p-0 mt-2"
+                  aria-expanded={showColumns}
+                  onClick={() => setShowColumns(!showColumns)}
+                >
+                  {intl.formatMessage(messages.bulkImportExpectedColumns, {
+                    required: requiredColumns.length,
+                    optional: optionalColumns.length,
+                  })}
+                  <FontAwesomeIcon icon={showColumns ? faChevronUp : faChevronDown} className="ml-1" />
+                </Button>
+              )}
               {showColumns && roleColumns.length > 0 && (
                 <div className="mt-2">
                   <ColumnList
@@ -293,31 +332,9 @@ const BulkImportUsersModal = ({ onClose }) => {
                   />
                 </div>
               )}
-            </Form.Group>
-
-            <Form.Group>
-              <Form.Label>{intl.formatMessage(messages.csvFileLabel)}</Form.Label>
-              <Form.Control
-                type="file"
-                accept=".csv,text/csv"
-                onChange={event => {
-                  setFile(event.target.files?.[0] || null);
-                  setResult(null);
-                  setError('');
-                }}
-              />
-              {importFormat && (
-                <Form.Text muted>
-                  {intl.formatMessage(messages.bulkImportFileLimits, {
-                    extension: importFormat.extension,
-                    size: importFormat.max_file_size_kb,
-                    rows: importFormat.max_rows,
-                  })}
-                </Form.Text>
-              )}
               {cityHint && (
-                <div className="d-flex align-items-center small mt-2">
-                  <Icon src={Info} size="sm" className="text-info mr-2" />
+                <div className="d-flex small mt-2">
+                  <Icon src={Info} size="sm" className="text-info mr-2 flex-shrink-0" />
                   {cityHint}
                 </div>
               )}
