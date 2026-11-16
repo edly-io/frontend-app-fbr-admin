@@ -439,6 +439,11 @@ const messages = defineMessages({
     defaultMessage: 'Upload a CSV to validate or create trainees and instructors.',
     description: 'Bulk Import modal subtitle.',
   },
+  bulkImportCityNotice: {
+    id: 'fbrAdmin.bulkImportModal.cityNotice',
+    defaultMessage: 'All users will be added to {city}. The city column in the file is ignored.',
+    description: 'Bulk Import notice for admins whose imports always go to their own city.',
+  },
   bulkImportNoPermission: {
     id: 'fbrAdmin.bulkImportModal.noPermission',
     defaultMessage: 'You do not have permission to import trainees or instructors.',
@@ -459,15 +464,40 @@ const messages = defineMessages({
     defaultMessage: 'Instructors',
     description: 'Bulk import role option label for instructors.',
   },
-  bulkImportHintTrainee: {
-    id: 'fbrAdmin.bulkImportModal.hint.trainee',
-    defaultMessage: 'CSV columns include city, trainee_type, batch, date_of_birth, designation, and BPS grade.',
-    description: 'Hint describing the expected CSV columns for a trainee import.',
+  bulkImportSuperAdminCityHint: {
+    id: 'fbrAdmin.bulkImportModal.superAdminCityHint',
+    defaultMessage: 'Users are added to the city in each row\'s city column. The city must already exist.',
+    description: 'Bulk Import notice for Super Admins, whose users go to the city in each CSV row.',
   },
-  bulkImportHintInstructor: {
-    id: 'fbrAdmin.bulkImportModal.hint.instructor',
-    defaultMessage: 'CSV columns include city, field_of_expertise, and languages/awards/publications.',
-    description: 'Hint describing the expected CSV columns for an instructor import.',
+  bulkImportNoCityWarning: {
+    id: 'fbrAdmin.bulkImportModal.noCityWarning',
+    defaultMessage: 'Your account has no city, so you can\'t import users. Ask a Super Admin to set your city.',
+    description: 'Bulk Import warning for an admin below Super Admin whose account has no city.',
+  },
+  bulkImportFileLimits: {
+    id: 'fbrAdmin.bulkImportModal.fileLimits',
+    defaultMessage: '{extension} files only · Max {size} KB · Up to {rows} rows',
+    description: 'Help text under the CSV file input: accepted file type, maximum size and maximum data rows.',
+  },
+  bulkImportExpectedColumns: {
+    id: 'fbrAdmin.bulkImportModal.expectedColumns',
+    defaultMessage: 'Expected columns ({required} required, {optional} optional)',
+    description: 'Button that opens the list of CSV columns for the selected import type.',
+  },
+  bulkImportIgnoredColumn: {
+    id: 'fbrAdmin.bulkImportModal.ignoredColumn',
+    defaultMessage: '(ignored)',
+    description: 'Shown after the city column for admins whose imports always go to their own city.',
+  },
+  bulkImportRequiredColumns: {
+    id: 'fbrAdmin.bulkImportModal.requiredColumns',
+    defaultMessage: 'Required',
+    description: 'Label for the CSV columns that must have a value.',
+  },
+  bulkImportOptionalColumns: {
+    id: 'fbrAdmin.bulkImportModal.optionalColumns',
+    defaultMessage: 'Optional',
+    description: 'Label for the CSV columns that may be left empty.',
   },
   downloadSampleButton: {
     id: 'fbrAdmin.bulkImportModal.button.downloadSample',
@@ -479,15 +509,20 @@ const messages = defineMessages({
     defaultMessage: 'Downloading...',
     description: 'Button label shown while the sample CSV is downloading.',
   },
-  dryRunCheckboxLabel: {
-    id: 'fbrAdmin.bulkImportModal.dryRun.label',
-    defaultMessage: 'Dry run only',
-    description: 'Checkbox label to toggle dry-run validation instead of a real import.',
-  },
   csvFileLabel: {
     id: 'fbrAdmin.bulkImportModal.csvFile.label',
     defaultMessage: 'CSV File',
-    description: 'Label for the CSV file input in the Bulk Import modal.',
+    description: 'Accessible name of the hidden CSV file input in the Bulk Import modal.',
+  },
+  chooseCsvFileButton: {
+    id: 'fbrAdmin.bulkImportModal.chooseCsvFile',
+    defaultMessage: 'Choose CSV file',
+    description: 'Button that opens the file picker for the CSV to import.',
+  },
+  noFileChosen: {
+    id: 'fbrAdmin.bulkImportModal.noFileChosen',
+    defaultMessage: 'No file chosen',
+    description: 'Shown next to the Choose CSV file button before a file is picked.',
   },
   closeButton: {
     id: 'fbrAdmin.bulkImportModal.button.close',
@@ -496,13 +531,13 @@ const messages = defineMessages({
   },
   importUsersButton: {
     id: 'fbrAdmin.bulkImportModal.button.importUsers',
-    defaultMessage: 'Import Users',
+    defaultMessage: 'Import users',
     description: 'Button label to submit a real (non-dry-run) bulk import.',
   },
   runValidationButton: {
     id: 'fbrAdmin.bulkImportModal.button.runValidation',
-    defaultMessage: 'Run Validation',
-    description: 'Button label to submit a dry-run bulk import validation.',
+    defaultMessage: 'Validate',
+    description: 'Button label to validate the bulk import file without creating users.',
   },
   processingButton: {
     id: 'fbrAdmin.bulkImportModal.button.processing',
@@ -516,7 +551,7 @@ const messages = defineMessages({
   },
   resultModeDryRun: {
     id: 'fbrAdmin.bulkImportModal.result.modeDryRun',
-    defaultMessage: 'Dry run',
+    defaultMessage: 'Validation',
     description: 'Result summary value shown when the import was a dry run.',
   },
   resultModeImport: {
@@ -553,6 +588,11 @@ const messages = defineMessages({
     id: 'fbrAdmin.bulkImportModal.result.column.email',
     defaultMessage: 'EMAIL',
     description: 'Result table column header for the row email.',
+  },
+  resultColumnCity: {
+    id: 'fbrAdmin.bulkImportModal.result.column.city',
+    defaultMessage: 'CITY',
+    description: 'Result table column header for the city the row user is created in.',
   },
   resultColumnStatus: {
     id: 'fbrAdmin.bulkImportModal.result.column.status',

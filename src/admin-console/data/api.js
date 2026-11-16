@@ -15,6 +15,7 @@ export const BIODATA_USER_INSTRUCTOR_CREATE_PATH = '/fbr/api/biodata/v1/users/in
 export const BIODATA_USER_TRAINEE_CREATE_PATH = '/fbr/api/biodata/v1/users/trainees/';
 export const BIODATA_USER_BULK_IMPORT_SAMPLE_PATH = '/fbr/api/biodata/v1/users/bulk-import/sample/';
 export const BIODATA_USER_BULK_IMPORT_PATH = '/fbr/api/biodata/v1/users/bulk-import/';
+export const BIODATA_USER_BULK_IMPORT_FORMAT_PATH = '/fbr/api/biodata/v1/users/bulk-import/format/';
 
 export const getLmsUrl = path => `${getConfig().LMS_BASE_URL}${path}`;
 
@@ -226,6 +227,15 @@ export const bulkImportUsers = async ({ role, file, dryRun }) => {
   formData.append('file', file);
 
   const { data } = await getAuthenticatedHttpClient().post(getBiodataBulkImportUrl(), formData);
+  return data;
+};
+
+/**
+ * Loads what an import file must look like: extension, size and row limits,
+ * and each role's columns with whether they are required.
+ */
+export const getBulkImportFormat = async () => {
+  const { data } = await getAuthenticatedHttpClient().get(getLmsUrl(BIODATA_USER_BULK_IMPORT_FORMAT_PATH));
   return data;
 };
 

@@ -5,6 +5,7 @@ import {
   createUserProfile,
   assignUserRole,
   bulkImportUsers,
+  getBulkImportFormat,
   getReportFilters,
   createBatch,
   addUserRole,
@@ -20,6 +21,7 @@ export const adminConsoleQueryKeys = {
   bootstrap: ['adminConsole', 'bootstrap'],
   roleCities: ['adminConsole', 'add-role', 'cities'],
   roleBatches: cityId => ['adminConsole', 'add-role', 'batches', cityId],
+  bulkImportFormat: ['adminConsole', 'bulk-import', 'format'],
 };
 
 const REPORT_FILTERS_STALE_TIME = 5 * 60 * 1000;
@@ -43,6 +45,12 @@ const retryExceptClientErrors = (failureCount, error) => {
 export const useAdminConsoleBootstrap = () => useQuery({
   queryKey: adminConsoleQueryKeys.bootstrap,
   queryFn: getAdminConsoleBootstrap,
+  retry: retryExceptClientErrors,
+});
+
+export const useBulkImportFormat = () => useQuery({
+  queryKey: adminConsoleQueryKeys.bulkImportFormat,
+  queryFn: getBulkImportFormat,
   retry: retryExceptClientErrors,
 });
 
