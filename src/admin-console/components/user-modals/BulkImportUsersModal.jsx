@@ -1,11 +1,12 @@
-import React, { useMemo, useState } from 'react';
+import React, { Fragment, useMemo, useState } from 'react';
 import PropTypes from 'prop-types';
 import {
-  ActionRow, Alert, Button, Chip, Collapsible, Form, ModalDialog, Stack,
+  ActionRow, Alert, Button, Form, Icon, ModalDialog,
 } from '@openedx/paragon';
+import { Info, Warning } from '@openedx/paragon/icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
-  faCheck, faDownload, faUpload,
+  faCheck, faChevronDown, faChevronUp, faDownload, faUpload,
 } from '@fortawesome/free-solid-svg-icons';
 import { useIntl } from '@edx/frontend-platform/i18n';
 import { downloadBulkImportSample } from '../../data/api';
@@ -55,22 +56,39 @@ ResultStatus.propTypes = {
   status: PropTypes.string.isRequired,
 };
 
-const ColumnChips = ({ label, columns, testId }) => {
+const CITY_COLUMN = 'city';
+
+const ColumnList = ({
+  label, columns, ignoredColumn, ignoredLabel, className, testId,
+}) => {
   if (columns.length === 0) { return null; }
   return (
-    <div className="mb-2" data-testid={testId}>
-      <div className="small font-weight-bold mb-1">{label}</div>
-      <Stack direction="horizontal" gap={2} className="flex-wrap">
-        {columns.map(({ name }) => <Chip key={name}>{name}</Chip>)}
-      </Stack>
+    <div className={`small mb-1 ${className}`} data-testid={testId}>
+      <span className="font-weight-bold text-dark mr-2">{label}</span>
+      {columns.map(({ name }, index) => (
+        <Fragment key={name}>
+          {index > 0 && ' · '}
+          <span className="text-monospace">{name}</span>
+          {name === ignoredColumn && <span className="ml-1">{ignoredLabel}</span>}
+        </Fragment>
+      ))}
     </div>
   );
 };
 
-ColumnChips.propTypes = {
+ColumnList.propTypes = {
   label: PropTypes.string.isRequired,
   columns: PropTypes.arrayOf(PropTypes.shape({ name: PropTypes.string.isRequired })).isRequired,
+  ignoredColumn: PropTypes.string,
+  ignoredLabel: PropTypes.string,
+  className: PropTypes.string,
   testId: PropTypes.string.isRequired,
+};
+
+ColumnList.defaultProps = {
+  ignoredColumn: null,
+  ignoredLabel: '',
+  className: '',
 };
 
 const formatErrors = errors => {
@@ -92,11 +110,20 @@ const BulkImportUsersModal = ({ onClose }) => {
   const importMutation = useBulkImportUsersMutation();
   // Optional help: without it the dialog still imports, and the server's 400s explain any rejection.
   const { data: importFormat } = useBulkImportFormat();
-  const callerProfile = bootstrapData?.callerProfile;
+  const callerRoles = bootstrapData?.callerProfile?.roles || [];
+  const isSuperAdmin = callerRoles.includes('super_admin');
   // Mirrors AddUserModal: every admin below Super Admin imports into their own city.
-  const lockedCityName = callerProfile && !callerProfile.roles.includes('super_admin')
-    ? callerProfile.city?.name
-    : null;
+  // No roles means the profile hasn't loaded (bootstrap falls back to an empty one): no city guidance then.
+  const isCityLocked = callerRoles.length > 0 && !isSuperAdmin;
+  const lockedCityName = isCityLocked ? bootstrapData.callerProfile.city?.name : null;
+  // The server rejects imports from a city-locked admin with no city; say so before upload.
+  const hasNoCity = isCityLocked && !lockedCityName;
+  let cityHint = null;
+  if (lockedCityName) {
+    cityHint = intl.formatMessage(messages.bulkImportCityNotice, { city: lockedCityName });
+  } else if (isSuperAdmin) {
+    cityHint = intl.formatMessage(messages.bulkImportSuperAdminCityHint);
+  }
 
   const allowedRoles = useMemo(
     () => bootstrapData?.callerProfile?.creatable_roles || ['instructor', 'trainee'],
@@ -108,20 +135,19 @@ const BulkImportUsersModal = ({ onClose }) => {
   );
   const [role, setRole] = useState(importableRoles[0]?.id || 'trainee');
   const [file, setFile] = useState(null);
-  const [dryRun, setDryRun] = useState(true);
   const [result, setResult] = useState(null);
   const [error, setError] = useState('');
   const [isDownloading, setIsDownloading] = useState(false);
+  const [showColumns, setShowColumns] = useState(false);
 
   const isSubmitting = importMutation.isPending;
   const roleColumns = importFormat?.columns?.[role] || [];
-  const canSubmit = importableRoles.length > 0 && file && !isSubmitting;
-  let submitLabel = intl.formatMessage(messages.importUsersButton);
-  if (isSubmitting) {
-    submitLabel = intl.formatMessage(messages.processingButton);
-  } else if (dryRun) {
-    submitLabel = intl.formatMessage(messages.runValidationButton);
-  }
+  const requiredColumns = roleColumns.filter(column => column.required);
+  const optionalColumns = roleColumns.filter(column => !column.required);
+  const canSubmit = importableRoles.length > 0 && file && !isSubmitting && !hasNoCity;
+  // Which action is running, so only that button says "Processing...".
+  const pendingDryRun = isSubmitting ? importMutation.variables?.dryRun : undefined;
+  const processingLabel = intl.formatMessage(messages.processingButton);
 
   const handleDownloadSample = async () => {
     setIsDownloading(true);
@@ -136,7 +162,7 @@ const BulkImportUsersModal = ({ onClose }) => {
     }
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (dryRun) => {
     if (!file) {
       setError(intl.formatMessage(messages.chooseFileError));
       return;
@@ -214,29 +240,60 @@ const BulkImportUsersModal = ({ onClose }) => {
               </div>
             </Form.Group>
 
-            {lockedCityName && (
-              <Alert variant="info" className="mb-3">
-                {intl.formatMessage(messages.bulkImportCityNotice, { city: lockedCityName })}
+            {hasNoCity && (
+              <Alert variant="warning" icon={Warning} className="mb-3">
+                {intl.formatMessage(messages.bulkImportNoCityWarning)}
               </Alert>
             )}
 
-            <div className="bulk-import-modal__actions-row">
-              <Button variant="outline-primary" size="sm" onClick={handleDownloadSample} disabled={isDownloading}>
-                <FontAwesomeIcon icon={faDownload} className="bulk-import-modal__download-icon" />
-                {isDownloading
-                  ? intl.formatMessage(messages.downloadingButton)
-                  : intl.formatMessage(messages.downloadSampleButton)}
-              </Button>
-              <Form.Checkbox
-                checked={dryRun}
-                onChange={event => {
-                  setDryRun(event.target.checked);
-                  setResult(null);
-                }}
-              >
-                {intl.formatMessage(messages.dryRunCheckboxLabel)}
-              </Form.Checkbox>
-            </div>
+            <Form.Group>
+              <div className="d-flex flex-wrap align-items-center">
+                <Button
+                  variant="outline-primary"
+                  size="sm"
+                  className="mr-3"
+                  onClick={handleDownloadSample}
+                  disabled={isDownloading}
+                >
+                  <FontAwesomeIcon icon={faDownload} className="bulk-import-modal__download-icon" />
+                  {isDownloading
+                    ? intl.formatMessage(messages.downloadingButton)
+                    : intl.formatMessage(messages.downloadSampleButton)}
+                </Button>
+                {roleColumns.length > 0 && (
+                  <Button
+                    variant="link"
+                    size="sm"
+                    className="px-0"
+                    aria-expanded={showColumns}
+                    onClick={() => setShowColumns(!showColumns)}
+                  >
+                    {intl.formatMessage(messages.bulkImportShowColumns, {
+                      required: requiredColumns.length,
+                      optional: optionalColumns.length,
+                    })}
+                    <FontAwesomeIcon icon={showColumns ? faChevronUp : faChevronDown} className="ml-1" />
+                  </Button>
+                )}
+              </div>
+              {showColumns && roleColumns.length > 0 && (
+                <div className="mt-2">
+                  <ColumnList
+                    label={intl.formatMessage(messages.bulkImportRequiredColumns)}
+                    columns={requiredColumns}
+                    testId="bulk-import-required-columns"
+                  />
+                  <ColumnList
+                    label={intl.formatMessage(messages.bulkImportOptionalColumns)}
+                    columns={optionalColumns}
+                    ignoredColumn={lockedCityName ? CITY_COLUMN : null}
+                    ignoredLabel={intl.formatMessage(messages.bulkImportIgnoredColumn)}
+                    className="text-muted"
+                    testId="bulk-import-optional-columns"
+                  />
+                </div>
+              )}
+            </Form.Group>
 
             <Form.Group>
               <Form.Label>{intl.formatMessage(messages.csvFileLabel)}</Form.Label>
@@ -258,26 +315,14 @@ const BulkImportUsersModal = ({ onClose }) => {
                   })}
                 </Form.Text>
               )}
+              {cityHint && (
+                <div className="d-flex align-items-center small mt-2">
+                  <Icon src={Info} size="sm" className="text-info mr-2" />
+                  {cityHint}
+                </div>
+              )}
             </Form.Group>
 
-            {roleColumns.length > 0 && (
-              <Collapsible
-                styling="basic"
-                className="mb-3"
-                title={intl.formatMessage(messages.bulkImportViewColumns, { count: roleColumns.length })}
-              >
-                <ColumnChips
-                  label={intl.formatMessage(messages.bulkImportRequiredColumns)}
-                  columns={roleColumns.filter(column => column.required)}
-                  testId="bulk-import-required-columns"
-                />
-                <ColumnChips
-                  label={intl.formatMessage(messages.bulkImportOptionalColumns)}
-                  columns={roleColumns.filter(column => !column.required)}
-                  testId="bulk-import-optional-columns"
-                />
-              </Collapsible>
-            )}
           </>
         )}
 
@@ -341,10 +386,14 @@ const BulkImportUsersModal = ({ onClose }) => {
 
       <ModalDialog.Footer>
         <ActionRow>
-          <Button variant="outline-primary" onClick={onClose} disabled={closeDisabled}>{intl.formatMessage(messages.closeButton)}</Button>
-          <Button variant="primary" onClick={handleSubmit} disabled={!canSubmit}>
-            <FontAwesomeIcon icon={dryRun ? faCheck : faUpload} className="bulk-import-modal__submit-icon" />
-            {submitLabel}
+          <Button variant="tertiary" onClick={onClose} disabled={closeDisabled}>{intl.formatMessage(messages.closeButton)}</Button>
+          <Button variant="outline-primary" onClick={() => handleSubmit(true)} disabled={!canSubmit}>
+            <FontAwesomeIcon icon={faCheck} className="bulk-import-modal__submit-icon" />
+            {pendingDryRun === true ? processingLabel : intl.formatMessage(messages.runValidationButton)}
+          </Button>
+          <Button variant="primary" onClick={() => handleSubmit(false)} disabled={!canSubmit}>
+            <FontAwesomeIcon icon={faUpload} className="bulk-import-modal__submit-icon" />
+            {pendingDryRun === false ? processingLabel : intl.formatMessage(messages.importUsersButton)}
           </Button>
         </ActionRow>
       </ModalDialog.Footer>

@@ -44,10 +44,15 @@ const renderModal = (callerProfile = DATA_ADMIN) => {
   );
 };
 
-const uploadAndSubmit = () => {
+const chooseFile = () => {
   const csv = new File(['full_name\n'], 'users.csv', { type: 'text/csv' });
   fireEvent.change(document.querySelector('input[type="file"]'), { target: { files: [csv] } });
-  fireEvent.click(screen.getByRole('button', { name: /run validation/i }));
+  return csv;
+};
+
+const uploadAndSubmit = () => {
+  chooseFile();
+  fireEvent.click(screen.getByRole('button', { name: 'Validate' }));
 };
 
 beforeEach(() => {
@@ -67,6 +72,39 @@ describe('BulkImportUsersModal city notice', () => {
     renderModal(SUPER_ADMIN);
 
     expect(screen.queryByText(/the city column in the file is ignored/i)).not.toBeInTheDocument();
+  });
+});
+
+describe('BulkImportUsersModal city guidance', () => {
+  const NO_CITY_ADMIN = { ...DATA_ADMIN, city: null };
+
+  it('tells a Super Admin that each row needs an existing city', () => {
+    renderModal(SUPER_ADMIN);
+
+    expect(screen.getByText(/added to the city in each row's city column/i)).toBeInTheDocument();
+  });
+
+  it('does not show the Super Admin city hint to a city-locked admin', () => {
+    renderModal(DATA_ADMIN);
+
+    expect(screen.queryByText(/added to the city in each row's city column/i)).not.toBeInTheDocument();
+  });
+
+  it('warns an admin without a city and blocks validating and importing', () => {
+    renderModal(NO_CITY_ADMIN);
+    chooseFile();
+
+    expect(screen.getByText(/your account has no city/i)).toBeInTheDocument();
+    expect(screen.queryByText(CITY_NOTICE)).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Validate' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Import users' })).toBeDisabled();
+  });
+
+  it('shows no city guidance before the caller profile is known', () => {
+    renderModal({ roles: [], city: null, creatable_roles: ['instructor', 'trainee'] });
+
+    expect(screen.queryByText(/your account has no city/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/added to the city in each row/i)).not.toBeInTheDocument();
   });
 });
 
@@ -102,16 +140,24 @@ describe('BulkImportUsersModal results', () => {
 });
 
 describe('BulkImportUsersModal import format', () => {
-  it('shows the accepted file type, size and row limits under the file input', () => {
+  it('shows the accepted file type, size and row limits for the upload', () => {
     renderModal();
 
     expect(screen.getByText('.csv files only · Max 256 KB · Up to 200 rows')).toBeInTheDocument();
   });
 
-  it('lists the selected role\'s columns, split into required and optional, once opened', () => {
+  it('keeps the column list closed until asked for', () => {
     renderModal();
 
-    fireEvent.click(screen.getByText('View CSV columns (4)'));
+    expect(screen.getByRole('button', { name: 'Show columns (2 required, 2 optional)' }))
+      .toHaveAttribute('aria-expanded', 'false');
+    expect(screen.queryByTestId('bulk-import-required-columns')).not.toBeInTheDocument();
+  });
+
+  it('lists the selected role\'s columns, split into required and optional, once opened', () => {
+    renderModal(SUPER_ADMIN);
+
+    fireEvent.click(screen.getByRole('button', { name: /show columns/i }));
 
     const required = screen.getByTestId('bulk-import-required-columns');
     const optional = screen.getByTestId('bulk-import-optional-columns');
@@ -125,9 +171,26 @@ describe('BulkImportUsersModal import format', () => {
     renderModal();
 
     fireEvent.click(screen.getByRole('button', { name: /instructors/i }));
-    fireEvent.click(screen.getByText('View CSV columns (3)'));
+    fireEvent.click(screen.getByRole('button', { name: 'Show columns (2 required, 1 optional)' }));
 
     expect(screen.getByText('field_of_expertise')).toBeInTheDocument();
+  });
+
+  it('marks the city column as ignored for a city-locked admin', () => {
+    renderModal(DATA_ADMIN);
+
+    fireEvent.click(screen.getByRole('button', { name: /show columns/i }));
+
+    expect(within(screen.getByTestId('bulk-import-optional-columns')).getByText('(ignored)'))
+      .toBeInTheDocument();
+  });
+
+  it('does not mark the city column as ignored for a Super Admin', () => {
+    renderModal(SUPER_ADMIN);
+
+    fireEvent.click(screen.getByRole('button', { name: /show columns/i }));
+
+    expect(screen.queryByText('(ignored)')).not.toBeInTheDocument();
   });
 
   it('hides the limits and columns when the format cannot be loaded', () => {
@@ -135,6 +198,46 @@ describe('BulkImportUsersModal import format', () => {
     renderModal();
 
     expect(screen.queryByText(/files only/)).not.toBeInTheDocument();
-    expect(screen.queryByText(/view csv columns/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/show columns/i)).not.toBeInTheDocument();
+  });
+});
+
+describe('BulkImportUsersModal actions', () => {
+  it('disables Validate and Import users until a file is chosen', () => {
+    renderModal();
+
+    expect(screen.getByRole('button', { name: 'Validate' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Import users' })).toBeDisabled();
+  });
+
+  it('validates the file without creating users', async () => {
+    mutateAsync.mockResolvedValue({ dry_run: true, rows: [] });
+    renderModal();
+    const csv = chooseFile();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Validate' }));
+
+    await waitFor(() => expect(mutateAsync).toHaveBeenCalledWith({ role: 'trainee', file: csv, dryRun: true }));
+  });
+
+  it('imports the file when asked to', async () => {
+    mutateAsync.mockResolvedValue({ dry_run: false, rows: [] });
+    renderModal();
+    const csv = chooseFile();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Import users' }));
+
+    await waitFor(() => expect(mutateAsync).toHaveBeenCalledWith({ role: 'trainee', file: csv, dryRun: false }));
+  });
+
+  it('labels a validation result as Validation', async () => {
+    mutateAsync.mockResolvedValue({
+      dry_run: true, total: 0, valid: 0, failed: 0, rows: [],
+    });
+    renderModal();
+
+    uploadAndSubmit();
+
+    expect(await screen.findByText('Validation')).toBeInTheDocument();
   });
 });
