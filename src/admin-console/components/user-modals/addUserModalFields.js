@@ -179,7 +179,7 @@ export const getCreateFieldsForRole = (role, traineeType, shouldShowCity) => {
   if (ADMIN_ROLES.includes(role)) {
     return [
       [F.fullName],
-      [F.email, { ...F.cnic, required: true }],
+      [F.email, F.cnic],
       [{ ...F.mobile, required: false }],
       [F.fieldOrganisation],
       ...cityRow,
