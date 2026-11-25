@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import isBulkImportJobActive from './bulkImportJob';
@@ -157,8 +156,11 @@ export const useBulkImportUsersMutation = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: bulkImportUsers,
-    onSuccess: (data, variables) => {
+    onSuccess: (job, variables) => {
       if (!variables.dryRun) {
+        // The 202 already describes the new job: seed its query so the modal
+        // and the toolbar follow it without fetching it first.
+        queryClient.setQueryData(adminConsoleQueryKeys.bulkImportJob(job.id), job);
         queryClient.invalidateQueries({ queryKey: adminConsoleQueryKeys.bulkImportJobs });
       }
     },
@@ -168,35 +170,38 @@ export const useBulkImportUsersMutation = () => {
 const BULK_IMPORT_POLL_INTERVAL = 5000;
 
 /**
- * Polls one bulk import job every 5 s until it finishes. The server reports
- * a job still active after 10 minutes as failed, so polling always ends.
- * Once it finishes, the users list and Recent imports are refreshed.
+ * One bulk import job, polled every 5 s while it is active. Every caller
+ * (the Import dialog, the toolbar) shares this query, so one request serves
+ * them all. The server reports a job still active after 10 minutes as failed,
+ * so polling always ends. When a poll sees the job finish, the users list
+ * and Recent imports are refreshed once.
  */
 export const useBulkImportJob = (jobId) => {
   const queryClient = useQueryClient();
-  const query = useQuery({
-    queryKey: adminConsoleQueryKeys.bulkImportJob(jobId),
-    queryFn: () => getBulkImportJob(jobId),
+  const queryKey = adminConsoleQueryKeys.bulkImportJob(jobId);
+  return useQuery({
+    queryKey,
+    queryFn: async () => {
+      const wasActive = isBulkImportJobActive(queryClient.getQueryData(queryKey));
+      const job = await getBulkImportJob(jobId);
+      if (wasActive && !isBulkImportJobActive(job)) {
+        queryClient.invalidateQueries({ queryKey: usersQueryKeys.all });
+        queryClient.invalidateQueries({ queryKey: adminConsoleQueryKeys.bulkImportJobs });
+      }
+      return job;
+    },
     enabled: Boolean(jobId),
     refetchInterval: ({ state }) => (
       isBulkImportJobActive(state.data) ? BULK_IMPORT_POLL_INTERVAL : false
     ),
   });
-  const isFinished = Boolean(query.data) && !isBulkImportJobActive(query.data);
-  useEffect(() => {
-    if (isFinished) {
-      queryClient.invalidateQueries({ queryKey: usersQueryKeys.all });
-      queryClient.invalidateQueries({ queryKey: adminConsoleQueryKeys.bulkImportJobs });
-    }
-  }, [isFinished, queryClient]);
-  return query;
 };
 
-/** The caller's recent imports, refreshed every 5 s while any is still running. */
+/**
+ * The caller's recent imports, as summaries without failed rows. Loaded once;
+ * it is refreshed when an import starts or finishes, never on a timer.
+ */
 export const useBulkImportJobs = () => useQuery({
   queryKey: adminConsoleQueryKeys.bulkImportJobs,
   queryFn: getBulkImportJobs,
-  refetchInterval: ({ state }) => (
-    (state.data || []).some(isBulkImportJobActive) ? BULK_IMPORT_POLL_INTERVAL : false
-  ),
 });

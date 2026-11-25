@@ -6,7 +6,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHistory, faUpload, faPlus } from '@fortawesome/free-solid-svg-icons';
 import { useIntl } from '@edx/frontend-platform/i18n';
 import Breadcrumb from '../../components/breadcrumb/Breadcrumb';
-import { useBulkImportJobs } from '../../data/apiHooks';
+import { useBulkImportJob, useBulkImportJobs } from '../../data/apiHooks';
 import isBulkImportJobActive from '../../data/bulkImportJob';
 import messages from './messages';
 import './users-styles.scss';
@@ -14,11 +14,15 @@ import './users-styles.scss';
 /**
  * Breadcrumb + title + subtitle + Import/Recent imports/Add User buttons for the Users page.
  * While one of the admin's imports runs, Import says so and cannot start another.
+ * The list is read once to find a running import; that import is then followed
+ * by id, the same query the Import dialog polls.
  */
 const UsersToolbar = ({ onRecentImports, onImport, onAdd }) => {
   const intl = useIntl();
   const { data: recentImports = [] } = useBulkImportJobs();
-  const isImportRunning = recentImports.some(isBulkImportJobActive);
+  const activeImportId = recentImports.find(isBulkImportJobActive)?.id;
+  const { data: activeImport } = useBulkImportJob(activeImportId);
+  const isImportRunning = Boolean(activeImportId) && (!activeImport || isBulkImportJobActive(activeImport));
 
   return (
     <>

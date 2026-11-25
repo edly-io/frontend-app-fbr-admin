@@ -4,7 +4,7 @@ import {
   ActionRow, Badge, Button, ModalDialog, Spinner,
 } from '@openedx/paragon';
 import { useIntl } from '@edx/frontend-platform/i18n';
-import { useBulkImportJobs } from '../../data/apiHooks';
+import { useBulkImportJob, useBulkImportJobs } from '../../data/apiHooks';
 import isBulkImportJobActive from '../../data/bulkImportJob';
 import messages from '../messages';
 import ImportJobOutcome from './ImportJobOutcome';
@@ -98,24 +98,25 @@ JobsTable.propTypes = {
 
 /**
  * The caller's last 10 bulk imports, so an admin who closed the Import Users
- * dialog can still see how an import went. Opening one shows its failed rows.
+ * dialog can still see how an import went. Opening one loads its failed rows.
  */
 const RecentImportsModal = ({ onClose }) => {
   const intl = useIntl();
   const { data: jobs = [], isLoading } = useBulkImportJobs();
   const [viewedJobId, setViewedJobId] = useState(null);
-  const viewedJob = jobs.find(job => job.id === viewedJobId);
+  const { data: viewedJob } = useBulkImportJob(viewedJobId);
+  const spinner = <Spinner animation="border" screenReaderText={intl.formatMessage(messages.recentImportsLoading)} />;
 
   let body;
   if (isLoading) {
-    body = <Spinner animation="border" screenReaderText={intl.formatMessage(messages.recentImportsLoading)} />;
-  } else if (viewedJob) {
+    body = spinner;
+  } else if (viewedJobId) {
     body = (
       <>
         <Button variant="link" size="sm" className="px-0" onClick={() => setViewedJobId(null)}>
           {intl.formatMessage(messages.recentImportsBackButton)}
         </Button>
-        <ImportJobOutcome job={viewedJob} />
+        {viewedJob ? <ImportJobOutcome job={viewedJob} /> : spinner}
       </>
     );
   } else if (jobs.length === 0) {

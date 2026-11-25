@@ -5,23 +5,27 @@ import {
 import '@testing-library/jest-dom';
 import { IntlProvider } from 'react-intl';
 
-import { useBulkImportJobs } from '../../data/apiHooks';
+import { useBulkImportJob, useBulkImportJobs } from '../../data/apiHooks';
 import RecentImportsModal from './RecentImportsModal';
 
 jest.mock('../../data/apiHooks', () => ({
   useBulkImportJobs: jest.fn(),
+  useBulkImportJob: jest.fn(),
 }));
 
+// The list endpoint returns summaries; failed rows come from the job itself.
 const job = overrides => ({
   id: 7,
   role: 'trainee',
   status: 'completed',
   total_rows: 3,
   created_count: 2,
-  failures: [{ row: 3, errors: { batch: ['Batch not found.'] } }],
   created_at: '2026-11-25T08:30:00Z',
   ...overrides,
 });
+const FAILURES = [{ row: 3, email: 'ali@example.com', errors: { batch: ['Batch not found.'] } }];
+
+beforeEach(() => useBulkImportJob.mockReturnValue({ data: undefined }));
 
 const renderModal = () => render(
   <IntlProvider locale="en">
@@ -34,7 +38,7 @@ describe('RecentImportsModal', () => {
     useBulkImportJobs.mockReturnValue({
       data: [
         job({
-          id: 8, role: 'instructor', status: 'running', created_count: 0, failures: [],
+          id: 8, role: 'instructor', status: 'running', created_count: 0,
         }),
         job(),
       ],
@@ -55,10 +59,10 @@ describe('RecentImportsModal', () => {
   });
 
   it.each([
-    [{ status: 'completed', created_count: 3, failures: [] }, 'All created'],
+    [{ status: 'completed', created_count: 3 }, 'All created'],
     [{ status: 'completed', created_count: 2 }, 'Partly created'],
     [{ status: 'completed', created_count: 0 }, 'None created'],
-    [{ status: 'failed', created_count: 0, failures: [] }, 'Did not finish'],
+    [{ status: 'failed', created_count: 0 }, 'Did not finish'],
   ])('labels a finished import by what happened to its users', (overrides, label) => {
     useBulkImportJobs.mockReturnValue({ data: [job(overrides)], isLoading: false });
 
@@ -69,10 +73,13 @@ describe('RecentImportsModal', () => {
 
   it('opens an import to show its failed rows, then goes back to the list', () => {
     useBulkImportJobs.mockReturnValue({ data: [job()], isLoading: false });
+    useBulkImportJob.mockImplementation(id => ({ data: id === 7 ? job({ failures: FAILURES }) : undefined }));
     renderModal();
 
     fireEvent.click(screen.getByRole('button', { name: 'View' }));
 
+    expect(useBulkImportJob).toHaveBeenLastCalledWith(7);
+    expect(screen.getByText('ali@example.com')).toBeInTheDocument();
     expect(screen.getByText('2 of 3 users created, 1 failed.')).toBeInTheDocument();
     expect(screen.getByText('batch: Batch not found.')).toBeInTheDocument();
 
