@@ -8,6 +8,12 @@
   display: flex;
   gap: 10px;
   margin-top: 2px;
+
+  // StatefulButton blocks clicks with aria-disabled, not `disabled`, so the
+  // hand cursor would stay; show that the button cannot be used.
+  .btn[aria-disabled="true"] {
+    cursor: not-allowed;
+  }
 }
 
 .users-filters__tabs {
