@@ -639,6 +639,11 @@ const messages = defineMessages({
     defaultMessage: 'View',
     description: 'Button to open one import and see its failed rows.',
   },
+  recentImportsViewButtonContext: {
+    id: 'fbrAdmin.recentImports.button.viewContext',
+    defaultMessage: 'import started {started}',
+    description: 'Screen-reader-only text after "View" saying which import the button opens.',
+  },
   recentImportsBackButton: {
     id: 'fbrAdmin.recentImports.button.back',
     defaultMessage: 'Back to recent imports',

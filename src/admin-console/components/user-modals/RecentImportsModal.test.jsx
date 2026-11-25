@@ -76,7 +76,7 @@ describe('RecentImportsModal', () => {
     useBulkImportJob.mockImplementation(id => ({ data: id === 7 ? job({ failures: FAILURES }) : undefined }));
     renderModal();
 
-    fireEvent.click(screen.getByRole('button', { name: 'View' }));
+    fireEvent.click(screen.getByRole('button', { name: /^View/ }));
 
     expect(useBulkImportJob).toHaveBeenLastCalledWith(7);
     expect(screen.getByText('ali@example.com')).toBeInTheDocument();
@@ -86,6 +86,30 @@ describe('RecentImportsModal', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Back to recent imports' }));
 
     expect(screen.getByText('Partly created')).toBeInTheDocument();
+  });
+
+  it('names each View button after the import it opens', () => {
+    useBulkImportJobs.mockReturnValue({ data: [job({ id: 8 }), job()], isLoading: false });
+
+    renderModal();
+
+    const names = screen.getAllByRole('button', { name: /^View/ }).map(button => button.textContent);
+    expect(names).toHaveLength(2);
+    names.forEach(name => expect(name).toMatch(/^View import started .*2026/));
+  });
+
+  it('keeps keyboard focus on the controls when opening an import and going back', () => {
+    useBulkImportJobs.mockReturnValue({ data: [job({ id: 8 }), job()], isLoading: false });
+    useBulkImportJob.mockImplementation(id => ({ data: id ? job({ id, failures: FAILURES }) : undefined }));
+    renderModal();
+
+    fireEvent.click(screen.getAllByRole('button', { name: /^View/ })[1]);
+
+    expect(screen.getByRole('button', { name: 'Back to recent imports' })).toHaveFocus();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Back to recent imports' }));
+
+    expect(screen.getAllByRole('button', { name: /^View/ })[1]).toHaveFocus();
   });
 
   it('says when there are no imports yet', () => {
