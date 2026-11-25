@@ -1,4 +1,7 @@
+import { useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+
+import isBulkImportJobActive from './bulkImportJob';
 
 import {
   getAdminConsoleBootstrap,
@@ -6,6 +9,8 @@ import {
   assignUserRole,
   bulkImportUsers,
   getBulkImportFormat,
+  getBulkImportJob,
+  getBulkImportJobs,
   getReportFilters,
   createBatch,
   addUserRole,
@@ -22,6 +27,8 @@ export const adminConsoleQueryKeys = {
   roleCities: ['adminConsole', 'add-role', 'cities'],
   roleBatches: cityId => ['adminConsole', 'add-role', 'batches', cityId],
   bulkImportFormat: ['adminConsole', 'bulk-import', 'format'],
+  bulkImportJobs: ['adminConsole', 'bulk-import', 'jobs'],
+  bulkImportJob: jobId => ['adminConsole', 'bulk-import', 'jobs', jobId],
 };
 
 const REPORT_FILTERS_STALE_TIME = 5 * 60 * 1000;
@@ -152,8 +159,44 @@ export const useBulkImportUsersMutation = () => {
     mutationFn: bulkImportUsers,
     onSuccess: (data, variables) => {
       if (!variables.dryRun) {
-        queryClient.invalidateQueries({ queryKey: usersQueryKeys.all });
+        queryClient.invalidateQueries({ queryKey: adminConsoleQueryKeys.bulkImportJobs });
       }
     },
   });
 };
+
+const BULK_IMPORT_POLL_INTERVAL = 5000;
+
+/**
+ * Polls one bulk import job every 5 s until it finishes. The server reports
+ * a job still active after 10 minutes as failed, so polling always ends.
+ * Once it finishes, the users list and Recent imports are refreshed.
+ */
+export const useBulkImportJob = (jobId) => {
+  const queryClient = useQueryClient();
+  const query = useQuery({
+    queryKey: adminConsoleQueryKeys.bulkImportJob(jobId),
+    queryFn: () => getBulkImportJob(jobId),
+    enabled: Boolean(jobId),
+    refetchInterval: ({ state }) => (
+      isBulkImportJobActive(state.data) ? BULK_IMPORT_POLL_INTERVAL : false
+    ),
+  });
+  const isFinished = Boolean(query.data) && !isBulkImportJobActive(query.data);
+  useEffect(() => {
+    if (isFinished) {
+      queryClient.invalidateQueries({ queryKey: usersQueryKeys.all });
+      queryClient.invalidateQueries({ queryKey: adminConsoleQueryKeys.bulkImportJobs });
+    }
+  }, [isFinished, queryClient]);
+  return query;
+};
+
+/** The caller's recent imports, refreshed every 5 s while any is still running. */
+export const useBulkImportJobs = () => useQuery({
+  queryKey: adminConsoleQueryKeys.bulkImportJobs,
+  queryFn: getBulkImportJobs,
+  refetchInterval: ({ state }) => (
+    (state.data || []).some(isBulkImportJobActive) ? BULK_IMPORT_POLL_INTERVAL : false
+  ),
+});

@@ -6,7 +6,7 @@ import '@testing-library/jest-dom';
 import { IntlProvider } from 'react-intl';
 
 import {
-  useAdminConsoleBootstrap, useBulkImportFormat, useBulkImportUsersMutation,
+  useAdminConsoleBootstrap, useBulkImportFormat, useBulkImportJob, useBulkImportUsersMutation,
 } from '../../data/apiHooks';
 import BulkImportUsersModal from './BulkImportUsersModal';
 
@@ -14,6 +14,7 @@ jest.mock('../../data/apiHooks', () => ({
   useAdminConsoleBootstrap: jest.fn(),
   useBulkImportFormat: jest.fn(),
   useBulkImportUsersMutation: jest.fn(),
+  useBulkImportJob: jest.fn(),
 }));
 
 jest.mock('../../data/api', () => ({
@@ -35,13 +36,15 @@ const IMPORT_FORMAT = {
 };
 const CITY_NOTICE = /all users will be added to lahore\. the city column in the file is ignored\./i;
 
+const modal = () => (
+  <IntlProvider locale="en">
+    <BulkImportUsersModal onClose={jest.fn()} />
+  </IntlProvider>
+);
+
 const renderModal = (callerProfile = DATA_ADMIN) => {
   useAdminConsoleBootstrap.mockReturnValue({ data: { callerProfile } });
-  return render(
-    <IntlProvider locale="en">
-      <BulkImportUsersModal onClose={jest.fn()} />
-    </IntlProvider>,
-  );
+  return render(modal());
 };
 
 const chooseFile = () => {
@@ -59,6 +62,7 @@ beforeEach(() => {
   mutateAsync.mockReset();
   useBulkImportUsersMutation.mockReturnValue({ mutateAsync, isPending: false });
   useBulkImportFormat.mockReturnValue({ data: IMPORT_FORMAT });
+  useBulkImportJob.mockReturnValue({ data: undefined });
 });
 
 describe('BulkImportUsersModal city notice', () => {
@@ -268,5 +272,78 @@ describe('BulkImportUsersModal actions', () => {
     uploadAndSubmit();
 
     expect(await screen.findByText('Validation')).toBeInTheDocument();
+  });
+});
+
+describe('BulkImportUsersModal background import', () => {
+  const job = overrides => ({
+    id: 7, role: 'trainee', status: 'pending', total_rows: 3, created_count: 0, failures: [], ...overrides,
+  });
+
+  const startImport = async () => {
+    mutateAsync.mockResolvedValue(job());
+    useBulkImportJob.mockReturnValue({ data: job({ status: 'running' }) });
+    const view = renderModal();
+    chooseFile();
+    fireEvent.click(screen.getByRole('button', { name: 'Import users' }));
+    expect(await screen.findByText(/importing… this can take a couple of minutes/i)).toBeInTheDocument();
+    expect(useBulkImportJob).toHaveBeenLastCalledWith(7);
+    return view;
+  };
+
+  it('waits for the job, then shows the counts and only the failed rows', async () => {
+    const { rerender } = await startImport();
+
+    useBulkImportJob.mockReturnValue({
+      data: job({
+        status: 'completed',
+        created_count: 2,
+        failures: [{ row: 3, email: 'ali@example.com', errors: { batch: ['Batch not found.'] } }],
+      }),
+    });
+    rerender(modal());
+
+    expect(screen.getByText('2 of 3 users created, 1 failed.')).toBeInTheDocument();
+    const rows = within(screen.getByRole('table')).getAllByRole('row');
+    expect(rows).toHaveLength(2);
+    expect(within(rows[0]).getAllByRole('columnheader').map(cell => cell.textContent)).toEqual(
+      ['ROW', 'EMAIL', 'ERRORS'],
+    );
+    expect(within(rows[1]).getByText('3')).toBeInTheDocument();
+    expect(within(rows[1]).getByText('ali@example.com')).toBeInTheDocument();
+    expect(within(rows[1]).getByText('batch: Batch not found.')).toBeInTheDocument();
+    expect(screen.queryByText(/importing…/i)).not.toBeInTheDocument();
+  });
+
+  it('says every user was created when no row failed', async () => {
+    const { rerender } = await startImport();
+
+    useBulkImportJob.mockReturnValue({ data: job({ status: 'completed', created_count: 3 }) });
+    rerender(modal());
+
+    expect(screen.getByText('All 3 users created.')).toBeInTheDocument();
+    expect(screen.queryByRole('table')).not.toBeInTheDocument();
+  });
+
+  it('shows the server message when an import is already running', async () => {
+    const detail = 'An import is already running. Wait for it to finish, then try again.';
+    mutateAsync.mockRejectedValue({ response: { status: 409, data: { detail } } });
+    renderModal();
+    chooseFile();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Import users' }));
+
+    expect(await screen.findByText(detail)).toBeInTheDocument();
+    expect(screen.queryByText(/importing…/i)).not.toBeInTheDocument();
+  });
+
+  it('says the import did not finish when the job failed', async () => {
+    const { rerender } = await startImport();
+
+    useBulkImportJob.mockReturnValue({ data: job({ status: 'failed' }) });
+    rerender(modal());
+
+    expect(screen.getByText('The import did not finish. Check Recent imports or the user list.')).toBeInTheDocument();
+    expect(screen.queryByText(/users created/i)).not.toBeInTheDocument();
   });
 });

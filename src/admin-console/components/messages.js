@@ -544,6 +544,106 @@ const messages = defineMessages({
     defaultMessage: 'Processing...',
     description: 'Button label shown while a bulk import is submitting.',
   },
+  importInProgress: {
+    id: 'fbrAdmin.bulkImportModal.job.inProgress',
+    defaultMessage: 'Importing… this can take a couple of minutes. You can close this window; the import keeps running.',
+    description: 'Shown while a bulk import job runs in the background.',
+  },
+  importAllCreated: {
+    id: 'fbrAdmin.bulkImportModal.job.allCreated',
+    defaultMessage: 'All {total} users created.',
+    description: 'Outcome of a bulk import job where every row was created.',
+  },
+  importPartlyCreated: {
+    id: 'fbrAdmin.bulkImportModal.job.partlyCreated',
+    defaultMessage: '{created} of {total} users created, {failed} failed.',
+    description: 'Outcome of a bulk import job where some rows failed.',
+  },
+  importJobFailed: {
+    id: 'fbrAdmin.bulkImportModal.job.failed',
+    defaultMessage: 'The import did not finish. Check Recent imports or the user list.',
+    description: 'Shown when a bulk import job crashed or was lost.',
+  },
+  recentImportsTitle: {
+    id: 'fbrAdmin.recentImports.title',
+    defaultMessage: 'Recent imports',
+    description: 'Title of the Recent imports dialog.',
+  },
+  recentImportsLoading: {
+    id: 'fbrAdmin.recentImports.loading',
+    defaultMessage: 'Loading recent imports',
+    description: 'Screen-reader text while recent imports load.',
+  },
+  recentImportsEmpty: {
+    id: 'fbrAdmin.recentImports.empty',
+    defaultMessage: 'No imports yet.',
+    description: 'Shown when the admin has no bulk imports.',
+  },
+  recentImportsColumnDate: {
+    id: 'fbrAdmin.recentImports.column.date',
+    defaultMessage: 'Started',
+    description: 'Recent imports column: when the import started.',
+  },
+  recentImportsColumnType: {
+    id: 'fbrAdmin.recentImports.column.type',
+    defaultMessage: 'Type',
+    description: 'Recent imports column: trainees or instructors.',
+  },
+  recentImportsColumnStatus: {
+    id: 'fbrAdmin.recentImports.column.status',
+    defaultMessage: 'Status',
+    description: 'Recent imports column: the import status.',
+  },
+  recentImportsColumnCreated: {
+    id: 'fbrAdmin.recentImports.column.created',
+    defaultMessage: 'Users created',
+    description: 'Recent imports column: users created out of rows.',
+  },
+  recentImportsColumnDetails: {
+    id: 'fbrAdmin.recentImports.column.details',
+    defaultMessage: 'Details',
+    description: 'Recent imports column holding the View button.',
+  },
+  recentImportsStatusAllCreated: {
+    id: 'fbrAdmin.recentImports.status.allCreated',
+    defaultMessage: 'All created',
+    description: 'Outcome of an import that created every user in the file.',
+  },
+  recentImportsStatusPartlyCreated: {
+    id: 'fbrAdmin.recentImports.status.partlyCreated',
+    defaultMessage: 'Partly created',
+    description: 'Outcome of an import where some rows failed.',
+  },
+  recentImportsStatusNoneCreated: {
+    id: 'fbrAdmin.recentImports.status.noneCreated',
+    defaultMessage: 'None created',
+    description: 'Outcome of an import where every row failed.',
+  },
+  recentImportsStatusDidNotFinish: {
+    id: 'fbrAdmin.recentImports.status.didNotFinish',
+    defaultMessage: 'Did not finish',
+    description: 'Outcome of an import that crashed or was lost.',
+  },
+  recentImportsStatusInProgress: {
+    id: 'fbrAdmin.recentImports.status.inProgress',
+    defaultMessage: 'In progress',
+    description: 'Status of an import still running.',
+  },
+  recentImportsCreatedOfTotal: {
+    id: 'fbrAdmin.recentImports.createdOfTotal',
+    defaultMessage: '{created} of {total}',
+    description: 'Users created out of the rows in the file.',
+  },
+  recentImportsViewButton: {
+    id: 'fbrAdmin.recentImports.button.view',
+    defaultMessage: 'View',
+    description: 'Button to open one import and see its failed rows.',
+  },
+  recentImportsBackButton: {
+    id: 'fbrAdmin.recentImports.button.back',
+    defaultMessage: 'Back to recent imports',
+    description: 'Button to go back from one import to the list.',
+  },
   resultModeLabel: {
     id: 'fbrAdmin.bulkImportModal.result.mode',
     defaultMessage: 'Mode',
@@ -554,11 +654,6 @@ const messages = defineMessages({
     defaultMessage: 'Validation',
     description: 'Result summary value shown when the import was a dry run.',
   },
-  resultModeImport: {
-    id: 'fbrAdmin.bulkImportModal.result.modeImport',
-    defaultMessage: 'Import',
-    description: 'Result summary value shown when the import was a real import.',
-  },
   resultTotalRows: {
     id: 'fbrAdmin.bulkImportModal.result.totalRows',
     defaultMessage: 'Total rows',
@@ -568,11 +663,6 @@ const messages = defineMessages({
     id: 'fbrAdmin.bulkImportModal.result.validRows',
     defaultMessage: 'Valid rows',
     description: 'Result summary card label for the number of valid rows in a dry run.',
-  },
-  resultCreated: {
-    id: 'fbrAdmin.bulkImportModal.result.created',
-    defaultMessage: 'Created',
-    description: 'Result summary card label for the number of created rows in a real import.',
   },
   resultFailed: {
     id: 'fbrAdmin.bulkImportModal.result.failed',
@@ -613,11 +703,6 @@ const messages = defineMessages({
     id: 'fbrAdmin.bulkImportModal.result.status.valid',
     defaultMessage: 'Valid',
     description: 'Result row status badge label for a valid row in a dry run.',
-  },
-  resultStatusCreated: {
-    id: 'fbrAdmin.bulkImportModal.result.status.created',
-    defaultMessage: 'Created',
-    description: 'Result row status badge label for a created row in a real import.',
   },
   emptyValue: {
     id: 'fbrAdmin.bulkImportModal.emptyValue',
