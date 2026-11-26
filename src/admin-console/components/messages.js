@@ -649,6 +649,11 @@ const messages = defineMessages({
     defaultMessage: 'import started {started}',
     description: 'Screen-reader-only text after "View" saying which import the button opens.',
   },
+  recentImportsJobDetails: {
+    id: 'fbrAdmin.recentImports.jobDetails',
+    defaultMessage: '{type} · Started {started}',
+    description: 'Line under an opened import\'s file name: what was imported and when.',
+  },
   recentImportsBackButton: {
     id: 'fbrAdmin.recentImports.button.back',
     defaultMessage: 'Back to recent imports',

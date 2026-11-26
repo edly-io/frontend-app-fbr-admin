@@ -82,6 +82,7 @@ describe('RecentImportsModal', () => {
 
     expect(useBulkImportJob).toHaveBeenLastCalledWith(7);
     expect(screen.getByText('karachi_batch.csv')).toBeInTheDocument();
+    expect(screen.getByText(/^Trainees · Started .*2026/)).toBeInTheDocument();
     expect(screen.getByText('ali@example.com')).toBeInTheDocument();
     expect(screen.getByText('2 of 3 users created, 1 failed.')).toBeInTheDocument();
     expect(screen.getByText('batch: Batch not found.')).toBeInTheDocument();

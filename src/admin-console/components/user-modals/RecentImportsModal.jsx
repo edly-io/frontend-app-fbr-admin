@@ -1,14 +1,17 @@
 import React, { useEffect, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import {
-  ActionRow, Badge, Button, ModalDialog, Spinner,
+  ActionRow, Badge, Button, Icon, ModalDialog, Spinner,
 } from '@openedx/paragon';
+import { Description } from '@openedx/paragon/icons';
 import { useIntl } from '@edx/frontend-platform/i18n';
 import { useBulkImportJob, useBulkImportJobs } from '../../data/apiHooks';
 import isBulkImportJobActive from '../../data/bulkImportJob';
 import messages from '../messages';
 import ImportJobOutcome from './ImportJobOutcome';
 import './user-modals-styles.scss';
+
+const formatStarted = (intl, job) => intl.formatDate(job.created_at, { dateStyle: 'medium', timeStyle: 'short' });
 
 const ROLE_LABELS = {
   trainee: messages.bulkImportRoleTrainees,
@@ -75,7 +78,7 @@ const JobsTable = ({ jobs, onView, focusJobId }) => {
           </thead>
           <tbody>
             {jobs.map(job => {
-              const started = intl.formatDate(job.created_at, { dateStyle: 'medium', timeStyle: 'short' });
+              const started = formatStarted(intl, job);
               return (
                 <tr key={job.id} className="bulk-import-modal__table-row">
                   <td className="bulk-import-modal__table-cell">{started}</td>
@@ -122,6 +125,33 @@ JobsTable.defaultProps = {
   focusJobId: null,
 };
 
+/** Which import is open: its file, then its type and start time. */
+const JobHeader = ({ job }) => {
+  const intl = useIntl();
+  return (
+    <div className="d-flex align-items-start mt-3">
+      <Icon src={Description} className="text-muted mr-2 flex-shrink-0" />
+      <div>
+        <div className="text-dark text-break">{job.file_name}</div>
+        <div className="small text-muted">
+          {intl.formatMessage(messages.recentImportsJobDetails, {
+            type: intl.formatMessage(ROLE_LABELS[job.role]),
+            started: formatStarted(intl, job),
+          })}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+JobHeader.propTypes = {
+  job: PropTypes.shape({
+    file_name: PropTypes.string.isRequired,
+    role: PropTypes.string.isRequired,
+    created_at: PropTypes.string.isRequired,
+  }).isRequired,
+};
+
 /** Back to the list; takes focus when shown, since View's button is gone. */
 const BackButton = ({ onClick }) => {
   const intl = useIntl();
@@ -163,7 +193,7 @@ const RecentImportsModal = ({ onClose }) => {
         <BackButton onClick={() => setViewedJobId(null)} />
         {viewedJob ? (
           <>
-            <p className="font-weight-bold text-break mt-3 mb-0">{viewedJob.file_name}</p>
+            <JobHeader job={viewedJob} />
             <ImportJobOutcome job={viewedJob} />
           </>
         ) : spinner}
