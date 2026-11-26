@@ -1,18 +1,28 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Button } from '@openedx/paragon';
+import { Button, Icon, StatefulButton } from '@openedx/paragon';
+import { SpinnerSimple } from '@openedx/paragon/icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faUpload, faPlus } from '@fortawesome/free-solid-svg-icons';
+import { faHistory, faUpload, faPlus } from '@fortawesome/free-solid-svg-icons';
 import { useIntl } from '@edx/frontend-platform/i18n';
 import Breadcrumb from '../../components/breadcrumb/Breadcrumb';
+import { useBulkImportJob, useBulkImportJobs } from '../../data/apiHooks';
+import isBulkImportJobActive from '../../data/bulkImportJob';
 import messages from './messages';
 import './users-styles.scss';
 
 /**
- * Breadcrumb + title + subtitle + Import/Add User buttons for the Users page.
+ * Breadcrumb + title + subtitle + Import/Recent imports/Add User buttons for the Users page.
+ * While one of the admin's imports runs, Import says so and cannot start another.
+ * The list is read once to find a running import; that import is then followed
+ * by id, the same query the Import dialog polls.
  */
-const UsersToolbar = ({ onImport, onAdd }) => {
+const UsersToolbar = ({ onRecentImports, onImport, onAdd }) => {
   const intl = useIntl();
+  const { data: recentImports = [] } = useBulkImportJobs();
+  const activeImportId = recentImports.find(isBulkImportJobActive)?.id;
+  const { data: activeImport } = useBulkImportJob(activeImportId);
+  const isImportRunning = Boolean(activeImportId) && (!activeImport || isBulkImportJobActive(activeImport));
 
   return (
     <>
@@ -22,9 +32,24 @@ const UsersToolbar = ({ onImport, onAdd }) => {
           {intl.formatMessage(messages.pageTitle)}
         </h1>
         <div className="users-page__header-actions">
-          <Button variant="outline-primary" size="sm" onClick={onImport}>
-            <FontAwesomeIcon icon={faUpload} className="mr-2" />
-            {intl.formatMessage(messages.importButton)}
+          <StatefulButton
+            variant="outline-primary"
+            size="sm"
+            state={isImportRunning ? 'pending' : 'default'}
+            disabledStates={['pending']}
+            labels={{
+              default: intl.formatMessage(messages.importButton),
+              pending: intl.formatMessage(messages.importRunningButton),
+            }}
+            icons={{
+              default: <FontAwesomeIcon icon={faUpload} />,
+              pending: <Icon src={SpinnerSimple} className="icon-spin" />,
+            }}
+            onClick={onImport}
+          />
+          <Button variant="outline-primary" size="sm" onClick={onRecentImports}>
+            <FontAwesomeIcon icon={faHistory} className="mr-2" />
+            {intl.formatMessage(messages.recentImportsButton)}
           </Button>
           <Button variant="primary" size="sm" onClick={onAdd}>
             <FontAwesomeIcon icon={faPlus} className="mr-2" />
@@ -40,6 +65,7 @@ const UsersToolbar = ({ onImport, onAdd }) => {
 };
 
 UsersToolbar.propTypes = {
+  onRecentImports: PropTypes.func.isRequired,
   onImport: PropTypes.func.isRequired,
   onAdd: PropTypes.func.isRequired,
 };

@@ -16,6 +16,7 @@ export const BIODATA_USER_TRAINEE_CREATE_PATH = '/fbr/api/biodata/v1/users/train
 export const BIODATA_USER_BULK_IMPORT_SAMPLE_PATH = '/fbr/api/biodata/v1/users/bulk-import/sample/';
 export const BIODATA_USER_BULK_IMPORT_PATH = '/fbr/api/biodata/v1/users/bulk-import/';
 export const BIODATA_USER_BULK_IMPORT_FORMAT_PATH = '/fbr/api/biodata/v1/users/bulk-import/format/';
+export const BIODATA_USER_BULK_IMPORT_JOBS_PATH = '/fbr/api/biodata/v1/users/bulk-import/jobs/';
 
 export const getLmsUrl = path => `${getConfig().LMS_BASE_URL}${path}`;
 
@@ -227,6 +228,21 @@ export const bulkImportUsers = async ({ role, file, dryRun }) => {
   formData.append('file', file);
 
   const { data } = await getAuthenticatedHttpClient().post(getBiodataBulkImportUrl(), formData);
+  return data;
+};
+
+/**
+ * Loads one bulk import job: its status and, once finished, the counts and
+ * the failed rows.
+ */
+export const getBulkImportJob = async (jobId) => {
+  const { data } = await getAuthenticatedHttpClient().get(getLmsUrl(`${BIODATA_USER_BULK_IMPORT_JOBS_PATH}${jobId}/`));
+  return data;
+};
+
+/** Loads the caller's most recent bulk import jobs, newest first. */
+export const getBulkImportJobs = async () => {
+  const { data } = await getAuthenticatedHttpClient().get(getLmsUrl(BIODATA_USER_BULK_IMPORT_JOBS_PATH));
   return data;
 };
 

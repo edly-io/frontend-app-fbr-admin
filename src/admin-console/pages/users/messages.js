@@ -16,6 +16,16 @@ const messages = defineMessages({
     defaultMessage: 'All users across the FBR admin console, grouped by role.',
     description: 'Subtitle shown below the Users page title.',
   },
+  recentImportsButton: {
+    id: 'fbrAdmin.users.toolbar.recentImports',
+    defaultMessage: 'Recent imports',
+    description: 'Button label to open the list of recent bulk imports.',
+  },
+  importRunningButton: {
+    id: 'fbrAdmin.users.toolbar.importRunning',
+    defaultMessage: 'Importing…',
+    description: 'Import button label while one of the admin\'s imports is still running.',
+  },
   importButton: {
     id: 'fbrAdmin.users.toolbar.import',
     defaultMessage: 'Import',

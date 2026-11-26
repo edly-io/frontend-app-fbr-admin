@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-  act, render, screen, waitFor,
+  act, fireEvent, render, screen, waitFor,
 } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { IntlProvider } from 'react-intl';
@@ -32,8 +32,13 @@ jest.mock('../../data/api', () => ({
 }));
 
 // Mock sub-components that have heavy dependencies or are not under test
-jest.mock('./UsersToolbar', () => function MockUsersToolbar() {
-  return <div data-testid="users-toolbar" />;
+jest.mock('./UsersToolbar', () => /* eslint-disable react/prop-types */ function MockUsersToolbar(props) {
+  const { onRecentImports } = props;
+  return (
+    <div data-testid="users-toolbar">
+      <button type="button" onClick={onRecentImports}>Recent imports</button>
+    </div>
+  );
 });
 
 // Captured so a test can drive the filter callbacks without rendering the
@@ -58,6 +63,10 @@ jest.mock('../../components/user-modals/AddUserModal', () => function MockAddUse
 
 jest.mock('../../components/user-modals/BulkImportUsersModal', () => function MockBulkImportUsersModal() {
   return <div data-testid="bulk-import-modal" />;
+});
+
+jest.mock('../../components/user-modals/RecentImportsModal', () => function MockRecentImportsModal() {
+  return <div data-testid="recent-imports-modal" />;
 });
 
 jest.mock('../../components/user-modals/ViewUserModal', () => function MockViewUserModal() {
@@ -122,6 +131,14 @@ describe('UsersPage', () => {
   beforeEach(() => { filtersProps.length = 0; tableProps.length = 0; });
 
   afterEach(() => jest.clearAllMocks());
+
+  it('opens Recent imports from the toolbar', () => {
+    renderPage(['/']);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Recent imports' }));
+
+    expect(screen.getByTestId('recent-imports-modal')).toBeInTheDocument();
+  });
 
   it('renders users list in default list view', async () => {
     renderPage(['/']);

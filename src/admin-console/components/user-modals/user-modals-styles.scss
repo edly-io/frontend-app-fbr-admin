@@ -385,7 +385,12 @@
   background: var(--pgn-color-gray-100);
 }
 
+// Sticky so the column labels stay visible while a long result table scrolls.
 .bulk-import-modal__table-header-cell {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--pgn-color-gray-100);
   padding: 9px 12px;
   text-align: left;
   font-size: 11px;

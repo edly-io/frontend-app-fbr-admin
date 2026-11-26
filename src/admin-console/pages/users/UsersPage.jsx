@@ -15,6 +15,7 @@ import UsersFilters from './UsersFilters';
 import UsersTable from './UsersTable';
 import AddUserModal from '../../components/user-modals/AddUserModal';
 import BulkImportUsersModal from '../../components/user-modals/BulkImportUsersModal';
+import RecentImportsModal from '../../components/user-modals/RecentImportsModal';
 import ViewUserModal from '../../components/user-modals/ViewUserModal';
 import AuditLogTable from '../../../shared/AuditLogTable';
 import messages from './messages';
@@ -53,6 +54,7 @@ const UsersPage = () => {
 
   const [showAddModal, setShowAddModal] = useState(false);
   const [showBulkImportModal, setShowBulkImportModal] = useState(false);
+  const [showRecentImportsModal, setShowRecentImportsModal] = useState(false);
   const [assignmentUser, setAssignmentUser] = useState(null);
   const [viewingUser, setViewingUser] = useState(null);
   const [viewSourceTab, setViewSourceTab] = useState('all');
@@ -207,7 +209,11 @@ const UsersPage = () => {
         />
       ) : (
         <>
-          <UsersToolbar onImport={handleImport} onAdd={handleAdd} />
+          <UsersToolbar
+            onRecentImports={() => setShowRecentImportsModal(true)}
+            onImport={handleImport}
+            onAdd={handleAdd}
+          />
 
           <UsersFilters
             visibleTabs={visibleTabs}
@@ -252,6 +258,9 @@ const UsersPage = () => {
           onClose={handleModalClose}
           assignmentUser={assignmentUser}
         />
+      )}
+      {showRecentImportsModal && (
+        <RecentImportsModal onClose={() => setShowRecentImportsModal(false)} />
       )}
       {showBulkImportModal && (
         <BulkImportUsersModal onClose={() => setShowBulkImportModal(false)} />

@@ -12,9 +12,16 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { useIntl } from '@edx/frontend-platform/i18n';
 import { downloadBulkImportSample } from '../../data/api';
-import { useAdminConsoleBootstrap, useBulkImportFormat, useBulkImportUsersMutation } from '../../data/apiHooks';
+import {
+  useAdminConsoleBootstrap,
+  useBulkImportFormat,
+  useBulkImportJob,
+  useBulkImportUsersMutation,
+} from '../../data/apiHooks';
+import isBulkImportJobActive from '../../data/bulkImportJob';
 import { downloadBlob } from '../../utils/download';
 import messages from '../messages';
+import ImportJobOutcome, { formatErrors } from './ImportJobOutcome';
 import './user-modals-styles.scss';
 
 const ROLE_OPTIONS = [
@@ -39,12 +46,7 @@ const getApiErrorMessage = (error, fallback) => {
 const ResultStatus = ({ status }) => {
   const intl = useIntl();
   const isError = status === 'error';
-  let labelMessage = messages.resultStatusError;
-  if (status === 'valid') {
-    labelMessage = messages.resultStatusValid;
-  } else if (status === 'created') {
-    labelMessage = messages.resultStatusCreated;
-  }
+  const labelMessage = status === 'valid' ? messages.resultStatusValid : messages.resultStatusError;
   return (
     <span
       className={`bulk-import-modal__result-status ${isError ? 'bulk-import-modal__result-status--error' : 'bulk-import-modal__result-status--success'}`}
@@ -93,13 +95,6 @@ ColumnList.defaultProps = {
   className: '',
 };
 
-const formatErrors = errors => {
-  if (!errors || Object.keys(errors).length === 0) { return ''; }
-  return Object.entries(errors)
-    .map(([field, message]) => `${field}: ${Array.isArray(message) ? message.join(' ') : message}`)
-    .join(' | ');
-};
-
 /**
  * Bulk Import Users modal, self-contained: loads `allowedRoles` (creatable
  * roles) via `useAdminConsoleBootstrap`, imports via
@@ -137,7 +132,11 @@ const BulkImportUsersModal = ({ onClose }) => {
   );
   const [role, setRole] = useState(importableRoles[0]?.id || 'trainee');
   const [file, setFile] = useState(null);
+  // A Validate response; a real import is tracked through its job instead.
   const [result, setResult] = useState(null);
+  const [jobId, setJobId] = useState(null);
+  const { data: job } = useBulkImportJob(jobId);
+  const isJobRunning = Boolean(jobId) && (!job || isBulkImportJobActive(job));
   const [error, setError] = useState('');
   const [isDownloading, setIsDownloading] = useState(false);
   const [showColumns, setShowColumns] = useState(false);
@@ -147,7 +146,7 @@ const BulkImportUsersModal = ({ onClose }) => {
   const roleColumns = importFormat?.columns?.[role] || [];
   const requiredColumns = roleColumns.filter(column => column.required);
   const optionalColumns = roleColumns.filter(column => !column.required);
-  const canSubmit = importableRoles.length > 0 && file && !isSubmitting && !hasNoCity;
+  const canSubmit = importableRoles.length > 0 && file && !isSubmitting && !hasNoCity && !isJobRunning;
   // Which action is running, so only that button says "Processing...".
   const pendingDryRun = isSubmitting ? importMutation.variables?.dryRun : undefined;
   const processingLabel = intl.formatMessage(messages.processingButton);
@@ -178,28 +177,25 @@ const BulkImportUsersModal = ({ onClose }) => {
     }
 
     setError('');
+    setResult(null);
+    setJobId(null);
     try {
       const nextResult = await importMutation.mutateAsync({ role, file, dryRun });
-      setResult(nextResult);
+      if (dryRun) {
+        setResult(nextResult);
+      } else {
+        setJobId(nextResult.id);
+      }
     } catch (submitError) {
-      setResult(null);
       setError(getApiErrorMessage(submitError, intl.formatMessage(messages.unableToImportUsersError)));
     }
   };
 
   const closeDisabled = isSubmitting || isDownloading;
   const resultRows = [
-    [
-      messages.resultModeLabel,
-      result?.dry_run
-        ? intl.formatMessage(messages.resultModeDryRun)
-        : intl.formatMessage(messages.resultModeImport),
-    ],
+    [messages.resultModeLabel, intl.formatMessage(messages.resultModeDryRun)],
     [messages.resultTotalRows, result?.total],
-    [
-      result?.dry_run ? messages.resultValidRows : messages.resultCreated,
-      result?.dry_run ? result?.valid : result?.created,
-    ],
+    [messages.resultValidRows, result?.valid],
     [messages.resultFailed, result?.failed],
   ];
 
@@ -238,6 +234,7 @@ const BulkImportUsersModal = ({ onClose }) => {
                       onClick={() => {
                         setRole(option.id);
                         setResult(null);
+                        setJobId(null);
                         setError('');
                       }}
                       className={`bulk-import-modal__role-btn ${active ? 'bulk-import-modal__role-btn--active' : ''}`}
@@ -266,6 +263,7 @@ const BulkImportUsersModal = ({ onClose }) => {
                 onChange={event => {
                   setFile(event.target.files?.[0] || null);
                   setResult(null);
+                  setJobId(null);
                   setError('');
                 }}
               />
@@ -344,6 +342,8 @@ const BulkImportUsersModal = ({ onClose }) => {
         )}
 
         {error && <Alert variant="danger" className="mb-3">{error}</Alert>}
+
+        {jobId && <ImportJobOutcome job={job} />}
 
         {result && (
         <div className="bulk-import-modal__result">
