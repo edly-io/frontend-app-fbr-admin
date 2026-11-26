@@ -131,6 +131,16 @@ const messages = defineMessages({
     defaultMessage: 'This section is under construction.',
     description: 'Body copy shown on placeholder pages that have not been built yet.',
   },
+  breadcrumbLabel: {
+    id: 'fbrAdmin.shell.breadcrumb.label',
+    defaultMessage: 'Breadcrumb',
+    description: 'Accessible name of the breadcrumb navigation above each admin console page.',
+  },
+  sidebarLabel: {
+    id: 'fbrAdmin.shell.sidebar.label',
+    defaultMessage: 'Administration',
+    description: 'Accessible name of the admin console sidebar navigation.',
+  },
   breadcrumbAdministration: {
     id: 'fbrAdmin.shell.breadcrumb.administration',
     defaultMessage: 'Administration',

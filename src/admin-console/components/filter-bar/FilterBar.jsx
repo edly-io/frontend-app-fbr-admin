@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import classNames from 'classnames';
 import { Button, Form } from '@openedx/paragon';
 import DatepickerControl from '../../../shared/date-picker-control/DatepickerControl';
 import './filter-bar-styles.scss';
@@ -103,9 +104,9 @@ const FilterBar = ({
           <Button
             variant="primary"
             size="sm"
-            className="filter-bar__apply"
-            onClick={onApply}
-            disabled={isApplyDisabled}
+            className={classNames('filter-bar__apply', { disabled: isApplyDisabled })}
+            onClick={isApplyDisabled ? undefined : onApply}
+            aria-disabled={isApplyDisabled}
           >
             {applyLabel}
           </Button>
@@ -115,9 +116,9 @@ const FilterBar = ({
           <Button
             variant="tertiary"
             size="sm"
-            className="filter-bar__clear-all"
-            onClick={onClearAll}
-            disabled={isClearAllDisabled}
+            className={classNames('filter-bar__clear-all', { disabled: isClearAllDisabled })}
+            onClick={isClearAllDisabled ? undefined : onClearAll}
+            aria-disabled={isClearAllDisabled}
           >
             {clearAllLabel}
           </Button>

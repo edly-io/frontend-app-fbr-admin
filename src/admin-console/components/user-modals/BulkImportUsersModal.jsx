@@ -223,8 +223,8 @@ const BulkImportUsersModal = ({ onClose }) => {
         ) : (
           <>
             <Form.Group>
-              <Form.Label>{intl.formatMessage(messages.bulkImportTypeLabel)}</Form.Label>
-              <div className="bulk-import-modal__role-grid">
+              <Form.Label id="bulk-import-type-label">{intl.formatMessage(messages.bulkImportTypeLabel)}</Form.Label>
+              <div className="bulk-import-modal__role-grid" role="group" aria-labelledby="bulk-import-type-label">
                 {importableRoles.map(option => {
                   const active = option.id === role;
                   return (
@@ -237,6 +237,7 @@ const BulkImportUsersModal = ({ onClose }) => {
                         setJobId(null);
                         setError('');
                       }}
+                      aria-pressed={active}
                       className={`bulk-import-modal__role-btn ${active ? 'bulk-import-modal__role-btn--active' : ''}`}
                     >
                       {intl.formatMessage(option.labelMessage)}

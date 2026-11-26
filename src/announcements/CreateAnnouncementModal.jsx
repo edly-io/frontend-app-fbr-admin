@@ -85,6 +85,12 @@ const tinymceInit = () => {
     content_style: dark
       ? 'body { background-color: #131316; color: #E4E4E7; }'
       : 'body { background-color: #FFFFFF; color: #212529; }',
+    iframe_aria_text: 'Body',
+    setup: (editor) => {
+      editor.on('init', () => {
+        editor.getBody().setAttribute('aria-required', 'true');
+      });
+    },
   };
 };
 

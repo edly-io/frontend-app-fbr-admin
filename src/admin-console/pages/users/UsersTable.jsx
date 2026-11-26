@@ -85,7 +85,10 @@ StatusCell.propTypes = { value: PropTypes.string.isRequired };
 // so it falls back to the click handler.
 const EditAction = ({ user, onEdit, editUrl }) => {
   const intl = useIntl();
-  const label = intl.formatMessage(messages.editTooltip);
+  const label = intl.formatMessage(messages.rowActionLabel, {
+    action: intl.formatMessage(messages.editTooltip),
+    name: user.name,
+  });
 
   if (!editUrl) {
     return (
@@ -113,7 +116,7 @@ const EditAction = ({ user, onEdit, editUrl }) => {
 };
 
 EditAction.propTypes = {
-  user: PropTypes.shape({ id: PropTypes.number }).isRequired,
+  user: PropTypes.shape({ id: PropTypes.number, name: PropTypes.string }).isRequired,
   onEdit: PropTypes.func.isRequired,
   editUrl: PropTypes.string,
 };
@@ -131,12 +134,16 @@ const ActionsCell = ({ row, column }) => {
         src={Visibility}
         iconAs={Icon}
         size="sm"
-        alt={intl.formatMessage(messages.viewTooltip)}
+        alt={intl.formatMessage(messages.rowActionLabel, {
+          action: intl.formatMessage(messages.viewTooltip),
+          name: user.name,
+        })}
         onClick={() => column.onView(user)}
       />
       <EditAction user={user} onEdit={column.onEdit} editUrl={editUrl} />
       <ActionMenu
         userId={user.id}
+        userName={user.name}
         userStatus={user.status}
         canChangeStatus={user.canChangeStatus}
         openId={column.openMenuId}
@@ -154,6 +161,7 @@ ActionsCell.propTypes = {
   row: PropTypes.shape({
     original: PropTypes.shape({
       id: PropTypes.number.isRequired,
+      name: PropTypes.string,
       status: PropTypes.string,
       canChangeStatus: PropTypes.bool,
     }).isRequired,

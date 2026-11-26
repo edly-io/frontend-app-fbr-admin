@@ -459,10 +459,10 @@ const AddUserModal = ({ onClose, assignmentUser }) => {
 
       <ModalDialog.Body ref={contentRef}>
         <div className="add-user-modal__section">
-          <p className="add-user-modal__section-label">
+          <p id="add-user-role-label" className="add-user-modal__section-label">
             {intl.formatMessage(messages.roleSectionLabel)} <span className="add-user-modal__required-mark">*</span>
           </p>
-          <div className="add-user-modal__role-grid">
+          <div className="add-user-modal__role-grid" role="group" aria-labelledby="add-user-role-label">
             {visibleRoles.map((role) => {
               const active = selectedRole === role.id;
               return (
@@ -470,6 +470,7 @@ const AddUserModal = ({ onClose, assignmentUser }) => {
                   key={role.id}
                   type="button"
                   onClick={() => setSelectedRole(role.id)}
+                  aria-pressed={active}
                   className={`add-user-modal__role-btn ${active ? 'add-user-modal__role-btn--active' : ''}`}
                 >
                   <p
@@ -488,10 +489,10 @@ const AddUserModal = ({ onClose, assignmentUser }) => {
 
         {selectedRole === 'trainee' && (
         <div className="add-user-modal__section">
-          <p className="add-user-modal__section-label">
+          <p id="add-user-trainee-type-label" className="add-user-modal__section-label">
             {intl.formatMessage(messages.traineeTypeSectionLabel)} <span className="add-user-modal__required-mark">*</span>
           </p>
-          <div className="add-user-modal__trainee-grid">
+          <div className="add-user-modal__trainee-grid" role="group" aria-labelledby="add-user-trainee-type-label">
             {TRAINEE_TYPES.map((type) => {
               const active = traineeType === type.id;
               return (
@@ -499,6 +500,7 @@ const AddUserModal = ({ onClose, assignmentUser }) => {
                   key={type.id}
                   type="button"
                   onClick={() => setTraineeType(type.id)}
+                  aria-pressed={active}
                   className={`add-user-modal__trainee-btn ${active ? 'add-user-modal__trainee-btn--active' : ''}`}
                 >
                   <p

@@ -1,6 +1,8 @@
 import React from 'react';
+import { useIntl } from '@edx/frontend-platform/i18n';
 import AdminNavLinks from '../navigation/AdminNavLinks';
 import useAdminNavigation from '../navigation/useAdminNavigation';
+import messages from '../../messages';
 import './sidebar-styles.scss';
 
 /**
@@ -9,12 +11,13 @@ import './sidebar-styles.scss';
  * sheet. Hidden below `lg` by `admin-console-page-styles.scss`.
  */
 const Sidebar = () => {
+  const intl = useIntl();
   const { sections, badgeCounts } = useAdminNavigation();
 
   return (
-    <aside className="admin-sidebar">
+    <nav className="admin-sidebar" aria-label={intl.formatMessage(messages.sidebarLabel)}>
       <AdminNavLinks sections={sections} badgeCounts={badgeCounts} />
-    </aside>
+    </nav>
   );
 };
 

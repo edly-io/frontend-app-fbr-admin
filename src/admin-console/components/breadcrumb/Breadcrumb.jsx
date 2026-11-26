@@ -16,11 +16,15 @@ const Breadcrumb = ({ root, leaf }) => {
   const rootLabel = root || intl.formatMessage(messages.breadcrumbAdministration);
 
   return (
-    <p className="admin-breadcrumb mb-3">
-      <span>{rootLabel}</span>
-      <span className="admin-breadcrumb__divider mx-2">/</span>
-      <span className="admin-breadcrumb__leaf">{leaf}</span>
-    </p>
+    <nav className="admin-breadcrumb mb-3" aria-label={intl.formatMessage(messages.breadcrumbLabel)}>
+      <ol className="list-unstyled d-flex flex-wrap align-items-center m-0 p-0">
+        <li>
+          {rootLabel}
+          <span className="admin-breadcrumb__divider mx-2" aria-hidden="true">/</span>
+        </li>
+        <li className="admin-breadcrumb__leaf" aria-current="page">{leaf}</li>
+      </ol>
+    </nav>
   );
 };
 

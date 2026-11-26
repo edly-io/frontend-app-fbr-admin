@@ -270,6 +270,12 @@ const ReportDataTable = ({
         <DataTable.EmptyTable content={intl.formatMessage(messages.emptyState)} />
       </DataTable>
 
+      <span className="sr-only" role="status">
+        {!isLoading && (rows.length > 0
+          ? intl.formatMessage(messages.rowStatus, { firstRow, lastRow, itemCount: count })
+          : intl.formatMessage(messages.emptyState))}
+      </span>
+
       {rows.length > 0 && (
         <div className="report-data-table__footer d-flex flex-wrap align-items-center justify-content-between gap-2 mt-2">
           <span className="small text-gray-700" data-testid="row-status">

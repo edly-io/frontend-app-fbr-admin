@@ -1,6 +1,11 @@
 import { defineMessages } from '@edx/frontend-platform/i18n';
 
 const messages = defineMessages({
+  roleFilterGroupLabel: {
+    id: 'fbrAdmin.users.filters.roleGroup',
+    defaultMessage: 'Filter by role',
+    description: 'Accessible name of the row of role filter buttons above the users table.',
+  },
   breadcrumbLeaf: {
     id: 'fbrAdmin.users.breadcrumb',
     defaultMessage: 'Users',
@@ -160,6 +165,16 @@ const messages = defineMessages({
     id: 'fbrAdmin.users.row.emptyValue',
     defaultMessage: '—',
     description: 'Placeholder dash shown for an empty table cell value.',
+  },
+  rowActionLabel: {
+    id: 'fbrAdmin.users.row.actionLabel',
+    defaultMessage: '{action} {name}',
+    description: 'Accessible name for a row button: the visible action followed by the user it acts on, e.g. "Edit Adeel Farooq".',
+  },
+  actionMenuToggleFor: {
+    id: 'fbrAdmin.users.actionMenu.toggleFor',
+    defaultMessage: 'More actions for {name}',
+    description: 'Accessible label for the row three-dot action menu toggle button, naming the user.',
   },
   actionMenuToggle: {
     id: 'fbrAdmin.users.actionMenu.toggle',

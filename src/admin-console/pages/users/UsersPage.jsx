@@ -19,6 +19,7 @@ import RecentImportsModal from '../../components/user-modals/RecentImportsModal'
 import ViewUserModal from '../../components/user-modals/ViewUserModal';
 import AuditLogTable from '../../../shared/AuditLogTable';
 import messages from './messages';
+import shellMessages from '../../messages';
 import ViewToggle from '../../components/view-toggle/ViewToggle';
 
 const TAB_LABEL_MESSAGES = {
@@ -201,12 +202,17 @@ const UsersPage = () => {
       />
 
       {activeView === 'audit-log' ? (
-        <AuditLogTable
-          appLabel="biodata"
-          models={['fbrprofile', 'fbrprofilerole', 'biodataeditrequest']}
-          recordFilter={recordFilter}
-          onClearFilter={handleClearFilter}
-        />
+        <>
+          <h1 className="sr-only">
+            {`${intl.formatMessage(messages.pageTitle)}: ${intl.formatMessage(shellMessages.navAuditLog)}`}
+          </h1>
+          <AuditLogTable
+            appLabel="biodata"
+            models={['fbrprofile', 'fbrprofilerole', 'biodataeditrequest']}
+            recordFilter={recordFilter}
+            onClearFilter={handleClearFilter}
+          />
+        </>
       ) : (
         <>
           <UsersToolbar

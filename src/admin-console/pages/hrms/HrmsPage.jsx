@@ -70,7 +70,7 @@ const HrmsPage = () => {
           onChange={setSearch}
           placeholder={intl.formatMessage(messages.searchPlaceholder)}
         />
-        <span className="hrms-page__count">
+        <span className="hrms-page__count" role="status">
           {intl.formatMessage(messages.employeesCount, { count: displayedCount })}
         </span>
       </div>

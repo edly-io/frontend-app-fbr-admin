@@ -36,6 +36,11 @@ const messages = defineMessages({
     defaultMessage: '{count} pending',
     description: 'Count of pending signup approvals.',
   },
+  assignRoleFor: {
+    id: 'fbrAdmin.signupApprovals.assignRoleFor',
+    defaultMessage: 'Assign Role to {name}',
+    description: 'Accessible name of the Assign Role button, naming the person it is for.',
+  },
   assignRoleButton: {
     id: 'fbrAdmin.signupApprovals.assignRole',
     defaultMessage: 'Assign Role',

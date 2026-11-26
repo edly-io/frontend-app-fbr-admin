@@ -7,11 +7,19 @@ import messages from '../../pages/users/messages';
 import './action-menu-styles.scss';
 
 const ActionMenu = ({
-  userId, userStatus, canChangeStatus, onView, onEdit, editHref, onDeactivate, openId, setOpenId,
+  userId, userName, userStatus, canChangeStatus, onView, onEdit, editHref, onDeactivate, openId, setOpenId,
 }) => {
   const intl = useIntl();
   const isOpen = openId === userId;
   const isActive = userStatus === 'Active';
+  const withName = (message) => {
+    const action = intl.formatMessage(message);
+    return {
+      children: action,
+      'aria-label': userName ? intl.formatMessage(messages.rowActionLabel, { action, name: userName }) : undefined,
+    };
+  };
+  const statusAction = withName(isActive ? messages.actionMenuDeactivate : messages.actionMenuActivate);
   // Deactivate/Activate is admin-triggered only between Active and Deactivated.
   // Invited users auto-activate on first login; other statuses (On Leave,
   // Programme Closed, Lapsed) have their own flows — hide the toggle for all
@@ -31,31 +39,29 @@ const ActionMenu = ({
         src={MoreVert}
         iconAs={Icon}
         size="sm"
-        alt={intl.formatMessage(messages.actionMenuToggle)}
+        alt={userName
+          ? intl.formatMessage(messages.actionMenuToggleFor, { name: userName })
+          : intl.formatMessage(messages.actionMenuToggle)}
       />
       <Dropdown.Menu alignRight className="action-menu__menu">
-        <Dropdown.Item onClick={onView}>
-          {intl.formatMessage(messages.actionMenuViewProfile)}
-        </Dropdown.Item>
+        <Dropdown.Item onClick={onView} {...withName(messages.actionMenuViewProfile)} />
         <Dropdown.Item
           {...(editHref
             ? {
               as: 'a', href: editHref, target: '_blank', rel: 'noopener noreferrer',
             }
             : { onClick: onEdit })}
-        >
-          {intl.formatMessage(messages.actionMenuEditUser)}
-        </Dropdown.Item>
+          {...withName(messages.actionMenuEditUser)}
+        />
         {canToggleStatus && (
           <>
             <Dropdown.Divider />
             <Dropdown.Item
               className={isActive ? 'action-menu__item--danger' : 'action-menu__item--success'}
               onClick={onDeactivate}
+              aria-label={statusAction['aria-label']}
             >
-              {isActive
-                ? intl.formatMessage(messages.actionMenuDeactivate)
-                : intl.formatMessage(messages.actionMenuActivate)}
+              {statusAction.children}
             </Dropdown.Item>
           </>
         )}
@@ -66,6 +72,7 @@ const ActionMenu = ({
 
 ActionMenu.propTypes = {
   userId: PropTypes.number.isRequired,
+  userName: PropTypes.string,
   userStatus: PropTypes.string.isRequired,
   canChangeStatus: PropTypes.bool.isRequired,
   onView: PropTypes.func.isRequired,
@@ -79,6 +86,7 @@ ActionMenu.propTypes = {
 
 ActionMenu.defaultProps = {
   editHref: null,
+  userName: null,
   openId: null,
 };
 
