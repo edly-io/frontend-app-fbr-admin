@@ -36,7 +36,7 @@ const renderShell = () => render(
   </IntlProvider>,
 );
 
-const rail = () => screen.getByRole('complementary');
+const rail = () => screen.getByRole('navigation', { name: 'Administration' });
 const contextBarTrigger = () => screen.getByRole('button', { name: /Change section/ });
 
 beforeEach(() => {
@@ -96,7 +96,7 @@ describe('AdminConsolePage shell', () => {
 
     renderShell();
 
-    expect(screen.queryByRole('complementary')).not.toBeInTheDocument();
+    expect(screen.queryByRole('navigation', { name: 'Administration' })).not.toBeInTheDocument();
     expect(screen.queryByText('Documents page')).not.toBeInTheDocument();
   });
 
@@ -108,7 +108,7 @@ describe('AdminConsolePage shell', () => {
 
     renderShell();
 
-    expect(screen.queryByRole('complementary')).not.toBeInTheDocument();
+    expect(screen.queryByRole('navigation', { name: 'Administration' })).not.toBeInTheDocument();
     expect(screen.queryByText('Documents page')).not.toBeInTheDocument();
     expect(screen.getByText(/You are not authorized to view this page/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Sign in with a different account/i })).toBeInTheDocument();

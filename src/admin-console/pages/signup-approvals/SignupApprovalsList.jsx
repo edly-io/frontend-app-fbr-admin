@@ -76,7 +76,12 @@ const SignupApprovalsList = ({
               </p>
             </div>
             <div className="signup-approvals-list__actions">
-              <Button variant="primary" size="sm" onClick={() => onAssign(req)}>
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={() => onAssign(req)}
+                aria-label={intl.formatMessage(messages.assignRoleFor, { name })}
+              >
                 <FontAwesomeIcon icon={faCheck} className="signup-approvals-list__assign-icon" />
                 {intl.formatMessage(messages.assignRoleButton)}
               </Button>

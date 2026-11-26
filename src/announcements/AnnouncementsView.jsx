@@ -10,12 +10,14 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faPlus, faChevronDown, faChevronUp,
 } from '@fortawesome/free-solid-svg-icons';
+import { useIntl } from '@edx/frontend-platform/i18n';
 import { UserIdentity } from '@edly-io/frontend-component-fbr';
 import { listAnnouncements, getAnnouncementRecipients } from './api';
 import CreateAnnouncementModal from './CreateAnnouncementModal';
 import ViewAnnouncementModal from './ViewAnnouncementModal';
 import EditBannerExpiryModal from './EditBannerExpiryModal';
 import { formatCalendarDate, formatDateTime } from '../admin-console/utils/date';
+import shellMessages from '../admin-console/messages';
 import './AnnouncementsView.css';
 
 const CHANNEL_LABELS = { send_email: 'Email', send_banner: 'Banner', send_notification: 'Notification' };
@@ -249,7 +251,7 @@ const ActionsCell = ({ row, column }) => {
           src={Visibility}
           iconAs={Icon}
           size="sm"
-          alt="View announcement details"
+          alt={`View details for ${item.subject}`}
           onClick={() => onView(item)}
         />
       </OverlayTrigger>
@@ -266,7 +268,7 @@ const ActionsCell = ({ row, column }) => {
                 src={EditIcon}
                 iconAs={Icon}
                 size="sm"
-                alt="Banner expired"
+                alt={`Banner expired for ${item.subject}`}
                 disabled
               />
             </span>
@@ -280,7 +282,7 @@ const ActionsCell = ({ row, column }) => {
               src={EditIcon}
               iconAs={Icon}
               size="sm"
-              alt="Edit banner expiry date"
+              alt={`Edit banner expiry for ${item.subject}`}
               onClick={() => onEditExpiry(item)}
             />
           </OverlayTrigger>
@@ -346,6 +348,7 @@ ActionsCell.propTypes = {
 const PAGE_SIZE = 25;
 
 const AnnouncementsView = ({ sectionLabel }) => {
+  const intl = useIntl();
   const [announcements, setAnnouncements] = useState([]);
   const [count, setCount] = useState(0);
   const [pageIndex, setPageIndex] = useState(0);
@@ -435,11 +438,15 @@ const AnnouncementsView = ({ sectionLabel }) => {
 
   return (
     <>
-      <p className="ann-breadcrumb">
-        <span>{sectionLabel}</span>
-        <span className="ann-breadcrumb-sep">/</span>
-        <span className="ann-breadcrumb-active">Announcements</span>
-      </p>
+      <nav className="ann-breadcrumb" aria-label={intl.formatMessage(shellMessages.breadcrumbLabel)}>
+        <ol className="list-unstyled d-flex flex-wrap align-items-center m-0 p-0">
+          <li>
+            {sectionLabel}
+            <span className="ann-breadcrumb-sep" aria-hidden="true">/</span>
+          </li>
+          <li className="ann-breadcrumb-active" aria-current="page">Announcements</li>
+        </ol>
+      </nav>
 
       <div className="ann-view-header d-flex flex-column flex-md-row align-items-start justify-content-md-between">
         <h1 className="ann-view-title">Announcements</h1>

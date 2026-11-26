@@ -20,6 +20,7 @@ import {
 } from './api';
 import DocumentModal from './DocumentModal';
 import DebouncedSearchInput from '../admin-console/components/debounced-search-input/DebouncedSearchInput';
+import shellMessages from '../admin-console/messages';
 import messages from './messages';
 import './DocumentsView.scss';
 
@@ -152,7 +153,7 @@ const ActionsCell = ({ row, column }) => {
           src={Visibility}
           iconAs={Icon}
           size="sm"
-          alt="Preview document"
+          alt={`Preview ${doc.title}`}
           onClick={() => onPreview(doc)}
         />
       </OverlayTrigger>
@@ -161,7 +162,7 @@ const ActionsCell = ({ row, column }) => {
           src={LinkIcon}
           iconAs={Icon}
           size="sm"
-          alt="Copy shareable link"
+          alt={`Copy shareable link for ${doc.title}`}
           onClick={() => onCopyLink(doc)}
         />
       </OverlayTrigger>
@@ -180,7 +181,7 @@ const ActionsCell = ({ row, column }) => {
           iconAs={Icon}
           size="sm"
           variant={doc.is_public ? 'success' : 'primary'}
-          alt={doc.is_public ? 'Set document to private' : 'Set document to public'}
+          alt={`${doc.is_public ? 'Set to private' : 'Set to public'}: ${doc.title}`}
           onClick={() => onToggleVisibility(doc)}
         />
       </OverlayTrigger>
@@ -189,7 +190,7 @@ const ActionsCell = ({ row, column }) => {
           src={EditIcon}
           iconAs={Icon}
           size="sm"
-          alt="Edit document"
+          alt={`Edit ${doc.title}`}
           onClick={() => onEdit(doc)}
         />
       </OverlayTrigger>
@@ -199,7 +200,7 @@ const ActionsCell = ({ row, column }) => {
           iconAs={Icon}
           size="sm"
           variant="danger"
-          alt="Delete document"
+          alt={`Delete ${doc.title}`}
           onClick={() => onDelete(doc)}
         />
       </OverlayTrigger>
@@ -394,11 +395,15 @@ const DocumentsView = () => {
       {/* ── Page header ── */}
       <div className="docs-page-header d-flex flex-column flex-md-row align-items-start justify-content-md-between">
         <div>
-          <p className="docs-breadcrumb">
-            <span>Communications</span>
-            <span className="docs-breadcrumb-sep">/</span>
-            <span className="docs-breadcrumb-active">Documents</span>
-          </p>
+          <nav className="docs-breadcrumb" aria-label={intl.formatMessage(shellMessages.breadcrumbLabel)}>
+            <ol className="list-unstyled d-flex flex-wrap align-items-center m-0 p-0">
+              <li>
+                Communications
+                <span className="docs-breadcrumb-sep" aria-hidden="true">/</span>
+              </li>
+              <li className="docs-breadcrumb-active" aria-current="page">Documents</li>
+            </ol>
+          </nav>
           <h1 className="docs-view-title">Documents</h1>
           <p className="docs-view-desc">
             Upload and share files platform-wide. Copy a link and share it via announcements,

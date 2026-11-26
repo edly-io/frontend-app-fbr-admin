@@ -141,7 +141,7 @@ describe('DocumentsView', () => {
   it('shows delete confirmation modal when trash icon clicked', async () => {
     renderView();
     await screen.findByText('Annual Budget');
-    fireEvent.click(screen.getByLabelText('Delete document'));
+    fireEvent.click(screen.getByLabelText('Delete Annual Budget'));
     expect(await screen.findByText('Delete Document')).toBeInTheDocument();
     expect(screen.getByText(/Are you sure you want to delete/)).toBeInTheDocument();
   });
@@ -149,7 +149,7 @@ describe('DocumentsView', () => {
   it('closes delete modal when Cancel clicked', async () => {
     renderView();
     await screen.findByText('Annual Budget');
-    fireEvent.click(screen.getByLabelText('Delete document'));
+    fireEvent.click(screen.getByLabelText('Delete Annual Budget'));
     await screen.findByText('Delete Document');
     fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
     await waitFor(() => expect(screen.queryByText('Delete Document')).not.toBeInTheDocument());
@@ -158,7 +158,7 @@ describe('DocumentsView', () => {
   it('calls deleteDocument and refreshes list on confirm', async () => {
     renderView();
     await screen.findByText('Annual Budget');
-    fireEvent.click(screen.getByLabelText('Delete document'));
+    fireEvent.click(screen.getByLabelText('Delete Annual Budget'));
     await screen.findByText('Delete Document');
     // The danger Delete button is the last one with name "Delete"
     const deleteButtons = screen.getAllByRole('button', { name: /^Delete$/ });
@@ -174,7 +174,7 @@ describe('DocumentsView', () => {
     document.execCommand = jest.fn();
     renderView();
     await screen.findByText('Annual Budget');
-    fireEvent.click(screen.getByLabelText('Copy shareable link'));
+    fireEvent.click(screen.getByLabelText('Copy shareable link for Annual Budget'));
     expect(await screen.findByText(/Link copied for "Annual Budget"/)).toBeInTheDocument();
   });
 
@@ -183,7 +183,7 @@ describe('DocumentsView', () => {
   it('opens edit modal when edit icon clicked', async () => {
     renderView();
     await screen.findByText('Annual Budget');
-    fireEvent.click(screen.getByLabelText('Edit document'));
+    fireEvent.click(screen.getByLabelText('Edit Annual Budget'));
     expect(await screen.findByText('Edit Document')).toBeInTheDocument();
   });
 
@@ -203,7 +203,7 @@ describe('DocumentsView', () => {
     const openSpy = jest.spyOn(window, 'open').mockImplementation(() => {});
     renderView();
     await screen.findByText('Annual Budget');
-    fireEvent.click(screen.getByLabelText('Preview document'));
+    fireEvent.click(screen.getByLabelText('Preview Annual Budget'));
     expect(openSpy).toHaveBeenCalledWith(
       'http://lms.test/fbr/documents/doc-1/',
       '_blank',

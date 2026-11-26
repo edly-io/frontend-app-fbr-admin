@@ -11,6 +11,7 @@ import AddUserModal from '../../components/user-modals/AddUserModal';
 import DebouncedSearchInput from '../../components/debounced-search-input/DebouncedSearchInput';
 import AuditLogTable from '../../../shared/AuditLogTable';
 import messages from './messages';
+import shellMessages from '../../messages';
 import './signup-approvals-styles.scss';
 import ViewToggle from '../../components/view-toggle/ViewToggle';
 
@@ -91,12 +92,17 @@ const SignupApprovalsPage = () => {
       />
 
       {activeView === 'audit-log' ? (
-        <AuditLogTable
-          appLabel="biodata"
-          models={['fbrprofile']}
-          recordFilter={recordFilter}
-          onClearFilter={handleClearFilter}
-        />
+        <>
+          <h1 className="sr-only">
+            {`${intl.formatMessage(messages.pageTitle)}: ${intl.formatMessage(shellMessages.navAuditLog)}`}
+          </h1>
+          <AuditLogTable
+            appLabel="biodata"
+            models={['fbrprofile']}
+            recordFilter={recordFilter}
+            onClearFilter={handleClearFilter}
+          />
+        </>
       ) : (
         <>
           <SignupApprovalsToolbar onRefresh={handleRefresh} />

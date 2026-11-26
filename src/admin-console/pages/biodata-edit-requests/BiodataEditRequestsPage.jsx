@@ -9,6 +9,7 @@ import BiodataEditRequestsToolbar from './BiodataEditRequestsToolbar';
 import BiodataEditRequestsTable from './BiodataEditRequestsTable';
 import AuditLogTable from '../../../shared/AuditLogTable';
 import messages from './messages';
+import shellMessages from '../../messages';
 import './biodata-edit-requests-styles.scss';
 import ViewToggle from '../../components/view-toggle/ViewToggle';
 
@@ -111,12 +112,17 @@ const BiodataEditRequestsPage = () => {
       />
 
       {activeView === 'audit-log' ? (
-        <AuditLogTable
-          appLabel="biodata"
-          models={['biodataeditrequest']}
-          recordFilter={recordFilter}
-          onClearFilter={handleClearFilter}
-        />
+        <>
+          <h1 className="sr-only">
+            {`${intl.formatMessage(messages.pageTitle)}: ${intl.formatMessage(shellMessages.navAuditLog)}`}
+          </h1>
+          <AuditLogTable
+            appLabel="biodata"
+            models={['biodataeditrequest']}
+            recordFilter={recordFilter}
+            onClearFilter={handleClearFilter}
+          />
+        </>
       ) : (
         <>
           <BiodataEditRequestsToolbar onRefresh={() => refetch()} />

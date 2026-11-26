@@ -161,6 +161,16 @@ const messages = defineMessages({
     defaultMessage: '—',
     description: 'Placeholder dash shown for an empty table cell value.',
   },
+  rowActionLabel: {
+    id: 'fbrAdmin.users.row.actionLabel',
+    defaultMessage: '{action} {name}',
+    description: 'Accessible name for a row button: the visible action followed by the user it acts on, e.g. "Edit Adeel Farooq".',
+  },
+  actionMenuToggleFor: {
+    id: 'fbrAdmin.users.actionMenu.toggleFor',
+    defaultMessage: 'More actions for {name}',
+    description: 'Accessible label for the row three-dot action menu toggle button, naming the user.',
+  },
   actionMenuToggle: {
     id: 'fbrAdmin.users.actionMenu.toggle',
     defaultMessage: 'More actions',

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useId } from 'react';
 import PropTypes from 'prop-types';
 import { NavLink } from 'react-router-dom';
 import { Badge } from '@openedx/paragon';
@@ -46,12 +46,13 @@ const AdminNavLinks = ({
   sections, badgeCounts, withActiveIndicator, onNavigate,
 }) => {
   const intl = useIntl();
+  const idPrefix = useId();
 
   return (
     <>
       {sections.map(section => (
-        <div key={section.id}>
-          <p className="admin-sidebar__section-title">
+        <div key={section.id} role="group" aria-labelledby={`${idPrefix}-section-${section.id}`}>
+          <p id={`${idPrefix}-section-${section.id}`} className="admin-sidebar__section-title">
             {intl.formatMessage(SECTION_TITLE_MESSAGES[section.id])}
           </p>
           {section.items.map((item) => {
