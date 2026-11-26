@@ -584,6 +584,11 @@ const messages = defineMessages({
     defaultMessage: 'Started',
     description: 'Recent imports column: when the import started.',
   },
+  recentImportsColumnFile: {
+    id: 'fbrAdmin.recentImports.column.file',
+    defaultMessage: 'File',
+    description: 'Recent imports column: the name of the uploaded CSV file.',
+  },
   recentImportsColumnType: {
     id: 'fbrAdmin.recentImports.column.type',
     defaultMessage: 'Type',

@@ -43,6 +43,7 @@ OutcomeBadge.propTypes = {
 
 const COLUMNS = [
   messages.recentImportsColumnDate,
+  messages.recentImportsColumnFile,
   messages.recentImportsColumnType,
   messages.recentImportsColumnStatus,
   messages.recentImportsColumnCreated,
@@ -78,6 +79,7 @@ const JobsTable = ({ jobs, onView, focusJobId }) => {
               return (
                 <tr key={job.id} className="bulk-import-modal__table-row">
                   <td className="bulk-import-modal__table-cell">{started}</td>
+                  <td className="bulk-import-modal__table-cell text-break">{job.file_name}</td>
                   <td className="bulk-import-modal__table-cell">{intl.formatMessage(ROLE_LABELS[job.role])}</td>
                   <td className="bulk-import-modal__table-cell"><OutcomeBadge job={job} /></td>
                   <td className="bulk-import-modal__table-cell">
@@ -159,7 +161,12 @@ const RecentImportsModal = ({ onClose }) => {
     body = (
       <>
         <BackButton onClick={() => setViewedJobId(null)} />
-        {viewedJob ? <ImportJobOutcome job={viewedJob} /> : spinner}
+        {viewedJob ? (
+          <>
+            <p className="font-weight-bold text-break mt-3 mb-0">{viewedJob.file_name}</p>
+            <ImportJobOutcome job={viewedJob} />
+          </>
+        ) : spinner}
       </>
     );
   } else if (jobs.length === 0) {

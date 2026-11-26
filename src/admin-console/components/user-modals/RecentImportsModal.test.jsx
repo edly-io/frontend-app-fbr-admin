@@ -16,6 +16,7 @@ jest.mock('../../data/apiHooks', () => ({
 // The list endpoint returns summaries; failed rows come from the job itself.
 const job = overrides => ({
   id: 7,
+  file_name: 'karachi_batch.csv',
   role: 'trainee',
   status: 'completed',
   total_rows: 3,
@@ -50,11 +51,12 @@ describe('RecentImportsModal', () => {
     const rows = within(screen.getByRole('table')).getAllByRole('row');
     expect(rows).toHaveLength(3);
     expect(within(rows[0]).getAllByRole('columnheader').map(cell => cell.textContent)).toEqual(
-      ['Started', 'Type', 'Status', 'Users created', 'Details'],
+      ['Started', 'File', 'Type', 'Status', 'Users created', 'Details'],
     );
     expect(within(rows[1]).getByText('Instructors')).toBeInTheDocument();
     expect(within(rows[1]).getByText('In progress')).toBeInTheDocument();
     expect(within(rows[2]).getByText('Trainees')).toBeInTheDocument();
+    expect(within(rows[2]).getByText('karachi_batch.csv')).toBeInTheDocument();
     expect(within(rows[2]).getByText('2 of 3')).toBeInTheDocument();
   });
 
@@ -79,6 +81,7 @@ describe('RecentImportsModal', () => {
     fireEvent.click(screen.getByRole('button', { name: /^View/ }));
 
     expect(useBulkImportJob).toHaveBeenLastCalledWith(7);
+    expect(screen.getByText('karachi_batch.csv')).toBeInTheDocument();
     expect(screen.getByText('ali@example.com')).toBeInTheDocument();
     expect(screen.getByText('2 of 3 users created, 1 failed.')).toBeInTheDocument();
     expect(screen.getByText('batch: Batch not found.')).toBeInTheDocument();
