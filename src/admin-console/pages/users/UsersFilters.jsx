@@ -104,7 +104,7 @@ const UsersFilters = ({
               ))}
             </Dropdown.Menu>
           </Dropdown>
-          <span className="users-filters__count">
+          <span className="users-filters__count" role="status">
             {countLabel}
           </span>
         </div>

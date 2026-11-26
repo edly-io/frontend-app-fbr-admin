@@ -146,7 +146,7 @@ const BiodataEditRequestsPage = () => {
                 ))}
               </Dropdown.Menu>
             </Dropdown>
-            <span className="biodata-edit-requests-page__count">
+            <span className="biodata-edit-requests-page__count" role="status">
               {intl.formatMessage(messages.requestsCount, { count: totalRequests })}
             </span>
           </div>

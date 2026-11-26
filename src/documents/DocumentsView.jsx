@@ -436,7 +436,7 @@ const DocumentsView = () => {
             <option key={t.id} value={t.id}>{t.name}</option>
           ))}
         </Form.Control>
-        <span className="docs-count-label">
+        <span className="docs-count-label" role="status">
           {isLoading ? 'Loading…' : `${totalCount} document${totalCount !== 1 ? 's' : ''}`}
         </span>
       </div>

@@ -115,7 +115,7 @@ const SignupApprovalsPage = () => {
                 placeholder={intl.formatMessage(messages.searchPlaceholder)}
               />
             </div>
-            <span className="signup-approvals-page__count">
+            <span className="signup-approvals-page__count" role="status">
               {intl.formatMessage(messages.pendingCount, { count: totalApprovals })}
             </span>
           </div>

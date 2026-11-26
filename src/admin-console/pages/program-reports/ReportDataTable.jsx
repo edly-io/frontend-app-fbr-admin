@@ -49,8 +49,9 @@ const DescriptionCell = ({ value, row }) => {
 
   if (!description) {
     return (
-      <span className="report-description-cell" aria-label={intl.formatMessage(messages.programDescriptionEmpty)}>
-        {EMPTY_CELL_VALUE}
+      <span className="report-description-cell">
+        <span aria-hidden="true">{EMPTY_CELL_VALUE}</span>
+        <span className="sr-only">{intl.formatMessage(messages.programDescriptionEmpty)}</span>
       </span>
     );
   }
@@ -316,6 +317,12 @@ const ReportDataTable = ({
         <DataTable.Table />
         <DataTable.EmptyTable content={intl.formatMessage(messages.emptyState)} />
       </DataTable>
+
+      <span className="sr-only" role="status">
+        {!isLoading && (rows.length > 0
+          ? intl.formatMessage(messages.rowStatus, { firstRow, lastRow, itemCount: count })
+          : intl.formatMessage(messages.emptyState))}
+      </span>
 
       {rows.length > 0 && (
         <div className="report-data-table__footer d-flex flex-wrap align-items-center justify-content-between gap-2 mt-2">

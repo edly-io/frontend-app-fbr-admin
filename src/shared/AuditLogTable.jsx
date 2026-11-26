@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
 /* eslint-disable react/no-unstable-nested-components */
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import {
   ActionRow, Alert, Badge, Button, DataTable, Form, Icon, ModalDialog, Pagination, Spinner,
@@ -139,9 +139,22 @@ const RECORD_TYPE_LABELS = {
   publicholiday: 'Public Holiday',
 };
 
+// Sends focus back to the control that opened a modal, however it was closed (including Escape).
+const useReturnFocus = () => {
+  const [trigger] = useState(() => document.activeElement);
+  useEffect(() => () => {
+    setTimeout(() => {
+      if (trigger?.isConnected) {
+        trigger.focus();
+      }
+    });
+  }, [trigger]);
+};
+
 // ─── Changes detail modal ─────────────────────────────────────────────────────
 
 const ChangesModal = ({ entry, onClose }) => {
+  useReturnFocus();
   const {
     changes, object_repr: repr, timestamp, actor_name: actorName, actor_email: actorEmail, action,
   } = entry;
@@ -219,6 +232,7 @@ ChangesModal.propTypes = {
 const RecordHistoryModal = ({
   appLabel, recordType, objectId, objectRepr, onClose,
 }) => {
+  useReturnFocus();
   const [page, setPage] = useState(1);
   const [changesEntry, setChangesEntry] = useState(null);
 
@@ -653,7 +667,7 @@ const AuditLogTable = ({
             />
           </div>
         </div>
-        <span className="audit-log__count">
+        <span className="audit-log__count" role="status">
           {count} result{count !== 1 ? 's' : ''}
         </span>
         {hasActiveFilters && (

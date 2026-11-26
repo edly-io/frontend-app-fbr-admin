@@ -485,6 +485,10 @@ const AnnouncementsView = ({ sectionLabel }) => {
         </div>
       </div>
 
+      <span className="sr-only" role="status">
+        {!isLoading && `${count} announcement${count === 1 ? '' : 's'}`}
+      </span>
+
       <div className="ann-table-wrap">
         <DataTable
           key={`${filter}-${search}`}
