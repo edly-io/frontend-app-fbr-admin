@@ -483,9 +483,10 @@ const AuditLogTable = ({
                 return next;
               })}
               className="audit-log__batch-toggle"
+              aria-expanded={expandedBatches.has(batchId)}
             >
               <Badge variant="light">{batchCount} entries</Badge>
-              {' '}{expandedBatches.has(batchId) ? '▲' : '▼'}
+              {' '}<span aria-hidden="true">{expandedBatches.has(batchId) ? '▲' : '▼'}</span>
             </Button>
           );
         }

@@ -45,7 +45,7 @@ const UsersFilters = ({
 
   return (
     <>
-      <div className="users-filters__tabs">
+      <div className="users-filters__tabs" role="group" aria-label={intl.formatMessage(messages.roleFilterGroupLabel)}>
         {visibleTabs.map(tab => {
           const active = activeTab === tab.id;
           return (
@@ -53,6 +53,7 @@ const UsersFilters = ({
               key={tab.id}
               type="button"
               onClick={() => onTabChange(tab.id)}
+              aria-pressed={active}
               className={`users-filters__tab ${active ? 'users-filters__tab--active' : ''}`}
             >
               {intl.formatMessage(TAB_LABEL_MESSAGES[tab.id])}

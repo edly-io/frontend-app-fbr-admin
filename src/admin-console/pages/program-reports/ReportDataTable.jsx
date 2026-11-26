@@ -101,7 +101,7 @@ const ProgramExpandCell = ({ value, row }) => {
     <button
       type="button"
       className="report-expand-btn btn btn-link p-0 text-body text-left text-decoration-none report-text-cell--strong d-inline-flex align-items-start gap-2"
-      aria-expanded={row.isExpanded}
+      aria-expanded={Boolean(row.isExpanded)}
       title={intl.formatMessage(messages.toggleProgramOverviewAria, { program: value })}
       onClick={onClick}
     >

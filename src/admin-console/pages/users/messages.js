@@ -1,6 +1,11 @@
 import { defineMessages } from '@edx/frontend-platform/i18n';
 
 const messages = defineMessages({
+  roleFilterGroupLabel: {
+    id: 'fbrAdmin.users.filters.roleGroup',
+    defaultMessage: 'Filter by role',
+    description: 'Accessible name of the row of role filter buttons above the users table.',
+  },
   breadcrumbLeaf: {
     id: 'fbrAdmin.users.breadcrumb',
     defaultMessage: 'Users',

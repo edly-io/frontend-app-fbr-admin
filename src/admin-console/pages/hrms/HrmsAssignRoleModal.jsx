@@ -195,7 +195,7 @@ const HrmsAssignRoleModal = ({ employee, onClose, onSuccess }) => {
             <div
               id={roleSectionId}
               className="hrms-assign-modal__option-grid"
-              role="radiogroup"
+              role="group"
               aria-label={intl.formatMessage(messages.roleLabel)}
             >
               {visibleRoles.map(role => (
@@ -234,7 +234,7 @@ const HrmsAssignRoleModal = ({ employee, onClose, onSuccess }) => {
               <div
                 id={traineeTypeSectionId}
                 className="hrms-assign-modal__trainee-grid"
-                role="radiogroup"
+                role="group"
                 aria-label={intl.formatMessage(messages.traineeTypeLabel)}
               >
                 {TRAINEE_TYPES.map(type => (

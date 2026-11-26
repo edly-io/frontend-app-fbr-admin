@@ -181,8 +181,8 @@ const SubjectCell = ({ row }) => {
       type="button"
       className="ann-td-subject ann-td-subject--toggle"
       onClick={onClick}
-      aria-expanded={row.isExpanded}
       {...toggleProps}
+      aria-expanded={Boolean(row.isExpanded)}
     >
       {item.subject}
       <FontAwesomeIcon
@@ -470,12 +470,13 @@ const AnnouncementsView = ({ sectionLabel }) => {
           aria-label="Search by subject"
           className="ann-search-input"
         />
-        <div className="ann-filter-pills">
+        <div className="ann-filter-pills" role="group" aria-label="Filter by status">
           {FILTER_OPTIONS.map(opt => (
             <button
               key={opt.value}
               type="button"
               className={`ann-filter-pill${filter === opt.value ? ' ann-filter-pill--active' : ''}`}
+              aria-pressed={filter === opt.value}
               onClick={() => setFilter(opt.value)}
             >
               {opt.label}
