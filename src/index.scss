@@ -17,6 +17,12 @@ body {
   max-width: none;
 }
 
+// With the cell cap lifted, a long name would widen its column without limit.
+// Capping the identity itself lets UserIdentity cut the name off with an ellipsis.
+.pgn__data-table .user-identity {
+  max-width: 18rem;
+}
+
 // Move Paragon toast to top-right
 #toast-root.toast-container {
   top: 24px;
