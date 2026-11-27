@@ -187,8 +187,8 @@ const DocumentModal = ({ document, onClose, onSaved }) => {
           {/* ── Type + Description side by side ── */}
           <div className="doc-modal-row">
             <div className="doc-modal-col">
-              <Form.Group>
-                <Form.Label htmlFor="document-type-select">Document Type</Form.Label>
+              <Form.Group controlId="document-type-select">
+                <Form.Label>Document Type</Form.Label>
                 <DocumentTypeSelect
                   inputId="document-type-select"
                   value={selectedType}
